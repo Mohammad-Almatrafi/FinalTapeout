@@ -31,6 +31,7 @@ module wb_intercon
     input         wb_spi_flash_rty_i,
 
     // DATA MEM
+    
     output [31:0] wb_dmem_adr_o,
     output [31:0] wb_dmem_dat_o,
     output  [3:0] wb_dmem_sel_o,
@@ -84,7 +85,7 @@ module wb_intercon
     input  [31:0] wb_gpio_dat_i,
     input         wb_gpio_ack_i,
     input         wb_gpio_err_i,
-    input         wb_gpio_rty_i
+    input         wb_gpio_rty_i 
 );
 
 
