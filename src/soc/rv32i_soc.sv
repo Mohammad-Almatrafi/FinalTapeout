@@ -23,12 +23,23 @@ module rv32i_soc #(
 
 
 
+
+logic [31:0] current_pc;
+
     // ============================================
     //          Processor Core Instantiation
     // ============================================
-    
+    //Useless signals but for just connecting
+    logic stall_pipl;
+    logic if_id_reg_en;
     // Instantiate the processor core here 
-
+    rv32i inst_core(//Checked all the inputs, block is done. Reset is neg edge
+         .*,
+         .current_pc(current_pc),
+         .inst(imem_inst),//Check line 151
+         .if_id_reg_en(if_id_reg_en),
+         .stall_pipl(stall_pipl)               
+    );
 
     // ============================================
     //                 Wishbone Master
