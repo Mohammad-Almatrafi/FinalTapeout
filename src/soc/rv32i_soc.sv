@@ -55,27 +55,6 @@ module rv32i_soc #(
     );
     assign wb_m2s_io_cti = 0;
     assign wb_m2s_io_bte  = 0;
-<<<<<<< HEAD
-    // wishbone interconnect signals
-
-
-    // DATA MEM
-    logic  [31:0] wb_dmem_adr_o;
-    logic  [31:0] wb_dmem_dat_o;
-    logic   [3:0] wb_dmem_sel_o;
-    logic         wb_dmem_we_o;
-    logic         wb_dmem_cyc_o;
-    logic         wb_dmem_stb_o;
-    logic   [2:0] wb_dmem_cti_o;
-    logic   [1:0] wb_dmem_bte_o;
-    logic  [31:0] wb_dmem_dat_i;
-    logic         wb_dmem_ack_i;
-    logic         wb_dmem_err_i;
-    logic         wb_dmem_rty_i;
-
-
-=======
->>>>>>> main
     
     
 //===============================//
