@@ -38,13 +38,12 @@ logic [31:0] current_pc;
          .current_pc(current_pc),
          .inst(imem_inst),//Check line 151
          .if_id_reg_en(if_id_reg_en),
-         .stall_pipl(stall_pipl)               
+         .stall_pipl(stall_pipl)
     );
 
     // ============================================
     //                 Wishbone Master
     // ============================================
-    
     wishbone_controller wishbone_master (
         .clk        (clk),
         .rst        (~reset_n),
