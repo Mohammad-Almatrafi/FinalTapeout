@@ -1,9 +1,9 @@
 
 module rv32i_soc_fpag_top (
-    input logic CLK100MHZ, 
-    input logic CPU_RESETN, 
-    
-    // FPGA core signals 
+    input logic CLK100MHZ,
+    input logic CPU_RESETN,
+
+    // FPGA core signals
     output logic        o_uart_tx,
     input  logic        i_uart_rx,
     output logic        o_flash_cs_n,
@@ -13,12 +13,12 @@ module rv32i_soc_fpag_top (
 
     input logic [15:0] SW,
     output logic [15:0] LED
-);  
+);
 
     parameter DMEM_DEPTH = 128;
     parameter IMEM_DEPTH = 128;
-    
-    
+
+
     logic        o_flash_sclk;
     STARTUPE2 STARTUPE2
         (
@@ -36,13 +36,13 @@ module rv32i_soc_fpag_top (
         .USRDONEO  (1'b1),
         .USRDONETS (1'b0));
 
-    // soc core instance 
+    // soc core instance
 
-    // spi signals here 
+    // spi signals here
          // serial clock output
          // slave select (active low)
          // MasterOut SlaveIN
-         // MasterIn SlaveOut    
+         // MasterIn SlaveOut
 
     // uart signals
 

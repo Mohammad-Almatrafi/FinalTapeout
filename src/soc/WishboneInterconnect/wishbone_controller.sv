@@ -23,12 +23,12 @@ module wishbone_controller (
     input  wire        wb_ack_i       // Wishbone acknowledge
 );
 
-always_comb begin 
+always_comb begin
     wb_adr_o = proc_addr;
     wb_cyc_o = proc_write | proc_read;
     wb_stb_o = proc_write | proc_read;
     wb_we_o = proc_write;
-    if(proc_write | proc_read) begin 
+    if(proc_write | proc_read) begin
         proc_stall_pipl = ~wb_ack_i;
     end else proc_stall_pipl = 0; // currently there is no stall from the memory side
     // proc_stall_pipl = 0;

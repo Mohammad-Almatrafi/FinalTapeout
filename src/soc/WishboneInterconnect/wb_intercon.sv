@@ -14,9 +14,9 @@ module wb_intercon
     output [31:0] wb_io_dat_o,
     output        wb_io_ack_o,
     output        wb_io_err_o,
-    output        wb_io_rty_o,    
+    output        wb_io_rty_o,
 
-    // SPI FLASH SIGNALS 
+    // SPI FLASH SIGNALS
     output [31:0] wb_spi_flash_adr_o,
     output [31:0] wb_spi_flash_dat_o,
     output  [3:0] wb_spi_flash_sel_o,
@@ -34,7 +34,7 @@ module wb_intercon
     output [31:0] wb_dmem_adr_o,
     output [31:0] wb_dmem_dat_o,
     output  [3:0] wb_dmem_sel_o,
-    output        wb_dmem_we_o, 
+    output        wb_dmem_we_o,
     output        wb_dmem_cyc_o,
     output        wb_dmem_stb_o,
     output  [2:0] wb_dmem_cti_o,
@@ -44,7 +44,6 @@ module wb_intercon
     input         wb_dmem_err_i,
     input         wb_dmem_rty_i,
 
-    
     // IMEM
     output [31:0] wb_imem_adr_o,
     output [31:0] wb_imem_dat_o,
@@ -59,7 +58,7 @@ module wb_intercon
     input         wb_imem_err_i,
     input         wb_imem_rty_i,
 
-    // UART 
+    // UART
     output [31:0] wb_uart_adr_o,
     output [31:0] wb_uart_dat_o,
     output  [3:0] wb_uart_sel_o,

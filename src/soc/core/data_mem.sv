@@ -31,11 +31,11 @@ assign ack_o = wb_acc;
 logic [6:0] word_addr;
 assign word_addr = adr_i[8:2];
 
-// inst memory here 
+// inst memory here
 logic [31:0] dmem [0:DEPTH - 1];
 
-always_ff @(posedge clk_i) begin 
-    if(mem_write) begin 
+always_ff @(posedge clk_i) begin
+    if(mem_write) begin
         if(sel_i[0]) dmem[word_addr][7:0]   <= dat_i[7:0];
         if(sel_i[1]) dmem[word_addr][15:8]  <= dat_i[15:8];
         if(sel_i[2]) dmem[word_addr][23:16] <= dat_i[23:16];

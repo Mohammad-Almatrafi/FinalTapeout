@@ -2,11 +2,10 @@ module rv32i_soc #(
     parameter DMEM_DEPTH = 128,
     parameter IMEM_DEPTH = 128
 ) (
-    input logic clk, 
+    input logic clk,
     input logic reset_n,
 
     // spi signals to the spi-flash
-
     // uart signals
 
     // gpio signals
@@ -16,7 +15,7 @@ module rv32i_soc #(
 
     // Memory bus signals
     logic [31:0] mem_addr_mem;
-    logic [31:0] mem_wdata_mem; 
+    logic [31:0] mem_wdata_mem;
     logic        mem_write_mem;
     logic [2:0]  mem_op_mem;
     logic [31:0] mem_rdata_mem;
@@ -32,7 +31,7 @@ module rv32i_soc #(
 
 
     // ============================================
-    //                 Wishbone Master 
+    //                 Wishbone Master
     // ============================================
     
     wishbone_controller wishbone_master (
@@ -56,6 +55,23 @@ module rv32i_soc #(
     );
     assign wb_m2s_io_cti = 0;
     assign wb_m2s_io_bte  = 0;
+    // wishbone interconnect signals
+
+
+    // DATA MEM
+    logic  [31:0] wb_dmem_adr_o;
+    logic  [31:0] wb_dmem_dat_o;
+    logic   [3:0] wb_dmem_sel_o;
+    logic         wb_dmem_we_o;
+    logic         wb_dmem_cyc_o;
+    logic         wb_dmem_stb_o;
+    logic   [2:0] wb_dmem_cti_o;
+    logic   [1:0] wb_dmem_bte_o;
+    logic  [31:0] wb_dmem_dat_i;
+    logic         wb_dmem_ack_i;
+    logic         wb_dmem_err_i;
+    logic         wb_dmem_rty_i;
+
 
     
     // ============================================
@@ -67,7 +83,7 @@ module rv32i_soc #(
 
 
     // ============================================
-    //                   Peripherals 
+    //                   Peripherals
     // ============================================
     // Instantate the peripherals here
 
@@ -83,8 +99,8 @@ module rv32i_soc #(
     generate
             for( i = 0; i<32; i = i+1) 
             begin:gpio_gen_loop
-                bidirec gpio1  (.oe(en_gpio[i] ), .inp(o_gpio[i] ), .outp(i_gpio[i] ), .bidir(io_data[i] ));
-            end    
+                bidirec gpio1  (.oe(en_gpio[i] ), .inp(o_gpio[i] ), .outp(i_gpio[i] ), .bidir(io_data[i]));
+            end
     endgenerate
 
     // ============================================
@@ -101,7 +117,34 @@ module rv32i_soc #(
     // ============================================
 
     // Instantiate data memory here 
+     data_mem #(
+        .DEPTH(DMEM_DEPTH)
+     ) Data_mem(
+        // 8bit WISHBONE bus slave interface
+        .clk_i(clk),         // clock
+        .rst_i(~reset_n),         // reset (synchronous active high)
+        .cyc_i(wb_dmem_cyc_o),         // cycle
+        .stb_i(wb_dmem_stb_o),         // strobe
+        .adr_i(wb_dmem_adr_o),         // address
+        .we_i(wb_dmem_we_o),          // write enable
+        .sel_i(wb_dmem_sel_o),
+        .dat_i(wb_dmem_dat_o),         // data input
+        .dat_o(wb_dmem_dat_i),         // data output
+        .ack_o(wb_dmem_ack_i)         // normal bus termination
+    );
 
+    // logic  [31:0] wb_dmem_adr_o;
+    // logic  [31:0] wb_dmem_dat_o;
+    // logic   [3:0] wb_dmem_sel_o;
+    // logic         wb_dmem_we_o;
+    // logic         wb_dmem_cyc_o;
+    // logic         wb_dmem_stb_o;
+    // logic   [2:0] wb_dmem_cti_o;
+    // logic   [1:0] wb_dmem_bte_o;
+    // logic  [31:0] wb_dmem_dat_i;
+    // logic         wb_dmem_ack_i;
+    // logic         wb_dmem_err_i;
+    // logic         wb_dmem_rty_i;
 
     // ============================================
     //          Instruction Memory Instance
@@ -119,7 +162,7 @@ module rv32i_soc #(
     ) inst_mem_inst (
         .clk_i       (clk            ),
         .rst_i       (wb_rst         ),
-        .cyc_i       (wb_m2s_imem_cyc), 
+        .cyc_i       (wb_m2s_imem_cyc),
         .stb_i       (wb_m2s_imem_stb),
         .adr_i       (imem_addr      ),
         .we_i        (wb_m2s_imem_we ),
