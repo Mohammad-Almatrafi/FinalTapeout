@@ -45,26 +45,123 @@ module rv32i_soc #(
         .proc_op    (mem_op_mem),
         .proc_rdata (mem_rdata_mem),
         .proc_stall_pipl(stall_pipl), // Stall pipeline if needed
-        .wb_adr_o   (/*connect these signals*/),     // Connect to the external Wishbone bus as required
-        .wb_dat_o   (/*connect these signals*/),
-        .wb_sel_o   (/*connect these signals*/),
-        .wb_we_o    (/*connect these signals*/),
-        .wb_cyc_o   (/*connect these signals*/),
-        .wb_stb_o   (/*connect these signals*/),
+        .wb_adr_o   (wb_io_adr_i),     // Connect to the external Wishbone bus as required
+        .wb_dat_o   (wb_io_dat_i),
+        .wb_sel_o   (wb_io_sel_i),
+        .wb_we_o    (wb_io_we_i),
+        .wb_cyc_o   (wb_io_cyc_i),
+        .wb_stb_o   (wb_io_stb_i),
         .wb_dat_i   (/*connect these signals*/), // For simplicity, no data input
         .wb_ack_i   (/*connect these signals*/)   // For simplicity, no acknowledgment signal
     );
     assign wb_m2s_io_cti = 0;
     assign wb_m2s_io_bte  = 0;
-
     
+    
+//===============================//
+// Wishbone interconnect signals//
+//===============================//  
+              
+    // IO ( wb master signals ) 
+                                   
+              
+logic  [31:0] wb_io_adr_i;               
+logic  [31:0] wb_io_dat_i;               
+logic   [3:0] wb_io_sel_i;               
+logic         wb_io_we_i;               
+logic         wb_io_cyc_i;               
+logic         wb_io_stb_i;               
+logic   [2:0] wb_io_cti_i;               
+logic   [1:0] wb_io_bte_i;               
+logic  [31:0] wb_io_dat_o;               
+logic         wb_io_ack_o;               
+logic         wb_io_err_o;               
+logic         wb_io_rty_o;  
+             
+    // SPI FLASH SIGNALS 
+                                        
+                    
+logic  [31:0] wb_spi_flash_adr_o;        
+logic  [31:0] wb_spi_flash_dat_o;        
+logic   [3:0] wb_spi_flash_sel_o;        
+logic         wb_spi_flash_we_o;        
+logic         wb_spi_flash_cyc_o;        
+logic         wb_spi_flash_stb_o;        
+logic   [2:0] wb_spi_flash_cti_o;        
+logic   [1:0] wb_spi_flash_bte_o;        
+logic  [31:0] wb_spi_flash_dat_i;        
+logic         wb_spi_flash_ack_i;        
+logic         wb_spi_flash_err_i;        
+logic         wb_spi_flash_rty_i;        
+                                    
+//  DATA MEM  
+                            
+logic  [31:0] wb_dmem_adr_o;             
+logic  [31:0] wb_dmem_dat_o;             
+logic   [3:0] wb_dmem_sel_o;             
+logic         wb_dmem_we_o;             
+logic         wb_dmem_cyc_o;             
+logic         wb_dmem_stb_o;             
+logic   [2:0] wb_dmem_cti_o;             
+logic   [1:0] wb_dmem_bte_o;             
+logic  [31:0] wb_dmem_dat_i;             
+logic         wb_dmem_ack_i;             
+logic         wb_dmem_err_i;             
+logic         wb_dmem_rty_i;             
+                                    
+    // IMEM
+                                 
+logic  [31:0] wb_imem_adr_o;           
+logic  [31:0] wb_imem_dat_o;           
+logic   [3:0] wb_imem_sel_o;           
+logic         wb_imem_we_o;           
+logic         wb_imem_cyc_o;           
+logic         wb_imem_stb_o;           
+logic   [2:0] wb_imem_cti_o;           
+logic   [1:0] wb_imem_bte_o;           
+logic  [31:0] wb_imem_dat_i;           
+logic         wb_imem_ack_i;           
+logic         wb_imem_err_i;           
+logic         wb_imem_rty_i;
+                           
+    // UART                
+                              
+logic  [31:0] wb_uart_adr_o;           
+logic  [31:0] wb_uart_dat_o;           
+logic   [3:0] wb_uart_sel_o;           
+logic         wb_uart_we_o;           
+logic         wb_uart_cyc_o;           
+logic         wb_uart_stb_o;           
+logic   [2:0] wb_uart_cti_o;           
+logic   [1:0] wb_uart_bte_o;           
+logic  [31:0] wb_uart_dat_i;           
+logic         wb_uart_ack_i;           
+logic         wb_uart_err_i;           
+logic         wb_uart_rty_i;
+                           
+    // GPIO                
+                             
+logic  [31:0] wb_gpio_adr_o;           
+logic  [31:0] wb_gpio_dat_o;           
+logic   [3:0] wb_gpio_sel_o;           
+logic         wb_gpio_we_o;           
+logic         wb_gpio_cyc_o;           
+logic         wb_gpio_stb_o;           
+logic   [2:0] wb_gpio_cti_o;           
+logic   [1:0] wb_gpio_bte_o;           
+logic  [31:0] wb_gpio_dat_i;           
+logic         wb_gpio_ack_i;           
+logic         wb_gpio_err_i;           
+logic         wb_gpio_rty_i;           
+     
+
     // ============================================
     //             Wishbone Interconnect 
     // ============================================
     
-    // Instantiate the wishbone interconnect here 
-  
-
+      wb_intercon  wishbone_intercon (.wb_clk_i(clk),
+                                      .wb_rst_i(reset_n),
+                                      .*);
 
     // ============================================
     //                   Peripherals 
@@ -91,9 +188,25 @@ module rv32i_soc #(
     //                 GPIO Instantiation
     // ============================================
 
-    // Instantiate the GPIO peripheral here 
+    gpio_top #(.DEPTH(IMEM_DEPTH)) GPIO  ( 
+                    .wb_clk_i(clk),   
+                    .wb_rst_i(reset_n), 
+                    .wb_cyc_i(wb_gpio_cyc_o),   
+                    .wb_adr_i(wb_gpio_adr_o),   
+                    .wb_dat_i(wb_gpio_dat_o),   
+                    .wb_sel_i(wb_gpio_sel_o),   
+                    .wb_we_i(wb_gpio_we_o)  ,  
+                    .wb_stb_i(wb_gpio_stb_o) ,  
+	                .wb_dat_o(wb_gpio_dat_i) , 
+	                .wb_ack_o(wb_gpio_ack_i) , 
+	                .wb_err_o(wb_gpio_err_i) , 
+	                
+                    .i_gpio(i_gpio),
+                    .o_gpio(o_gpio),
+                    .en_gpio(en_gpio)
+                    
 
-   
+   );
 
 
     // ============================================
