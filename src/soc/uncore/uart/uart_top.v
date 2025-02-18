@@ -167,9 +167,9 @@ input 								 wb_clk_i;
 
 // WISHBONE interface
 input 								 wb_rst_i;
-input [2:0] 	 wb_adr_i;
-input [7:0] 	 wb_dat_i;
-output [7:0] 	 wb_dat_o;
+input [2:0] 	                     wb_adr_i;
+input [7:0] 	                     wb_dat_i;
+output [7:0] 	                     wb_dat_o;
 input 								 wb_we_i;
 input 								 wb_stb_i;
 input 								 wb_cyc_i;

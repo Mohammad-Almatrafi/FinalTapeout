@@ -7,7 +7,8 @@ module rv32i_soc #(
 
     // spi signals to the spi-flash
     // uart signals
-
+    input 		i_uart_rx,
+    output 		o_uart_tx,
     // gpio signals
     inout wire [31:0]   io_data
 );
@@ -148,7 +149,7 @@ logic         wb_uart_stb_o;
 logic   [2:0] wb_uart_cti_o;           
 logic   [1:0] wb_uart_bte_o;           
 logic  [31:0] wb_uart_dat_i;           
-logic         wb_uart_ack_i = 1'b1;           
+logic         wb_uart_ack_i;           
 logic         wb_uart_err_i;           
 logic         wb_uart_rty_i;
                            
@@ -258,34 +259,30 @@ logic         wb_gpio_rty_i;
     // ============================================
     //          UART Instance
     // ============================================
-//    logic  [31:0] wb_uart_adr_o;           
-//logic  [31:0] wb_uart_dat_o;           
-//logic   [3:0] wb_uart_sel_o;           
-//logic         wb_uart_we_o;           
-//logic         wb_uart_cyc_o;           
-//logic         wb_uart_stb_o;           
-//logic   [2:0] wb_uart_cti_o;           
-//logic   [1:0] wb_uart_bte_o;           
-//logic  [31:0] wb_uart_dat_i;           
-//logic         wb_uart_ack_i = 1'b1;           
-//logic         wb_uart_err_i;           
-//logic         wb_uart_rty_i;
+    //input 		srx_pad_i;
+    //output 		stx_pad_o;
+    //output 		rts_pad_o;
+    //input 		cts_pad_i;
+    //output 		dtr_pad_o;
+    //input 		dsr_pad_i;
+    //input 		ri_pad_i;
+    //input 		dcd_pad_i;
 
     uart_top UART(
- 	              .wb_adr_i(wb_uart_adr_o) ,
-                  .wb_dat_i(wb_uart_dat_o) ,
- 	              .wb_dat_o(wb_uart_dat_i) ,
- 				  .wb_cyc_i(wb_uart_cyc_o) ,
+ 	              .wb_adr_i(wb_uart_adr_o),
+                  .wb_dat_i(wb_uart_dat_o),
+ 	              .wb_dat_o(wb_uart_dat_i),
+ 				  .wb_cyc_i(wb_uart_cyc_o),
                   .wb_clk_i(clk),
-                  .wb_rst_i(reset_n),       
+                  .wb_rst_i(~reset_n),
                   .wb_we_i (wb_uart_we_o),
                   .wb_stb_i(wb_uart_stb_o),
-                  .wb_cyc_i(wb_uart_cyc_o),
                   .wb_sel_i(wb_uart_sel_o),
                   //.int_o   (),
-                  .wb_ack_o(wb_uart_ack_i)
-                    );
-    
+                  .wb_ack_o(wb_uart_ack_i),
+                  .srx_pad_i(i_uart_rx), 
+                  .stx_pad_o(o_uart_tx)
+    );
     // ============================================
     //          Instruction Memory Instance
     // ============================================
