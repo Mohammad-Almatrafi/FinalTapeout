@@ -32,7 +32,8 @@ module rv32i_soc_tb;
 
    // initializing the instruction memory after every reset
    initial begin
-       $readmemh("/home/it/Documents/rvsoc_v3/src/tb/uart_receiver/machine.hex", DUT.inst_mem_inst.dmem);
+       $readmemh("fib.mem", DUT.inst_mem_inst.dmem);
+       $readmemh("fib.mem", DUT.rom_instance.rom);
    end // wait 
 
    initial begin 

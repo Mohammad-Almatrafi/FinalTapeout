@@ -33,10 +33,13 @@ logic [31:0] current_pc;
     logic stall_pipl;
     logic if_id_reg_en;
     // Instantiate the processor core here 
-    rv32i inst_core(//Checked all the inputs, block is done. Reset is neg edge
+    rv32i #(
+        .DMEM_DEPTH(1024),
+        .IMEM_DEPTH(1024)
+     )rv32i_core_inst(//Checked all the inputs, block is done. Reset is neg edge
          .*,
          .current_pc(current_pc),
-         .inst(imem_inst),//Check line 151
+         .inst(rom_inst_ff),//Check line 151
          .if_id_reg_en(if_id_reg_en),
          .stall_pipl(stall_pipl)
     );
@@ -45,6 +48,7 @@ logic [31:0] current_pc;
     //                 Wishbone Master
     // ============================================
     wishbone_controller wishbone_master (
+        .*,
         .clk        (clk),
         .rst        (~reset_n),
         .proc_addr  (mem_addr_mem),
@@ -60,8 +64,8 @@ logic [31:0] current_pc;
         .wb_we_o    (wb_io_we_i),
         .wb_cyc_o   (wb_io_cyc_i),
         .wb_stb_o   (wb_io_stb_i),
-        .wb_dat_i   (/*connect these signals*/), // For simplicity, no data input
-        .wb_ack_i   (/*connect these signals*/)   // For simplicity, no acknowledgment signal
+        .wb_dat_i   (0), // For simplicity, no data input
+        .wb_ack_i   (wb_io_ack_o)   // For simplicity, no acknowledgment signal
     );
     assign wb_m2s_io_cti = 0;
     assign wb_m2s_io_bte  = 0;
@@ -169,7 +173,7 @@ logic         wb_gpio_rty_i;
     // ============================================
     
       wb_intercon  wishbone_intercon (.wb_clk_i(clk),
-                                      .wb_rst_i(reset_n),
+                                      .wb_rst_i(~reset_n),
                                       .*);
 
     // ============================================
@@ -197,9 +201,9 @@ logic         wb_gpio_rty_i;
     //                 GPIO Instantiation
     // ============================================
 
-    gpio_top #(.DEPTH(IMEM_DEPTH)) GPIO  ( 
+    gpio_top  GPIO  ( 
                     .wb_clk_i(clk),   
-                    .wb_rst_i(reset_n), 
+                    .wb_rst_i(~reset_n), 
                     .wb_cyc_i(wb_gpio_cyc_o),   
                     .wb_adr_i(wb_gpio_adr_o),   
                     .wb_dat_i(wb_gpio_dat_o),   
@@ -225,7 +229,7 @@ logic         wb_gpio_rty_i;
     // Instantiate data memory here 
      data_mem #(
         .DEPTH(DMEM_DEPTH)
-     ) Data_mem(
+     ) data_mem_inst(
         // 8bit WISHBONE bus slave interface
         .clk_i(clk),         // clock
         .rst_i(~reset_n),         // reset (synchronous active high)
@@ -261,24 +265,24 @@ logic         wb_gpio_rty_i;
     logic [31:0] imem_addr;
     
 
-    assign imem_addr = sel_boot_rom ? wb_m2s_dmem_adr: current_pc;
+    assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
 
     data_mem #(
         .DEPTH(IMEM_DEPTH)
     ) inst_mem_inst (
         .clk_i       (clk            ),
-        .rst_i       (wb_rst         ),
-        .cyc_i       (wb_m2s_imem_cyc),
-        .stb_i       (wb_m2s_imem_stb),
-        .adr_i       (imem_addr      ),
-        .we_i        (wb_m2s_imem_we ),
-        .sel_i       (wb_m2s_imem_sel),
-        .dat_i       (wb_m2s_imem_dat),
-        .dat_o       (wb_s2m_imem_dat),
-        .ack_o       (wb_s2m_imem_ack)
+        .rst_i       (~reset_n         ),
+        .cyc_i       (wb_imem_cyc_o),
+        .stb_i       (wb_imem_stb_o),
+        .adr_i       (wb_imem_adr_o),
+        .we_i        (wb_imem_we_o ),
+        .sel_i       (wb_imem_sel_o),
+        .dat_i       (wb_imem_dat_o),
+        .dat_o       (wb_imem_dat_i),
+        .ack_o       (wb_imem_ack_i)
     );
 
-    assign imem_inst = wb_s2m_imem_dat;
+    assign imem_inst = wb_imem_dat_i;
 
 
     // BOOT ROM 
@@ -302,7 +306,11 @@ logic         wb_gpio_rty_i;
 
 
     // Inst selection mux
+    logic sel_boot_rom;
+    logic sel_boot_rom_ff;
+    
     assign sel_boot_rom = &current_pc[31:12]; // 0xfffff000 - to - 0xffffffff 
+    
     always @(posedge clk) sel_boot_rom_ff <= sel_boot_rom;
     mux2x1 #(
         .n(32)

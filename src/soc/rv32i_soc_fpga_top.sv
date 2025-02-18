@@ -4,11 +4,11 @@ module rv32i_soc_fpag_top (
     input logic CPU_RESETN,
 
     // FPGA core signals
-    output logic        o_uart_tx,
-    input  logic        i_uart_rx,
-    output logic        o_flash_cs_n,
-    output logic        o_flash_mosi,
-    input  logic        i_flash_miso,
+//    output logic        o_uart_tx,
+//    input  logic        i_uart_rx,
+//    output logic        o_flash_cs_n,
+//    output logic        o_flash_mosi,
+//    input  logic        i_flash_miso,
 
 
     input logic [15:0] SW,
