@@ -39,7 +39,7 @@ logic [31:0] current_pc;
      )rv32i_core_inst(//Checked all the inputs, block is done. Reset is neg edge
          .*,
          .current_pc(current_pc),
-         .inst(rom_inst_ff),//Check line 151
+         .inst(inst),//Check line 151
          .if_id_reg_en(if_id_reg_en),
          .stall_pipl(stall_pipl)
     );
@@ -148,7 +148,7 @@ logic         wb_uart_stb_o;
 logic   [2:0] wb_uart_cti_o;           
 logic   [1:0] wb_uart_bte_o;           
 logic  [31:0] wb_uart_dat_i;           
-logic         wb_uart_ack_i;           
+logic         wb_uart_ack_i = 1'b1;           
 logic         wb_uart_err_i;           
 logic         wb_uart_rty_i;
                            
@@ -255,7 +255,37 @@ logic         wb_gpio_rty_i;
     // logic         wb_dmem_ack_i;
     // logic         wb_dmem_err_i;
     // logic         wb_dmem_rty_i;
+    // ============================================
+    //          UART Instance
+    // ============================================
+//    logic  [31:0] wb_uart_adr_o;           
+//logic  [31:0] wb_uart_dat_o;           
+//logic   [3:0] wb_uart_sel_o;           
+//logic         wb_uart_we_o;           
+//logic         wb_uart_cyc_o;           
+//logic         wb_uart_stb_o;           
+//logic   [2:0] wb_uart_cti_o;           
+//logic   [1:0] wb_uart_bte_o;           
+//logic  [31:0] wb_uart_dat_i;           
+//logic         wb_uart_ack_i = 1'b1;           
+//logic         wb_uart_err_i;           
+//logic         wb_uart_rty_i;
 
+    uart_top UART(
+ 	              .wb_adr_i(wb_uart_adr_o) ,
+                  .wb_dat_i(wb_uart_dat_o) ,
+ 	              .wb_dat_o(wb_uart_dat_i) ,
+ 				  .wb_cyc_i(wb_uart_cyc_o) ,
+                  .wb_clk_i(clk),
+                  .wb_rst_i(reset_n),       
+                  .wb_we_i (wb_uart_we_o),
+                  .wb_stb_i(wb_uart_stb_o),
+                  .wb_cyc_i(wb_uart_cyc_o),
+                  .wb_sel_i(wb_uart_sel_o),
+                  //.int_o   (),
+                  .wb_ack_o(wb_uart_ack_i)
+                    );
+    
     // ============================================
     //          Instruction Memory Instance
     // ============================================
@@ -264,7 +294,8 @@ logic         wb_gpio_rty_i;
 
     logic [31:0] imem_addr;
     
-
+    logic [31:0] inst;
+    
     assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
 
     data_mem #(
