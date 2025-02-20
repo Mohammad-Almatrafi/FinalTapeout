@@ -40,7 +40,7 @@ logic [31:0] current_pc;
      )rv32i_core_inst(//Checked all the inputs, block is done. Reset is neg edge
          .*,
          .current_pc(current_pc),
-         .inst(inst),//Check line 151
+         .inst(inst),
          .if_id_reg_en(if_id_reg_en),
          .stall_pipl(stall_pipl)
     );
@@ -65,7 +65,7 @@ logic [31:0] current_pc;
         .wb_we_o    (wb_io_we_i),
         .wb_cyc_o   (wb_io_cyc_i),
         .wb_stb_o   (wb_io_stb_i),
-        .wb_dat_i   (0), // For simplicity, no data input
+        .wb_dat_i   (wb_io_dat_o), // For simplicity, no data input
         .wb_ack_i   (wb_io_ack_o)   // For simplicity, no acknowledgment signal
     );
     assign wb_m2s_io_cti = 0;

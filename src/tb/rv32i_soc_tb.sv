@@ -15,7 +15,8 @@ module rv32i_soc_tb;
 
     // Dut instantiation
     rv32i_soc DUT(
-        .*
+        .*,
+        .i_uart_rx(o_uart_tx)
     );
 
     // Clock generator 

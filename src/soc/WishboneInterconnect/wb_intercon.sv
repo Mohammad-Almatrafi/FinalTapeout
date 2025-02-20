@@ -102,7 +102,9 @@ module wb_intercon
   // 0x30000000 - 0x3FFFFFFF	Boot ROM
   // 0x40000000 - 0x4FFFFFFF	MMIO (Memory-Mapped I/O)
   // 0x80000000 - 0xFFFFFFFF	External DRAM
-
+//  logic [31:0] int_wb_io_dat_o;
+//  assign wb_io_dat_o = int_wb_io_dat_o | {'b0 , int_wb_io_dat_o[7:0]};
+  
 wb_mux
   #(.num_slaves (5),
     .MATCH_ADDR ({32'h20000200, 32'h00000000, 32'h10000000, 32'h20000100, 32'h20000000}),
