@@ -6,6 +6,9 @@ module data_path #(
 )(
     input logic clk, 
     input logic reset_n,
+    
+    
+    input logic [31:0] mip_in,
 
     // outputs to controller 
     output logic [6:0] opcode_id,
@@ -27,6 +30,8 @@ module data_path #(
     input logic auipc_id, 
     input logic jal_id,
     input logic [1:0] alu_op_id,
+//    input logic [1:0] mem_csr_to_reg_id,
+    input logic csr_type_id,
 
     input logic [3:0] alu_ctrl_exe,
     input logic pc_sel_mem,
@@ -80,7 +85,17 @@ module data_path #(
     input logic [31:0] inst_if
 );
     
-    logic [31:0] inst_id;
+    logic [31:0] mip;
+//    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
+    logic        csr_type_exe, csr_type_mem;
+    logic [31:0] mcause; 
+    logic [31:0] csr_out;
+    logic [31:0] mepc;
+    logic        MIE;
+    logic [31:0] mie;     
+    logic [31:0] mtvec;    
+    
+    logic [31:0] inst_id,inst_exe,inst_mem;
     logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
     logic [31:0] reg_rdata1_id, reg_rdata1_exe;
     logic [31:0] reg_rdata2_id, reg_rdata2_exe;
@@ -112,6 +127,7 @@ module data_path #(
         .*,
         .en(pc_reg_en)
     );
+
 
 
     // pc adder 
@@ -252,7 +268,7 @@ module data_path #(
 
 
     // Immediate unit (decode stage_)
-    imm_gen imm_gen_inst (
+    imm_gen imm_gen_inst ( 
         .inst(inst_id),
         .j_type(jal_id),
         .b_type(branch_id),
@@ -287,6 +303,7 @@ module data_path #(
 
     assign id_exe_bus_i = {
         // data signals 
+        inst_id,
         current_pc_id, // 32
         pc_plus_4_id,  // 32
         rs1_id,        // 32
@@ -298,6 +315,8 @@ module data_path #(
         reg_rdata2_id,
         imm_id,
         // control signals
+        mem_to_reg_id,
+        csr_type_id,
         reg_write_id,
         mem_write_id,
         mem_to_reg_id, 
@@ -322,6 +341,7 @@ module data_path #(
     );
 
     // data signals 
+    assign inst_exe        = id_exe_bus_o.inst;
     assign current_pc_exe  = id_exe_bus_o.current_pc; // 32
     assign pc_plus_4_exe   = id_exe_bus_o.pc_plus_4;  // 32
     assign rs1_exe         = id_exe_bus_o.rs1;     // 5
@@ -334,6 +354,8 @@ module data_path #(
     assign imm_exe         = id_exe_bus_o.imm;
 
     // control signals
+//    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
+    assign csr_type_exe    = id_exe_bus_o.csr_type_exe;
     assign reg_write_exe   = id_exe_bus_o.reg_write;
     assign mem_write_exe   = id_exe_bus_o.mem_write;
     assign mem_to_reg_exe  = id_exe_bus_o.mem_to_reg;
@@ -432,6 +454,7 @@ module data_path #(
 
     assign exe_mem_bus_i = {
     // data signals 
+    inst_exe,
     pc_plus_4_exe,  
     pc_jump_exe,     
     rs2_exe,
@@ -441,6 +464,8 @@ module data_path #(
     imm_exe,
     alu_result_exe,
     // control signals
+//    mem_csr_to_reg_exe,
+    csr_type_exe,
     reg_write_exe,
     mem_write_exe,
     mem_to_reg_exe, 
@@ -462,6 +487,7 @@ module data_path #(
     );
 
     // data signals 
+    assign inst_mem        = exe_mem_bus_o.inst;  // 32
     assign pc_plus_4_mem   = exe_mem_bus_o.pc_plus_4;  // 32
     assign pc_jump_mem     = exe_mem_bus_o.pc_jump;
     assign rs2_mem         = exe_mem_bus_o.rs2;
@@ -483,8 +509,25 @@ module data_path #(
     // ============================================
     //                Memory Stage 
     // ============================================
-    
+   
     // generating memory access signals (write/read) 
+   
+   
+//   CSR and logic of commands for CSR
+   csr_top csr_top(
+   .*,
+   .imm(inst_mem[19:15]),
+   .func3(fun3_mem),
+   .current_pc(pc_plus_4_mem),
+   .csr_en(csr_type_exe),
+   .offset(inst_mem[31:20])
+   
+   );
+   mret_on mret_type (
+   .*,
+   .csr_type(csr_type_exe),
+   .func12(inst_mem[31:20]));
+    
    
     // forwarding for mem_write_data
     mux2x1 #(32) mem_data_in_mux (

@@ -13,8 +13,8 @@ module data_mem #(
   input  wire [3:0]  sel_i,
   input  wire [31:0] dat_i,         // data input
   output reg  [31:0] dat_o,         // data output
-  output reg         ack_o         // normal bus termination
-
+  output reg         ack_o,         // normal bus termination
+  input              reset_n
 );
     
        
@@ -35,6 +35,7 @@ assign word_addr = adr_i[8:2];
 logic [31:0] dmem [0:DEPTH - 1];
 
 always_ff @(posedge clk_i) begin
+    
     if(mem_write) begin
         if(sel_i[0]) dmem[word_addr][7:0]   <= dat_i[7:0];
         if(sel_i[1]) dmem[word_addr][15:8]  <= dat_i[15:8];

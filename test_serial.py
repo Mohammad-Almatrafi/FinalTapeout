@@ -3,7 +3,7 @@ import time
 # import keyboard
 
 # Replace '/dev/ttyUSB0' with your serial port or try use '/dev/ttyS0'
-ser = serial.Serial('/dev/ttyUSB1', baudrate=9600)
+ser = serial.Serial('/dev/ttyUSB2', baudrate=9600)
 
 reading, writing = False, False
 user_answer_W = input("do you want to write data (send message) ? (y/n)\t")
@@ -30,11 +30,11 @@ while True:
     # Write data
     if writing:
         # ser.write('Hello'.encode('Ascii'))  # Send a message
-        ser.write(b'\xAA') # send hex value 0xA5
+        ser.write(b'\xFF') # send hex value 0xA5
     
     # Read data
     if reading:
         data = ser.read(1)  # Read a Character of data
         print(f"data = raw_data: {data}, hexa: {data.hex()}") # utf-8 or Ascii
     
-    time.sleep(1)
+    time.sleep(0.1)

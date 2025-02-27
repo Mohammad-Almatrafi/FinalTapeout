@@ -23,9 +23,13 @@ module rv32i_soc #(
     logic        mem_read_mem;
 
 
-
-
+/////////////////////////////////////////////// This is to set the other periphirals to zero
+assign mip_in[31:7]=0;
+assign mip_in[5:0]=0;
+////////////////////////////////////////////////
 logic [31:0] current_pc;
+
+logic [31:0] mip_in;
 
     // ============================================
     //          Processor Core Instantiation
@@ -168,7 +172,20 @@ logic         wb_gpio_ack_i;
 logic         wb_gpio_err_i;           
 logic         wb_gpio_rty_i;           
      
+// CLINT 
 
+logic [31:0] wb_clint_adr_o;
+logic [31:0] wb_clint_dat_o;
+logic  [3:0] wb_clint_sel_o;
+logic        wb_clint_we_o;
+logic        wb_clint_cyc_o;
+logic        wb_clint_stb_o;
+logic  [2:0] wb_clint_cti_o;
+logic  [1:0] wb_clint_bte_o;
+logic [31:0] wb_clint_dat_i;
+logic        wb_clint_ack_i;
+logic        wb_clint_err_i;
+logic        wb_clint_rty_i;
     // ============================================
     //             Wishbone Interconnect 
     // ============================================
@@ -302,7 +319,7 @@ logic         wb_gpio_rty_i;
         .rst_i       (~reset_n         ),
         .cyc_i       (wb_imem_cyc_o),
         .stb_i       (wb_imem_stb_o),
-        .adr_i       (wb_imem_adr_o),
+        .adr_i       (imem_addr),
         .we_i        (wb_imem_we_o ),
         .sel_i       (wb_imem_sel_o),
         .dat_i       (wb_imem_dat_o),
@@ -310,6 +327,28 @@ logic         wb_gpio_rty_i;
         .ack_o       (wb_imem_ack_i)
     );
 
+
+    // ============================================
+    //          CLINT Instance
+    // ============================================
+    
+    
+    clint CLINT (
+                    .wb_clk_i(clk),
+                    .wb_rst_i(reset_n),
+                    .wb_cyc_i(wb_clint_cyc_o),
+                    .wb_stb_i(wb_clint_stb_o),
+                    .wb_we_i (wb_clint_we_o),
+                    .wb_adr_i(wb_clint_adr_o),
+                    .wb_dat_i(wb_clint_dat_o) ,
+                    .wb_dat_o(wb_clint_dat_i),
+                    .wb_ack_o(wb_clint_ack_i),
+                    .mtip_o  (mip_in[6])
+                              
+                          );    
+                    
+                    
+                     
     assign imem_inst = wb_imem_dat_i;
 
 

@@ -18,7 +18,9 @@ module control_unit(
     output logic auipc_id, 
     output logic jal_id,
     output logic [1:0] alu_op_id,
-
+//    output logic [1:0] mem_csr_to_reg_id,
+    output logic csr_type_id,
+    
     // alu_controller output
     output [3:0] alu_ctrl_exe,
 
@@ -75,7 +77,9 @@ module control_unit(
         .lui(lui_id),
         .auipc(auipc_id),
         .jal(jal_id),
-        .r_type(r_type_id)
+        .r_type(r_type_id),
+        .csr_type(csr_type_id),
+        .mem_csr_to_reg(mem_to_reg_id)
     );
 
     wire exe_use_rs1_id;

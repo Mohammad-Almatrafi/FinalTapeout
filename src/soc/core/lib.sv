@@ -226,7 +226,7 @@ package riscv_types;
         // Control signals
         logic        reg_write;
         logic        mem_write;
-        logic        mem_to_reg;
+        logic [1:0]  mem_to_reg;
         logic        branch;
         logic        alu_src;
         logic        jump;
@@ -250,7 +250,7 @@ package riscv_types;
         // Control signals
         logic        reg_write;
         logic        mem_write;
-        logic        mem_to_reg;
+        logic [1:0]  mem_to_reg;
         logic        branch;
         logic        jump;
         logic        lui;
@@ -264,7 +264,7 @@ package riscv_types;
         logic [31:0] result;
         // Control signals
         logic        reg_write;
-        logic        mem_to_reg;
+        logic [1:0]  mem_to_reg;
     } mem_wb_reg_t;
 
 endpackage

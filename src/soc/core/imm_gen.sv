@@ -1,21 +1,26 @@
 module imm_gen (
     input logic [31:0] inst,
-    input logic j_type, 
-    input logic b_type, 
-    input logic s_type, 
+    input logic j_type, // Hammad: This comes as input to the datapath aswell, and the input to datapath comes from the control_unit
+    input logic b_type, // Hammad: This comes as input to the datapath aswell, and the input to datapath comes from the control_unit
+    input logic s_type, // Hammad: This comes as input to the datapath aswell, and the input to datapath comes from the control_unit
+ // Hammad: an option we can do is putting a new signal here like the following "input logic interrupt_type", this means we define a new input in the datapath which then takes input from the control unit
     input logic lui, 
     input logic auipc, 
 
     output logic [31:0] imm
 );
-
+    // HAMAD: Type of instuctions we have here are: J, B, S, U, I
     logic u_type;
     assign u_type = lui | auipc;
     logic i_type;
-    assign i_type = ~(j_type | b_type | s_type | u_type);
+    assign i_type = ~(j_type | b_type | s_type | u_type);// HAMMAD: Also possibly put the new Interrupt here aswell (Which we will add to implement the new instructions) type here?
 
 
     // IMM[0]
+     
+    // HAMAD: Idea of one_hot_mux is to choose like this, out =   in0 & {n{sel[0]}} | in1 & {n{sel[1]}};
+    // We could just add one more input and use the 3x1 one hot mux out =   in0 & {n{sel[0]}} | in1 & {n{sel[1]}} | in2 & {n{sel[2]}}; 
+    // A similar method could we used with the rest we just need to concatinate an extra signal which we will be "interrupt_type"            
     one_hot_mux2x1 #(
         .n(1)
     ) imm_0_mux (
