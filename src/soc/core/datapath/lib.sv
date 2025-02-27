@@ -259,7 +259,7 @@ package riscv_types;
         logic        jump;
         logic        lui;
         logic        zero;
-        logic [31:0] inst
+        logic [31:0] inst;
     } exe_mem_reg_t;
 
     // MEM/WB Register Structure

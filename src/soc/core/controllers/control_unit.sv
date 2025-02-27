@@ -11,7 +11,7 @@ module control_unit (
     // outputs from the decode controller
     output logic reg_write_id,
     output logic mem_write_id,
-    output logic mem_to_reg_id,
+    output logic [1:0]mem_to_reg_id,
     output logic branch_id,
     output logic alu_src_id,
     output logic jump_id,
@@ -70,7 +70,6 @@ module control_unit (
       .opcode(opcode_id),
       .reg_write(reg_write_id),
       .mem_write(mem_write_id),
-      .mem_to_reg(mem_to_reg_id),
       .branch(branch_id),
       .alu_src(alu_src_id),
       .jump(jump_id),

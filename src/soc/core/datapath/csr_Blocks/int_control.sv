@@ -1,8 +1,10 @@
-module int_control (
+module int_control (// This block gives whether we have interrupt or not, pc_addr to jump to, and decodes mip for inputting it to mcause
     input logic [31:0] mtvec,
     input logic MIE,
     input logic [31:0]mie,
     input logic [31:0]mip,
+    input logic [31:0]mcause,
+    
     output logic interrupt,
     output logic [31:0] pc_addr,
     output logic [4:0] int_code
@@ -20,6 +22,4 @@ module int_control (
         else if(mip[7]==1) int_code=3'b111;
         else int_code = 3'b0;
   end
-
-
 endmodule

@@ -23,14 +23,14 @@ module rv32i_soc #(
     logic        mem_read_mem;
 
 
-/////////////////////////////////////////////// This is to set the other periphirals to zero
-assign mip_in[31:7]=0;
-assign mip_in[5:0]=0;
+/////////////////////////////////////////////// This is to set the other periphirals to zero 
+
 ////////////////////////////////////////////////
 logic [31:0] current_pc;
 
 logic [31:0] mip_in;
-
+assign mip_in[31:8]=0;
+assign mip_in[6:0]=0;
     // ============================================
     //          Processor Core Instantiation
     // ============================================
@@ -343,7 +343,7 @@ logic        wb_clint_rty_i;
                     .wb_dat_i(wb_clint_dat_o) ,
                     .wb_dat_o(wb_clint_dat_i),
                     .wb_ack_o(wb_clint_ack_i),
-                    .mtip_o  (mip_in[6])
+                    .mtip_o  (mip_in[7])
                               
                           );    
                     
