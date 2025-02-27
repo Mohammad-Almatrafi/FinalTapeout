@@ -56,7 +56,7 @@ module data_path #(
 
 
     // hazard handler data required from the data path
-    output  wire mem_to_reg_exe,
+    output  wire [1:0] mem_to_reg_exe,
     output  wire [4:0] rd_exe,
 
     // signals to control the flow of the pipeline
@@ -78,7 +78,7 @@ module data_path #(
     output logic [2:0] mem_op_mem,
     input logic [31:0] mem_rdata_mem,
     output logic mem_write_mem,
-    output logic mem_to_reg_mem,
+    output logic [1:0] mem_to_reg_mem,
 
     // inst mem access
     output logic [31:0] current_pc_if,
@@ -115,7 +115,7 @@ module data_path #(
     logic auipc_exe, auipc_mem, auipc_wb;
     logic jal_exe, jal_mem, jal_wb;
     logic zero_exe;
-    logic mem_to_reg_wb;
+    logic [1:0] mem_to_reg_wb;
     logic [31:0] alu_result_exe, alu_result_mem;
     logic [31:0] result_mem;
     logic [31:0] rdata2_frw_mem;
@@ -658,6 +658,7 @@ module data_path #(
         .in0(non_mem_result_wb),
         .in1(mem_rdata_wb),
         .in2(csr_out),
+        .in3(csr_out),
         .out(reg_wdata_wb)
     );
 
