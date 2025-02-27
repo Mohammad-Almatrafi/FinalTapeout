@@ -133,7 +133,7 @@
 // If defined, the enable signal will be used to drive baudrate_o signal
 // It's frequency is 16xbaudrate
 
-// `define UART_HAS_BAUDRATE_OUTPUT
+`define UART_HAS_BAUDRATE_OUTPUT 1'b1
 
 // Register addresses
 `define UART_REG_RB	3'd0	// receiver buffer

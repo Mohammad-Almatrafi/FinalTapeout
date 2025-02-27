@@ -7,7 +7,8 @@ module rv32i_soc #(
 
     // spi signals to the spi-flash
     // uart signals
-
+    input 		i_uart_rx,
+    output 		o_uart_tx,
     // gpio signals
     inout wire [31:0]   io_data
 );
@@ -22,9 +23,13 @@ module rv32i_soc #(
     logic        mem_read_mem;
 
 
-
-
+/////////////////////////////////////////////// This is to set the other periphirals to zero
+assign mip_in[31:7]=0;
+assign mip_in[5:0]=0;
+////////////////////////////////////////////////
 logic [31:0] current_pc;
+
+logic [31:0] mip_in;
 
     // ============================================
     //          Processor Core Instantiation
@@ -39,7 +44,7 @@ logic [31:0] current_pc;
      )rv32i_core_inst(//Checked all the inputs, block is done. Reset is neg edge
          .*,
          .current_pc(current_pc),
-         .inst(rom_inst_ff),//Check line 151
+         .inst(inst),
          .if_id_reg_en(if_id_reg_en),
          .stall_pipl(stall_pipl)
     );
@@ -64,7 +69,7 @@ logic [31:0] current_pc;
         .wb_we_o    (wb_io_we_i),
         .wb_cyc_o   (wb_io_cyc_i),
         .wb_stb_o   (wb_io_stb_i),
-        .wb_dat_i   (0), // For simplicity, no data input
+        .wb_dat_i   (wb_io_dat_o), // For simplicity, no data input
         .wb_ack_i   (wb_io_ack_o)   // For simplicity, no acknowledgment signal
     );
     assign wb_m2s_io_cti = 0;
@@ -167,7 +172,20 @@ logic         wb_gpio_ack_i;
 logic         wb_gpio_err_i;           
 logic         wb_gpio_rty_i;           
      
+// CLINT 
 
+logic [31:0] wb_clint_adr_o;
+logic [31:0] wb_clint_dat_o;
+logic  [3:0] wb_clint_sel_o;
+logic        wb_clint_we_o;
+logic        wb_clint_cyc_o;
+logic        wb_clint_stb_o;
+logic  [2:0] wb_clint_cti_o;
+logic  [1:0] wb_clint_bte_o;
+logic [31:0] wb_clint_dat_i;
+logic        wb_clint_ack_i;
+logic        wb_clint_err_i;
+logic        wb_clint_rty_i;
     // ============================================
     //             Wishbone Interconnect 
     // ============================================
@@ -255,7 +273,33 @@ logic         wb_gpio_rty_i;
     // logic         wb_dmem_ack_i;
     // logic         wb_dmem_err_i;
     // logic         wb_dmem_rty_i;
+    // ============================================
+    //          UART Instance
+    // ============================================
+    //input 		srx_pad_i;
+    //output 		stx_pad_o;
+    //output 		rts_pad_o;
+    //input 		cts_pad_i;
+    //output 		dtr_pad_o;
+    //input 		dsr_pad_i;
+    //input 		ri_pad_i;
+    //input 		dcd_pad_i;
 
+    uart_top UART(
+ 	              .wb_adr_i(wb_uart_adr_o),
+                  .wb_dat_i(wb_uart_dat_o),
+ 	              .wb_dat_o(wb_uart_dat_i),
+ 				  .wb_cyc_i(wb_uart_cyc_o),
+                  .wb_clk_i(clk),
+                  .wb_rst_i(~reset_n),
+                  .wb_we_i (wb_uart_we_o),
+                  .wb_stb_i(wb_uart_stb_o),
+                  .wb_sel_i(wb_uart_sel_o),
+                  //.int_o   (),
+                  .wb_ack_o(wb_uart_ack_i),
+                  .srx_pad_i(i_uart_rx), 
+                  .stx_pad_o(o_uart_tx)
+    );
     // ============================================
     //          Instruction Memory Instance
     // ============================================
@@ -264,7 +308,8 @@ logic         wb_gpio_rty_i;
 
     logic [31:0] imem_addr;
     
-
+    logic [31:0] inst;
+    
     assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
 
     data_mem #(
@@ -274,7 +319,7 @@ logic         wb_gpio_rty_i;
         .rst_i       (~reset_n         ),
         .cyc_i       (wb_imem_cyc_o),
         .stb_i       (wb_imem_stb_o),
-        .adr_i       (wb_imem_adr_o),
+        .adr_i       (imem_addr),
         .we_i        (wb_imem_we_o ),
         .sel_i       (wb_imem_sel_o),
         .dat_i       (wb_imem_dat_o),
@@ -282,6 +327,28 @@ logic         wb_gpio_rty_i;
         .ack_o       (wb_imem_ack_i)
     );
 
+
+    // ============================================
+    //          CLINT Instance
+    // ============================================
+    
+    
+    clint CLINT (
+                    .wb_clk_i(clk),
+                    .wb_rst_i(reset_n),
+                    .wb_cyc_i(wb_clint_cyc_o),
+                    .wb_stb_i(wb_clint_stb_o),
+                    .wb_we_i (wb_clint_we_o),
+                    .wb_adr_i(wb_clint_adr_o),
+                    .wb_dat_i(wb_clint_dat_o) ,
+                    .wb_dat_o(wb_clint_dat_i),
+                    .wb_ack_o(wb_clint_ack_i),
+                    .mtip_o  (mip_in[6])
+                              
+                          );    
+                    
+                    
+                     
     assign imem_inst = wb_imem_dat_i;
 
 

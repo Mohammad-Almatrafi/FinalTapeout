@@ -15,7 +15,8 @@ module rv32i_soc_tb;
 
     // Dut instantiation
     rv32i_soc DUT(
-        .*
+        .*,
+        .i_uart_rx(o_uart_tx)
     );
 
     // Clock generator 
@@ -33,7 +34,7 @@ module rv32i_soc_tb;
    // initializing the instruction memory after every reset
    initial begin
        $readmemh("fib.mem", DUT.inst_mem_inst.dmem);
-       $readmemh("fib.mem", DUT.rom_instance.rom);
+//       $readmemh("fib.mem", DUT.rom_instance.rom);
    end // wait 
 
    initial begin 

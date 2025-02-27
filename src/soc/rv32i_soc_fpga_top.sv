@@ -4,21 +4,25 @@ module rv32i_soc_fpag_top (
     input logic CPU_RESETN,
 
     // FPGA core signals
-//    output logic        o_uart_tx,
-//    input  logic        i_uart_rx,
+    input logic        UART_TXD_IN,
+    output  logic      UART_RXD_OUT,
+     
+    output wire CA, CB, CC, CD, CE, CF, CG, DP,
+    output wire [7:0] AN 
 //    output logic        o_flash_cs_n,
 //    output logic        o_flash_mosi,
 //    input  logic        i_flash_miso,
 
 
-    input logic [15:0] SW,
-    output logic [15:0] LED
+//    input logic [15:0] SW,
+//    output logic [15:0] LED
 );
 
     parameter DMEM_DEPTH = 128;
     parameter IMEM_DEPTH = 128;
 
-
+//    assign UART_TXD_IN = LED[0];
+//    assign LED[7:0] = soc_inst.UART.wb_dat8_o;
     logic        o_flash_sclk;
     STARTUPE2 STARTUPE2
         (
@@ -57,7 +61,7 @@ module rv32i_soc_fpag_top (
     logic clk;
 
     assign reset_n = CPU_RESETN;
-
+//    assign LED[15:0] = soc_inst.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[1][15:0];
     clk_div_by_2 gen_core_clk (
         .clk_i(CLK100MHZ),
         .clk_o(clk),
@@ -69,8 +73,28 @@ module rv32i_soc_fpag_top (
         .IMEM_DEPTH(IMEM_DEPTH)
     ) soc_inst (
         .*,
-        .io_data({SW, LED})
+        .reset_n(CPU_RESETN),
+        .i_uart_rx(UART_TXD_IN), 
+        .o_uart_tx(UART_RXD_OUT),
+        .io_data({32'h00000000})
     );
+logic [31:0] disp, disp2;
+assign disp = soc_inst.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[1][31:0];
+assign disp2 = soc_inst.inst_mem_inst.dmem [0][31:0];
+sev_seg_top sev_Seg_top ( 
+                      .CPU_RESETN(CPU_RESETN),
+                      .CLK100MHZ(clk),  
+                      .CA(CA), .CB(CB), .CC(CC), .CD(CD), .CE(CE), .CF(CF), .CG(CG), .DP(DP),
+                      .AN(AN),                                       
+                      .t(disp)
+                      );                                          
+//ila_0 ila_core (
+//	.clk(clk), // input wire clk
+
+
+//	.probe0(UART_TXD_IN), // input wire [0:0]  probe0  
+//	.probe1(UART_RXD_OUT) // input wire [0:0]  probe1
+//);
 
 endmodule : rv32i_soc_fpag_top
 
