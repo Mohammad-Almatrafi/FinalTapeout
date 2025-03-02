@@ -16,7 +16,7 @@ nop
 nop
 nop
 nop
-
+mret
 addi x30,x0, 1
 
 nop

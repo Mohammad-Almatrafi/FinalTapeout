@@ -79,7 +79,9 @@ module rv32i_soc_fpag_top (
         .io_data({32'h00000000})
     );
 logic [31:0] disp, disp2;
-assign disp = soc_inst.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[1][31:0];
+assign disp  = soc_inst.CLINT.mtime[31:0];
+//assign disp  = soc_inst.rv32i_core_inst.data_path_inst.current_pc_if1;
+//assign disp = soc_inst.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[1][31:0];
 assign disp2 = soc_inst.inst_mem_inst.dmem [0][31:0];
 sev_seg_top sev_Seg_top ( 
                       .CPU_RESETN(CPU_RESETN),
