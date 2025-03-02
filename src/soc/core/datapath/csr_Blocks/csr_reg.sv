@@ -61,30 +61,35 @@ module csr_reg (
   assign mcause = csr_mem`MCAUSE_ADDR;
 
 
-      assign csr_out = csr_mem[actual_offset];
+  assign csr_out = csr_mem[actual_offset];
   always @(posedge clk, negedge reset_n) begin
 
-    if (~reset_n) csr_mem = '{default: 'b0};
+    if (~reset_n) csr_mem <= '{default: 'b0};
+    else begin
+
     case({int_action,ret_action,csr_en})
     3'd1: begin
       csr_mem[actual_offset] <= csr_in;
     end
+
     3'd2: begin
+        csr_mem`MIE_G_ADDR  <= csr_mem`MPIE_ADDR;
+        csr_mem`MPIE_ADDR <= 1'b0;
+    end
+
+    3'd3: begin
+        csr_mem`MIE_G_ADDR  <= csr_mem`MPIE_ADDR;
+        csr_mem`MPIE_ADDR <= 1'b0;
+    end
+
+    3'd4:begin
         csr_mem`MPIE_ADDR <= csr_mem`MIE_ADDR;
         csr_mem`MIE_G_ADDR <= 1'b0;
         csr_mem`MEPC_ADDR <= current_pc;
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
         csr_mem`EXC_CODE_MCAUSE_ADDR <= {'b0,int_code};
     end
-    3'd3: begin
-        csr_mem`MIE_G_ADDR  <= csr_mem`MPIE_ADDR;
-        csr_mem`MPIE_ADDR <= 1'b0;
-        csr_mem`MIP_ADDR <= mip_in;
-    end
-    3'd4:begin
-        csr_mem`MIE_G_ADDR  <= csr_mem`MPIE_ADDR;
-        csr_mem`MPIE_ADDR <= 1'b0;
-    end
+
     3'd5:begin
         csr_mem`MPIE_ADDR <= csr_mem`MIE_ADDR;
         csr_mem`MIE_G_ADDR <= 1'b0;
@@ -92,15 +97,13 @@ module csr_reg (
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
         csr_mem`EXC_CODE_MCAUSE_ADDR <= {'b0,int_code};
     end
-    3'd6:begin
-    end
-    3'd7:begin
-    end
+
     default:begin 
     end
     endcase
+    end
 
-
+    csr_mem`MIP_ADDR <= mip_in;
 
     end
 endmodule
