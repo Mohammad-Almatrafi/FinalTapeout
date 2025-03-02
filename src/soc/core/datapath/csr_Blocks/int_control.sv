@@ -10,7 +10,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     output logic [4:0] int_code
 );
   assign interrupt = (|(mip & mie)) & MIE;
-  assign pc_addr   = mtvec[0] ? {mtvec[31:2], 2'b0} : {mtvec[31:2] + {mcause[28:0], 1'b0}, 2'b0};
+  assign pc_addr   = mtvec[0] ?  {mtvec[31:2] + {mcause[28:0], 1'b0}, 2'b0}: {mtvec[31:2], 2'b0};
   always @(mip)begin
         if(mip[0]==1)int_code=3'b000;
         else if(mip[1]==1) int_code=3'b001;
