@@ -67,7 +67,7 @@ module csr_reg (
     else if (csr_en) begin
 
       csr_out <= csr_mem[actual_offset];
-      csr_mem[offset] <= csr_in;
+      csr_mem[actual_offset] <= csr_in;
 
     end
     if (reset_n)begin

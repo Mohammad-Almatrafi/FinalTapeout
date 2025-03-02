@@ -26,7 +26,7 @@ module rv32i #(
     // controller to the data path 
     logic reg_write_id; 
     logic mem_write_id;
-    logic mem_to_reg_id; 
+    logic [1:0] mem_to_reg_id; 
     logic branch_id; 
     logic alu_src_id;
     logic jump_id; 

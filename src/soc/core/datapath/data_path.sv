@@ -22,7 +22,7 @@ module data_path #(
     // control signals from the controller 
     input logic reg_write_id, 
     input logic mem_write_id, 
-    input logic [1:0]mem_to_reg_id, 
+    input logic [1:0] mem_to_reg_id, 
     input logic branch_id, 
     input logic alu_src_id,
     input logic jump_id, 
