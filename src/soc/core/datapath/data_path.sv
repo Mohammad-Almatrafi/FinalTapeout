@@ -83,8 +83,11 @@ module data_path #(
     // inst mem access
     output logic [31:0] current_pc_if,
     input logic [31:0] inst_if
-);
     
+     
+
+);
+    logic interrupt;
     logic [31:0] mip;
 //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
     logic        csr_type_exe, csr_type_mem;
@@ -123,7 +126,15 @@ module data_path #(
     logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
 //    logic [31:0]inst_exe,inst_id,inst_mem;
- 
+    logic interrupt_ff;
+  n_bit_reg #(
+        .n(1)
+    ) interrupt_ff_reg (
+        .*,
+        .data_i(interrupt),
+        .data_o(interrupt_ff),
+        .wen(1'b1));
+        
     program_counter PC_inst (
         .*,
         .en(pc_reg_en)
@@ -139,7 +150,7 @@ module data_path #(
     mux4x1 #(
         .n(32)
     ) first_pc_mux (
-        .sel({interrupt, pc_sel_mem}),
+        .sel({interrupt_ff, pc_sel_mem}),
         .in0(pc_plus_4_if1),
         .in1(pc_jump_mem),
         .in2(jump_int_addr),
@@ -545,7 +556,6 @@ module data_path #(
     assign RS1 = reg_rdata1_mem;
 
     // generating memory access signals (write/read) 
-    logic interrupt;
     int_control interrupt_controller(
         .mtvec(mtvec),
         .mcause(mcause),
