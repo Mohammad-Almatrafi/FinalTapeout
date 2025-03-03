@@ -1,13 +1,13 @@
 
-addi x20, x0, 0xff # mie value
+addi x20, x0, 0xff # mie value all enable
 nop
 nop
 nop
-lui x11, 0x0F0000 # mtime value
+lui x11, 0x10000 # mtime comp value
 nop
 nop
 nop
-addi x28,x0,8 # mstatus value
+addi x28,x0,8 # mstatus value make the MIE bit equal to 1
 nop
 nop
 nop
@@ -31,7 +31,7 @@ nop
 lui x10, 0x20000
 addi x10, x10 0x400
 addi x10, x10 0x400
-addi x10, x10 0x400
+addi x10, x10 0x400 #finding mtime comp address
 nop
 nop
 nop
