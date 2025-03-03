@@ -1,4 +1,5 @@
-//typedef enum logic [1:0] {STORE_BYTE, STORE_HALFWORD, STORE_WORD} store_t;
+import riscv_types::*;
+// typedef enum logic [1:0] {STORE_BYTE, STORE_HALFWORD, STORE_WORD} store_t;
 module wishbone_controller (
     input  wire        clk,           // Clock signal
     input  wire        rst,           // Reset signal
