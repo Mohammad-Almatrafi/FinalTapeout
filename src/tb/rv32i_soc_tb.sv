@@ -42,7 +42,7 @@ module rv32i_soc_tb;
     //    for(int i = 0; i<= 14'h0fff; i = i+1) begin 
     //        $display("imem[%02d] = %8h", i, DUT.inst_mem_inst.memory[i]);
     //    end
-       repeat(10000) @(posedge clk);
+       repeat(100000) @(posedge clk);
        for(int i = 0; i < 100; i = i+1) begin 
            $display("dmem[%02d] => %8h <=> %8h <= imem[%02d] ", i, DUT.data_mem_inst.dmem[i], DUT.inst_mem_inst.dmem[i], i);
        end

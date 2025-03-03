@@ -10,19 +10,19 @@ module data_path #(
     
     input logic [31:0] mip_in,
 
-    // outputs to controller 
+    // outputs to controller
     output logic [6:0] opcode_id,
     output logic fun7_5_exe,
     output logic [2:0] fun3_exe, fun3_mem,
     output logic zero_mem,
     output logic [1:0] alu_op_exe,
-    output logic jump_mem, 
+    output logic jump_mem,
     output logic branch_mem,
 
     // control signals from the controller 
     input logic reg_write_id, 
     input logic mem_write_id, 
-    input logic mem_to_reg_id, 
+    input logic [1:0] mem_to_reg_id, 
     input logic branch_id, 
     input logic alu_src_id,
     input logic jump_id, 
@@ -56,7 +56,7 @@ module data_path #(
 
 
     // hazard handler data required from the data path
-    output  wire mem_to_reg_exe,
+    output  wire [1:0] mem_to_reg_exe,
     output  wire [4:0] rd_exe,
 
     // signals to control the flow of the pipeline
@@ -78,13 +78,16 @@ module data_path #(
     output logic [2:0] mem_op_mem,
     input logic [31:0] mem_rdata_mem,
     output logic mem_write_mem,
-    output logic mem_to_reg_mem,
+    output logic [1:0] mem_to_reg_mem,
 
     // inst mem access
     output logic [31:0] current_pc_if,
     input logic [31:0] inst_if
-);
     
+     
+
+);
+    logic interrupt;
     logic [31:0] mip;
 //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
     logic        csr_type_exe, csr_type_mem;
@@ -115,14 +118,23 @@ module data_path #(
     logic auipc_exe, auipc_mem, auipc_wb;
     logic jal_exe, jal_mem, jal_wb;
     logic zero_exe;
-    logic mem_to_reg_wb;
+    logic [1:0] mem_to_reg_wb;
     logic [31:0] alu_result_exe, alu_result_mem;
     logic [31:0] result_mem;
     logic [31:0] rdata2_frw_mem;
     logic [31:0] current_pc_if1;
     logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
- 
+//    logic [31:0]inst_exe,inst_id,inst_mem;
+//    logic interrupt_ff;
+//  n_bit_reg #(
+//        .n(1)
+//    ) interrupt_ff_reg (
+//        .*,
+//        .data_i(interrupt),
+//        .data_o(interrupt_ff),
+//        .wen(1'b1));
+        
     program_counter PC_inst (
         .*,
         .en(pc_reg_en)
@@ -132,13 +144,28 @@ module data_path #(
 
     // pc adder 
     assign pc_plus_4_if1 = current_pc_if1 + 4;
+    logic [31:0]next_pc_ifff;
+    
+    logic [31:0]jump_int_addr;
+    mux4x1 #(
+        .n(32)
+    ) first_pc_mux (
+        .sel({interrupt, pc_sel_mem}),
+        .in0(pc_plus_4_if1),
+        .in1(pc_jump_mem),
+        .in2(jump_int_addr),
+        .in3(jump_int_addr),
+        .out(next_pc_ifff)
+    );
+    
+//    jump_int_addr
 
     mux2x1 #(
         .n(32)
-    ) next_pc_mux (
-        .sel(pc_sel_mem),
-        .in0(pc_plus_4_if1),
-        .in1(pc_jump_mem),
+    ) second_pc_mux (
+        .sel(mret_type),
+        .in0(next_pc_ifff),
+        .in1(mepc),
         .out(next_pc_if1)
     );
 
@@ -303,7 +330,6 @@ module data_path #(
 
     assign id_exe_bus_i = {
         // data signals 
-        inst_id,
         current_pc_id, // 32
         pc_plus_4_id,  // 32
         rs1_id,        // 32
@@ -315,7 +341,6 @@ module data_path #(
         reg_rdata2_id,
         imm_id,
         // control signals
-        mem_to_reg_id,
         csr_type_id,
         reg_write_id,
         mem_write_id,
@@ -326,7 +351,8 @@ module data_path #(
         lui_id,
         auipc_id,
         jal_id,
-        alu_op_id
+        alu_op_id,
+        inst_id
     };
 
     n_bit_reg_wclr #(
@@ -355,7 +381,7 @@ module data_path #(
 
     // control signals
 //    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
-    assign csr_type_exe    = id_exe_bus_o.csr_type_exe;
+    assign csr_type_exe    = id_exe_bus_o.csr_type;/////////////////////////////////////////////////////////////////////////////////////
     assign reg_write_exe   = id_exe_bus_o.reg_write;
     assign mem_write_exe   = id_exe_bus_o.mem_write;
     assign mem_to_reg_exe  = id_exe_bus_o.mem_to_reg;
@@ -451,10 +477,10 @@ module data_path #(
     // ============================================
     
     exe_mem_reg_t exe_mem_bus_i, exe_mem_bus_o;
-
+    logic [31:0]reg_rdata1_mem;
     assign exe_mem_bus_i = {
     // data signals 
-    inst_exe,
+    reg_rdata1_exe,
     pc_plus_4_exe,  
     pc_jump_exe,     
     rs2_exe,
@@ -464,7 +490,6 @@ module data_path #(
     imm_exe,
     alu_result_exe,
     // control signals
-//    mem_csr_to_reg_exe,
     csr_type_exe,
     reg_write_exe,
     mem_write_exe,
@@ -472,7 +497,8 @@ module data_path #(
     branch_exe,
     jump_exe,
     lui_exe,
-    zero_exe
+    zero_exe,
+    inst_exe
     };
 
     n_bit_reg_wclr #(
@@ -487,6 +513,7 @@ module data_path #(
     );
 
     // data signals 
+    assign reg_rdata1_mem = exe_mem_bus_o.reg_rdata1;
     assign inst_mem        = exe_mem_bus_o.inst;  // 32
     assign pc_plus_4_mem   = exe_mem_bus_o.pc_plus_4;  // 32
     assign pc_jump_mem     = exe_mem_bus_o.pc_jump;
@@ -505,30 +532,67 @@ module data_path #(
     assign lui_mem         = exe_mem_bus_o.lui; 
     assign zero_mem        = exe_mem_bus_o.zero;
 
+    assign csr_type_mem = exe_mem_bus_o.csr_type;
 
     // ============================================
     //                Memory Stage 
     // ============================================
-   
+
+    // logic [31:0] mip_in;
+    logic [11:0] offset;
+    logic int_action;
+    logic ret_action;
+    logic hw_int;
+    logic [4:0] int_code;
+    logic [31:0] RS1 ;
+//    logic [31:0] mcause;
+//    logic [31:0] csr_out;
+//    logic [31:0]mepc;
+//    logic MIE;
+//    logic [31:0]mie;
+//    logic [31:0]mtvec;
+    logic mret_type;
+
+    assign RS1 = reg_rdata1_mem;
+
     // generating memory access signals (write/read) 
-   
-   
-//   CSR and logic of commands for CSR
-   csr_top csr_top(
-   .*,
-   .imm(inst_mem[19:15]),
-   .func3(fun3_mem),
-   .current_pc(pc_plus_4_mem),
-   .csr_en(csr_type_exe),
-   .offset(inst_mem[31:20])
-   
+    int_control interrupt_controller(
+        .mtvec(mtvec),
+        .mcause(mcause),
+        .MIE(MIE),
+        .mie(mie),
+        .mip(mip),
+        .mip_in(mip_in),
+        .interrupt(interrupt),
+        .pc_addr(jump_int_addr),
+        .int_code(int_code)
+    );
+
+    logic [31:0]jump_mret;
+
+    //   CSR and logic of commands for CSR
+   csr_top csr_unit (
+    .imm(inst_mem[19:15]),
+//    .func3(fun3_mem),
+    .current_pc(pc_plus_4_if1),
+    .csr_en(csr_type_mem & ~mret_type),
+    .offset(inst_mem[31:20]),
+    .ret_action(mret_type),
+    .int_action(interrupt),
+    .func3(inst_mem[14:12]),
+    .int_code(int_code),
+    // logic hw_int;
+    .*
    );
-   mret_on mret_type (
-   .*,
-   .csr_type(csr_type_exe),
-   .func12(inst_mem[31:20]));
-    
-   
+
+
+   mret_on mret_unit (
+   .mret_type(mret_type),
+   .csr_type(csr_type_mem),
+   .fun12(inst_mem[31:20]),
+   .fun3(inst_mem[14:12])
+   );
+
     // forwarding for mem_write_data
     mux2x1 #(32) mem_data_in_mux (
         .sel(forward_rd2_mem),
@@ -536,6 +600,7 @@ module data_path #(
         .in1(reg_wdata_wb),
         .out(mem_wdata_mem)
     );    
+
     assign mem_addr_mem = alu_result_mem;
     assign mem_op_mem = fun3_mem;
     
@@ -597,12 +662,14 @@ module data_path #(
     logic [31:0] mem_rdata_wb;
     assign mem_rdata_wb = mem_rdata_mem;
 
-    mux2x1 #(
+    mux4x1 #(
         .n(32)
     ) write_back_mux (
         .sel(mem_to_reg_wb),
         .in0(non_mem_result_wb),
         .in1(mem_rdata_wb),
+        .in2(csr_out),
+        .in3(csr_out),
         .out(reg_wdata_wb)
     );
 

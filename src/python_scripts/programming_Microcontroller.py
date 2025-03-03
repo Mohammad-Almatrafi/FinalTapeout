@@ -51,7 +51,7 @@ for k in range(1,128-i+1):
     time.sleep(0.01)
     ser.write(b'\x00')
     time.sleep(0.01)
-    # print(f'fill line number {i+k}')
+    print(f'fill line number {i+k}')
     
 
 

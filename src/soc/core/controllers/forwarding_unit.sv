@@ -16,16 +16,16 @@ module forwarding_unit (
     output wire forward_rd2_mem
 );
 
-//  Forwarding to id stage
-    assign forward_rd1_id     = reg_write_wb  & (rs1_id === rd_wb ) & (rd_wb!=0 );
-    assign forward_rd2_id     = reg_write_wb  & (rs2_id === rd_wb ) & (rd_wb!=0 );
-//  Forwarding to exe stage
-    assign forward_rd1_exe[0] = reg_write_mem & (rs1_exe === rd_mem) & (rd_mem!=0);
-    assign forward_rd1_exe[1] = reg_write_wb  & (rs1_exe === rd_wb ) & (rd_wb!=0 ) & ~forward_rd1_exe[0];
-    assign forward_rd2_exe[0] = reg_write_mem & (rs2_exe === rd_mem) & (rd_mem!=0);
-    assign forward_rd2_exe[1] = reg_write_wb  & (rs2_exe === rd_wb ) & (rd_wb!=0 ) & ~forward_rd2_exe[0];
-//  Forwarding to mem stage
-    assign forward_rd2_mem    = reg_write_wb  & (rs2_mem === rd_wb ) & (rd_wb!=0 );
+  //  Forwarding to id stage
+  assign forward_rd1_id = reg_write_wb & (rs1_id === rd_wb) & (rd_wb != 0);
+  assign forward_rd2_id = reg_write_wb & (rs2_id === rd_wb) & (rd_wb != 0);
+  //  Forwarding to exe stage
+  assign forward_rd1_exe[0] = reg_write_mem & (rs1_exe === rd_mem) & (rd_mem != 0);
+  assign forward_rd1_exe[1] = reg_write_wb  & (rs1_exe === rd_wb ) & (rd_wb!=0 ) & ~forward_rd1_exe[0];
+  assign forward_rd2_exe[0] = reg_write_mem & (rs2_exe === rd_mem) & (rd_mem != 0);
+  assign forward_rd2_exe[1] = reg_write_wb  & (rs2_exe === rd_wb ) & (rd_wb!=0 ) & ~forward_rd2_exe[0];
+  //  Forwarding to mem stage
+  assign forward_rd2_mem = reg_write_wb & (rs2_mem === rd_wb) & (rd_wb != 0);
 
 
 endmodule

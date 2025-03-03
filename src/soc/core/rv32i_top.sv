@@ -26,7 +26,7 @@ module rv32i #(
     // controller to the data path 
     logic reg_write_id; 
     logic mem_write_id;
-    logic mem_to_reg_id; 
+    logic [1:0] mem_to_reg_id; 
     logic branch_id; 
     logic alu_src_id;
     logic jump_id; 
@@ -36,6 +36,8 @@ module rv32i #(
     logic [1:0] alu_op_id;
     logic [3:0] alu_ctrl_exe;
     logic pc_sel_mem;
+    logic [1:0] mem_csr_to_reg_id;
+    logic csr_type_id;
 
     // data path to the controller 
     logic [6:0] opcode_id;
@@ -86,7 +88,8 @@ module rv32i #(
     logic [31:0] inst_if;
 
     logic mem_to_reg_mem;
-
+    
+    
     assign current_pc = current_pc_if;
     assign inst_if = inst;
 

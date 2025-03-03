@@ -15,12 +15,12 @@ module pipeline_controller (
     output logic pc_reg_en
 );
 
-    assign if_id_reg_clr = branch_hazard;
+    assign if_id_reg_clr = branch_hazard ;
     assign id_exe_reg_clr = branch_hazard | load_hazard;
     assign exe_mem_reg_clr = branch_hazard;
     assign mem_wb_reg_clr = 1'b0; // never clear
 
-    assign if_id_reg_en = ~(stall_pipl | load_hazard);
+    assign if_id_reg_en = ~(stall_pipl | load_hazard );
     assign id_exe_reg_en = ~stall_pipl;
     assign exe_mem_reg_en = ~stall_pipl;
     assign mem_wb_reg_en = ~stall_pipl;
