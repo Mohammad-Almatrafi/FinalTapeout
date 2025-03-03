@@ -8,15 +8,17 @@ module rv32i_soc_fpag_top (
     output  logic      UART_RXD_OUT,
      
     output wire CA, CB, CC, CD, CE, CF, CG, DP,
-    output wire [7:0] AN 
+    output wire [7:0] AN ,
 //    output logic        o_flash_cs_n,
 //    output logic        o_flash_mosi,
 //    input  logic        i_flash_miso,
 
 
 //    input logic [15:0] SW,
-//    output logic [15:0] LED
+    output logic [15:0] LED
 );
+    assign LED[0] = soc_inst.mip_in[7];
+    assign LED[1] = soc_inst.rv32i_core_inst.data_path_inst.csr_unit.csr_reg.MIE;
 
     parameter DMEM_DEPTH = 128;
     parameter IMEM_DEPTH = 128;

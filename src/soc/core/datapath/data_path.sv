@@ -126,14 +126,14 @@ module data_path #(
     logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
 //    logic [31:0]inst_exe,inst_id,inst_mem;
-    logic interrupt_ff;
-  n_bit_reg #(
-        .n(1)
-    ) interrupt_ff_reg (
-        .*,
-        .data_i(interrupt),
-        .data_o(interrupt_ff),
-        .wen(1'b1));
+//    logic interrupt_ff;
+//  n_bit_reg #(
+//        .n(1)
+//    ) interrupt_ff_reg (
+//        .*,
+//        .data_i(interrupt),
+//        .data_o(interrupt_ff),
+//        .wen(1'b1));
         
     program_counter PC_inst (
         .*,
@@ -150,7 +150,7 @@ module data_path #(
     mux4x1 #(
         .n(32)
     ) first_pc_mux (
-        .sel({interrupt_ff, pc_sel_mem}),
+        .sel({interrupt, pc_sel_mem}),
         .in0(pc_plus_4_if1),
         .in1(pc_jump_mem),
         .in2(jump_int_addr),
@@ -561,7 +561,8 @@ module data_path #(
         .mcause(mcause),
         .MIE(MIE),
         .mie(mie),
-        .mip(mip_in),
+        .mip(mip),
+        .mip_in(mip_in),
         .interrupt(interrupt),
         .pc_addr(jump_int_addr),
         .int_code(int_code)
