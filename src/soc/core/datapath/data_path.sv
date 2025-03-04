@@ -177,14 +177,15 @@ module data_path #(
       .wen(1'b1)
   );
 
-//  n_bit_reg #(
-//      .n(32)
-//  ) current_pc_exe_mem_csr (
-//      .*,
-//      .data_i(current_pc_exe_csr),
-//      .data_o(current_pc_mem_csr),
-//      .wen(1'b1)
-//  );
+
+  n_bit_reg #(
+      .n(32)
+  ) current_pc_exe_mem_csr (
+      .*,
+      .data_i(current_pc_exe_csr),
+      .data_o(current_pc_mem_csr),
+      .wen(1'b1)
+  );
 
   // pc adder 
   assign pc_plus_4_if1 = current_pc_if1 + 4;
