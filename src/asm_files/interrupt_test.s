@@ -66,14 +66,13 @@ nop
 nop
 nop
 nop
-j loop
-nop
-nop
-nop
-nop
+j loop # executed
+nop # mem
+nop # exec
+nop # id
+nop # if
 TRAP_HANDLER: 
 
-int_loop:
 nop
 nop
 sw x0, 8(x10)

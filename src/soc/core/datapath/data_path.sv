@@ -127,15 +127,6 @@ module data_path #(
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
-  logic interrupt_ff;
-  n_bit_reg #(
-      .n(1)
-  ) interrupt_ff_reg (
-      .*,
-      .data_i(interrupt),
-      .data_o(interrupt_ff),
-      .wen(1'b1)
-  );
 
   program_counter PC_inst (
       .*,
@@ -577,7 +568,6 @@ module data_path #(
 
   // logic [31:0] mip_in;
   logic [11:0] offset;
-  logic int_action;
   logic ret_action;
   logic hw_int;
   logic [4:0] int_code;
