@@ -82,6 +82,8 @@ module rv32i #(
     logic exe_mem_reg_en;
     logic mem_wb_reg_en;
     logic pc_reg_en;
+    logic mret_type;
+    logic interrupt;
 
     // inst mem access
     logic [31:0] current_pc_if;

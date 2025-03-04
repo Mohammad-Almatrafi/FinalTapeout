@@ -7,6 +7,8 @@ module control_unit (
     input logic [1:0] alu_op_exe,
     input logic jump_mem,
     input logic branch_mem,
+    input logic mret_type,
+    input logic interrupt,
 
     // outputs from the decode controller
     output logic reg_write_id,
