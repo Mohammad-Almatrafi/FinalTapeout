@@ -147,7 +147,7 @@ module data_path #(
       current_pc_id_csr,
       current_pc_exe_csr,
       current_pc_mem_csr;
-    assign current_pc_if1_csr = current_pc;
+    assign current_pc_if1_csr = current_pc_if1;
 
 
   n_bit_reg #(
