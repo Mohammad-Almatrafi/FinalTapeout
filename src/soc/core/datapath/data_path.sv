@@ -72,9 +72,6 @@ module data_path #(
     input logic mem_wb_reg_en,
     input logic pc_reg_en,
 
-    output logic mret_type,
-    output logic interrupt,
-
 
     // memory bus 
     output logic [31:0] mem_addr_mem,
@@ -140,13 +137,65 @@ module data_path #(
       .wen(1'b1)
   );
 
+  logic mret_type_ff;
+  n_bit_reg #(
+      .n(1)
+  ) mret_type_ff_reg (
+      .*,
+      .data_i(mret_type),
+      .data_o(mret_type_ff),
+      .wen(1'b1)
+  );
 
   program_counter PC_inst (
       .*,
       .en(pc_reg_en)
   );
+  logic [31:0]
+      current_pc_if1_csr,
+      current_pc_if2_csr,
+      current_pc_id_csr,
+      current_pc_exe_csr,
+      current_pc_mem_csr;
+    assign current_pc_if1_csr = current_pc;
 
+  logic mret_type_ff;
 
+  n_bit_reg #(
+      .n(32)
+  ) current_pc_if1_if2_csr (
+      .*,
+      .data_i(current_pc_if1_csr),
+      .data_o(current_pc_if2_csr),
+      .wen(1'b1)
+  );
+
+  n_bit_reg #(
+      .n(32)
+  ) current_pc_if2_id_csr (
+      .*,
+      .data_i(current_pc_if2_csr),
+      .data_o(current_pc_id_csr),
+      .wen(1'b1)
+  );
+
+  n_bit_reg #(
+      .n(32)
+  ) current_pc_id_exe_csr (
+      .*,
+      .data_i(current_pc_id_csr),
+      .data_o(current_pc_exe_csr),
+      .wen(1'b1)
+  );
+
+  n_bit_reg #(
+      .n(32)
+  ) current_pc_exe_mem_csr (
+      .*,
+      .data_i(current_pc_exe_csr),
+      .data_o(current_pc_mem_csr),
+      .wen(1'b1)
+  );
 
   // pc adder 
   assign pc_plus_4_if1 = current_pc_if1 + 4;
@@ -210,7 +259,7 @@ module data_path #(
   ) if1_if2_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(if_id_reg_clr),
+      .clear(mret_type | if_id_reg_clr),
       .wen(if_id_reg_en),
       .data_i(if1_if2_bus_i),
       .data_o(if1_if2_bus_o)
@@ -229,7 +278,7 @@ module data_path #(
       .data_i(inst_if),
       .data_o(inst_if_ff),
       .wen(if_id_reg_en_ff),
-      .clear(if_id_reg_clr)
+      .clear(mret_type | if_id_reg_clr)
   );
   assign inst_if2 = if_id_reg_en_ff ? inst_if : inst_if_ff;
 
@@ -247,7 +296,7 @@ module data_path #(
   ) if_id_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(if_id_reg_clr | if_id_reg_clr_ff),
+      .clear(mret_type | mret_type_ff | if_id_reg_clr | if_id_reg_clr_ff),
       .wen(if_id_reg_en),
       .data_i(if_id_bus_i),
       .data_o(if_id_bus_o)
@@ -359,7 +408,7 @@ module data_path #(
   ) id_exe_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(id_exe_reg_clr),
+      .clear(mret_type | id_exe_reg_clr),
       .wen(id_exe_reg_en),
       .data_i(id_exe_bus_i),
       .data_o(id_exe_bus_o)
@@ -505,7 +554,7 @@ module data_path #(
   ) exe_mem_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(exe_mem_reg_clr),
+      .clear(mret_type | exe_mem_reg_clr),
       .wen(exe_mem_reg_en),
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
@@ -567,15 +616,13 @@ module data_path #(
       .int_code(int_code)
   );
 
-
-
   logic [31:0] jump_mret;
 
   //   CSR and logic of commands for CSR
   csr_top csr_unit (
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
-      .current_pc(pc_plus_4_id),
+      .current_pc(current_pc_mem_csr),
       .csr_en(csr_type_mem & ~mret_type),
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
@@ -642,7 +689,7 @@ module data_path #(
   ) mem_wb_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(mem_wb_reg_clr),
+      .clear(mret_type | mem_wb_reg_clr),
       .wen(mem_wb_reg_en),
       .data_i(mem_wb_bus_i),
       .data_o(mem_wb_bus_o)
