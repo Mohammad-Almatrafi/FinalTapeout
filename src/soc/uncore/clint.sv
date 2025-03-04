@@ -28,6 +28,7 @@ module clint (
   always_ff @(posedge wb_clk_i or negedge wb_rst_i) begin
     if (!wb_rst_i) begin
       mtime <= 64'b0;
+      
     end else if (wb_we_i & wb_acc) begin
       case (wb_adr_i)
         MTIME_ADDR + 0: mtime[31:0] <= wb_dat_i;
@@ -36,7 +37,10 @@ module clint (
     end else mtime <= mtime + 1;
   end
 
-  always_ff @(posedge wb_clk_i) begin
+  always_ff @(posedge wb_clk_i or negedge wb_rst_i ) begin
+//    if (!wb_rst_i)
+//         mtimecmp <= 64'b0;
+
     if (wb_acc) begin
       if (wb_we_i) begin
         case (wb_adr_i)
