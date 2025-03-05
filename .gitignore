@@ -1,3 +1,4 @@
-vivado_proj/*
-my_project/*
-__pycache__/*
+vivado_proj/*** */
+my_project/** 
+__pycache__/** 
+ignored_files/** 
