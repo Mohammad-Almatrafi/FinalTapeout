@@ -1,4 +1,8 @@
 vivado_proj/**
+my_project
 my_project/** 
+__pycache__
 __pycache__/** 
+ignored_files
 ignored_files/** 
+
