@@ -168,6 +168,7 @@ module data_path #(
       .wen(1'b1)
   );
 
+
   n_bit_reg #(
       .n(32)
   ) current_pc_exe_mem_csr (
@@ -596,12 +597,13 @@ module data_path #(
   );
 
   logic [31:0] jump_mret;
+  logic [31:0] mepc_adr;
 
   //   CSR and logic of commands for CSR
   csr_top csr_unit (
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
-      .current_pc(current_pc_mem_csr),
+      .current_pc(mepc_adr),
       .csr_en(csr_type_mem & ~mret_type), // this is the mret type
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
@@ -619,7 +621,10 @@ module data_path #(
       .fun12(inst_mem[31:20]),
       .fun3(inst_mem[14:12])
   );
-
+    mret_adr_sel mepc_adress_select (
+      .*);
+      
+      
   // forwarding for mem_write_data
   mux2x1 #(32) mem_data_in_mux (
       .sel(forward_rd2_mem),
