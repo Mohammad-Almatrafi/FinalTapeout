@@ -3,12 +3,8 @@ addi x20, x0, 0xff # mie value all enable
 nop
 nop
 nop
-<<<<<<< HEAD
-lui x11, 0x00010 # mtime comp value
-=======
-# lui x11, 0x10000 # mtime comp value
-addi x11, x0, 200
->>>>>>> 5c06639d8c108d22f181fee60f3c76adcaeba900
+lui x11, 0x10000 # mtime comp value
+# addi x11, x0, 200
 nop
 nop
 nop
@@ -33,10 +29,7 @@ csrrw x0, mie,x20 # mie = 0xff
 nop
 nop
 nop
-lui x10, 0x20000
-addi x10, x10 0x400
-addi x10, x10 0x400
-addi x10, x10 0x400 #finding mtime comp address
+li x10,0x20000C00  # mtimecmp address
 nop
 nop
 nop
