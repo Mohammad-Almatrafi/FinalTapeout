@@ -20,7 +20,7 @@ module pipeline_controller (
   assign if_id_reg_clr = branch_hazard | mret_type;
   assign id_exe_reg_clr = branch_hazard | load_hazard | mret_type| interrupt;
   assign exe_mem_reg_clr = branch_hazard | mret_type| interrupt;
-  assign mem_wb_reg_clr = 1'b0;  // never clear
+  assign mem_wb_reg_clr = interrupt;  // never clear
 
   assign if_id_reg_en = ~(stall_pipl | load_hazard);
   assign id_exe_reg_en = ~stall_pipl;

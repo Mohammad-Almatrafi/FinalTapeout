@@ -335,7 +335,7 @@ logic        wb_clint_rty_i;
     
     clint CLINT (
                     .wb_clk_i(clk),
-                    .wb_rst_i(reset_n),
+                    .wb_rst_i(~reset_n),
                     .wb_cyc_i(wb_clint_cyc_o),
                     .wb_stb_i(wb_clint_stb_o),
                     .wb_we_i (wb_clint_we_o),
