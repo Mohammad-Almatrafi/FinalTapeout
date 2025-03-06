@@ -13,13 +13,19 @@ main.o: main.c
 main.elf: main.o
 	$(RV_AS) $(RV_FLAGS) main.o -o main.elf
 
+
 .PHONY:clean
 
 clean:
-	rm *.asm *.o *.elf *.hex
+	rm  *.o *.elf *.hex
 
 main.hex: main.elf
 	eval riscv64-unknown-linux-gnu-objdump main.elf -S >> main.hex
 
 
 
+# start.hex: start.elf
+# 	eval riscv64-unknown-linux-gnu-objdump start.elf -S >> start.hex
+
+# start.elf: start.s
+# 	$(RV_AS) $(RV_FLAGS) start.s -o start.elf
