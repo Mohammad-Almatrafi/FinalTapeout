@@ -2,7 +2,8 @@ RV_PREFIX := riscv64-unknown-linux-gnu-
 RV_GCC := $(RV_PREFIX)gcc
 RV_AS := $(RV_PREFIX)as
 RV_FLAGS := -mabi=ilp32 -march=rv32i_zicsr
-
+RV_OBJDUMP := $(RV_PREFIX)objdump
+RV_FLAGS_OBJ := -S --no-addresses -M no-aliases -M numeric
 
 main.asm: main.c
 	$(RV_GCC) $(RV_FLAGS) main.c -o main.asm -S
@@ -17,11 +18,11 @@ main.elf: main.o
 .PHONY:clean
 
 clean:
-	rm  *.o *.elf *.hex
+	rm  *.o *.elf *.hex *.asm
 
 main.hex: main.elf
-	eval riscv64-unknown-linux-gnu-objdump main.elf -S >> main.hex
-
+	eval $(RV_OBJDUMP) main.elf $(RV_FLAGS_OBJ) >> main.hex
+# 
 
 
 # start.hex: start.elf
