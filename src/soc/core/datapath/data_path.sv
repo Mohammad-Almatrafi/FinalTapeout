@@ -622,6 +622,7 @@ module data_path #(
       .fun3(inst_mem[14:12])
   );
     mret_adr_sel mepc_adress_select (
+      .clear_counter(mret_type | interrupt | pc_sel_mem),
       .*);
       
       

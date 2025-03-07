@@ -3,7 +3,7 @@
 module mret_adr_sel(
     input logic clk,    
     input logic reset_n,
-    input logic pc_sel_mem,
+    input logic clear_counter,
     input logic [31:0] current_pc_if1,
     input logic [31:0] current_pc_if2,
     input logic [31:0] current_pc_id,
@@ -29,7 +29,7 @@ module mret_adr_sel(
     n_bit_count_wclr #(.n(3)) counter_reg(
         .clk(clk),             
         .reset_n(reset_n),     
-        .clear(pc_sel_mem), 
+        .clear(clear_counter), 
         .wen(count_en),    
         .data_i(count_i),
         .data_o(count_o) );
