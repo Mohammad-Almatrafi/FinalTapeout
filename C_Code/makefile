@@ -8,30 +8,34 @@ RV_FLAGS_GCC := -mabi=ilp32 -march=rv32i_zicsr
 RV_FLAGS_OBJ := -S -M no-aliases#--no-addresses  -M numeric
 RV_FLAGS_LD := -m elf32lriscv
 RV_FLAGS_BIN2HEX := --bit-width 32
+SRC_DIR := src/
+BUILD_DIR := build/
+HEX_DIR := hex_files/
 
+all: $(BUILD_DIR)main.hex
 
-main.elf: main.o boot_loader.o linker.ld
-	$(RV_LD) $(RV_FLAGS_LD) -T linker.ld -o main.elf main.o boot_loader.o
+$(BUILD_DIR)main.elf: $(SRC_DIR)linker.ld $(BUILD_DIR)main.o $(BUILD_DIR)boot_loader.o 
+	$(RV_LD) $(RV_FLAGS_LD) -T $< -o $@ $(BUILD_DIR)main.o $(BUILD_DIR)boot_loader.o
 
-main.o: main.asm
-	$(RV_AS) $(RV_FLAGS) main.asm -o main.o
+$(BUILD_DIR)main.o: $(BUILD_DIR)main.asm
+	$(RV_AS) $(RV_FLAGS) $^ -o $@
 
-boot_loader.o: boot_loader.s
-	$(RV_AS) $(RV_FLAGS_GCC) boot_loader.s -o boot_loader.o
+$(BUILD_DIR)boot_loader.o: $(SRC_DIR)boot_loader.s
+	$(RV_AS) $(RV_FLAGS_GCC) $^ -o $@
 
-boot_loader.hex: boot_loader.o
-	eval $(RV_OBJDUMP) boot_loader.o $(RV_FLAGS_OBJ) >> boot_loader.hex
+$(BUILD_DIR)boot_loader.hex: $(BUILD_DIR)boot_loader.o
+	eval $(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
 
-main.dump: main.elf
-	eval $(RV_OBJDUMP) main.elf $(RV_FLAGS_OBJ) >> main.dump
+$(BUILD_DIR)main.dump: $(BUILD_DIR)main.elf
+	eval $(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
 
-main.asm: main.c
-	$(RV_GCC) $(RV_FLAGS_GCC) main.c -o main.asm -S
+$(BUILD_DIR)main.asm: $(SRC_DIR)main.c
+	$(RV_GCC) $(RV_FLAGS_GCC) $^ -o $@ -S
 
-main.hex: main.elf
-	
-	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) main.elf main.hex
+$(BUILD_DIR)main.hex: $(BUILD_DIR)main.elf
+	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) $^ $@
 
 .PHONY:clean
 clean:
-	rm  *.o *.elf *.hex *.asm *.dump
+	rm -r build
+	mkdir build
