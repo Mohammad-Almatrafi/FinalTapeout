@@ -22,16 +22,16 @@ boot_loader.o: boot_loader.s
 boot_loader.hex: boot_loader.o
 	eval $(RV_OBJDUMP) boot_loader.o $(RV_FLAGS_OBJ) >> boot_loader.hex
 
-main.hex: main.elf
-	eval $(RV_OBJDUMP) main.elf $(RV_FLAGS_OBJ) >> main.hex
+main.dump: main.elf
+	eval $(RV_OBJDUMP) main.elf $(RV_FLAGS_OBJ) >> main.dump
 
 main.asm: main.c
 	$(RV_GCC) $(RV_FLAGS_GCC) main.c -o main.asm -S
 
-main.elf2hex: main.elf
+main.hex: main.elf
 	
-	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) main.elf main.elf2hex
+	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) main.elf main.hex
 
 .PHONY:clean
 clean:
-	rm  *.o *.elf *.hex *.asm
+	rm  *.o *.elf *.hex *.asm *.dump
