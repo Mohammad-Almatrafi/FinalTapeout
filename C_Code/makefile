@@ -14,14 +14,14 @@ HEX_DIR := hex_files/
 
 all: $(BUILD_DIR)main.hex
 
-$(BUILD_DIR)main.elf: $(SRC_DIR)linker.ld $(BUILD_DIR)main.o $(BUILD_DIR)boot_loader.o 
+$(BUILD_DIR)main.elf: $(SRC_DIR)qemu_linker.ld $(BUILD_DIR)main.o $(BUILD_DIR)boot_loader.o 
 	$(RV_LD) $(RV_FLAGS_LD) -T $< -o $@ $(BUILD_DIR)main.o $(BUILD_DIR)boot_loader.o
 
 $(BUILD_DIR)main.o: $(BUILD_DIR)main.asm
-	$(RV_AS) $(RV_FLAGS) $^ -o $@
+	$(RV_AS) $(RV_FLAGS) -g $^ -o $@
 
 $(BUILD_DIR)boot_loader.o: $(SRC_DIR)boot_loader.s
-	$(RV_AS) $(RV_FLAGS_GCC) $^ -o $@
+	$(RV_AS) $(RV_FLAGS_GCC) -g $^ -o $@
 
 $(BUILD_DIR)boot_loader.hex: $(BUILD_DIR)boot_loader.o
 	eval $(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
@@ -30,7 +30,7 @@ $(BUILD_DIR)main.dump: $(BUILD_DIR)main.elf
 	eval $(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
 
 $(BUILD_DIR)main.asm: $(SRC_DIR)main.c
-	$(RV_GCC) $(RV_FLAGS_GCC) $^ -o $@ -S
+	$(RV_GCC) $(RV_FLAGS_GCC) -g $^ -o $@ -S
 
 $(BUILD_DIR)main.hex: $(BUILD_DIR)main.elf
 	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) $^ $@
