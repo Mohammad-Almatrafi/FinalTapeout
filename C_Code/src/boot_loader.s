@@ -4,9 +4,9 @@
 __start:
 la sp,  __stack_top
 add s0,sp,x0
-jal zero, main
+j main
 
 .section .data
-.space 1024 * 8
+.space 1024 * 4
 .align 16
 __stack_top:

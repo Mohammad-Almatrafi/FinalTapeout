@@ -1,20 +1,12 @@
 
-MEMORY 
-{
-    RAM : ORIGIN = 0x80000000, LENGTH = 128k
-}
 
 
 SECTIONS
 {
-    /* .BootLoader :
+    . = 0x80000000;
+    .text : /* code section */
     {
-        *(
-    } > ROM */
-
-     .text :
-    {
-        KEEP(*(.text.__start*))
+        KEEP(*(.text.__start*));
         *(.text*);
-    } > RAM
+    }
 }
