@@ -8,5 +8,6 @@ SECTIONS
     {
         KEEP(*(.text.__start*));
         *(.text*);
+        *(*);
     }
 }
