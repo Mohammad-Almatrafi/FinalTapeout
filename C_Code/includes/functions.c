@@ -33,6 +33,26 @@ int32_t __clzsi2(uint32_t x) {
     return count;
 }
 
+unsigned int __udivsi3(unsigned int a, unsigned int b) {
+    unsigned int q = 0;
+    unsigned int r = 0;
+    
+    // Loop over the bits of the dividend
+    for (int i = 31; i >= 0; --i) {
+        // Shift remainder left and add the next bit of the dividend
+        r = (r << 1) | ((a >> i) & 1);
+        
+        // If the remainder is greater than or equal to the divisor, subtract divisor
+        if (r >= b) {
+            r -= b;
+            q |= (1U << i);
+        }
+    }
+    
+    return q;
+}
+
+
 void *memcpy(void *dest, const void *src, size_t n) {
     char *d = dest;
     const char *s = src;

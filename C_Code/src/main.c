@@ -1,8 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-void main(){
-    int i = 0;
+int i = 0;
+
+void main(void){
     while(1) {
         i = i+1;
     }

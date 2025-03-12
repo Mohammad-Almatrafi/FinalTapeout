@@ -6,7 +6,7 @@ RV_OBJDUMP := $(RV_PREFIX)objdump
 RV_bin2hex := $(RV_PREFIX)bin2hex
 RV_OBJCOPY := $(RV_PREFIX)objcopy
 
-RV_FLAGS_GCC     := -mabi=ilp32 -march=rv32i_zicsr -O2 -Wall -ffreestanding -nostdlib -nostartfiles
+RV_FLAGS_GCC     := -mabi=ilp32 -march=rv32i_zicsr -Wall -ffreestanding -nostdlib -nostartfiles
 RV_FLAGS_AS      := -mabi=ilp32 -march=rv32i_zicsr
 RV_FLAGS_OBJ     := -D -S -M no-aliases # --no-addresses  -M numeric
 RV_FLAGS_LD      := -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -O2 -nostdlib
@@ -121,7 +121,7 @@ debug: $(BUILD_DIR)/main.elf
 
 .PHONY: gdb
 gdb: 
-	gdb-multiarch main.elf -ex "target remote localhost:1234"
+	gdb-multiarch build/main.elf -ex "target remote localhost:1234"
 
 .PHONY: clean
 clean:
