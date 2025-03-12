@@ -6,13 +6,11 @@ RV_OBJDUMP := $(RV_PREFIX)objdump
 RV_bin2hex := $(RV_PREFIX)bin2hex
 RV_OBJCOPY := $(RV_PREFIX)objcopy
 
-RV_FLAGS_GCC     := -mabi=ilp32 -march=rv32i_zicsr -Wall -ffreestanding -nostdlib -nostartfiles
+RV_FLAGS_GCC     := -mabi=ilp32 -march=rv32i_zicsr -Wall -ffreestanding -nostdlib -nostartfiles -O
 RV_FLAGS_AS      := -mabi=ilp32 -march=rv32i_zicsr
 RV_FLAGS_OBJ     := -D -S -M no-aliases # --no-addresses  -M numeric
-RV_FLAGS_LD      := -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -O2 -nostdlib
+RV_FLAGS_LD      := -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -nostdlib
 RV_FLAGS_OBJCOPY := -O verilog
-
-RV_FLAGS_BIN2HEX := --bit-width 32
 
 SRC_DIR := src/
 BUILD_DIR := build/
@@ -67,7 +65,7 @@ buildASM: $(ASM_SRCS)
 buildOBJS: $(OBJS_SRCS)
 
 .PHONY: buildHex
-buildHex: $(BUILD_DIR)main_text.hex $(BUILD_DIR)main_data.hex $(BUILD_DIR)main.dump
+buildHex: $(HEX_DIR)main_text.hex $(HEX_DIR)main_data.hex $(BUILD_DIR)main.dump $(HEX_DIR)main_text_ver.mem $(HEX_DIR)main_data_ver.mem
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -104,15 +102,25 @@ $(BUILD_DIR)boot_loader.o: $(SRC_DIR)boot_loader.s
 	$(RV_AS) $(RV_FLAGS_AS) $(INCLUDES) -g $< -o $@
 
 $(BUILD_DIR)functions.s: includes/functions.c
-	$(RV_GCC) $(RV_FLAGS_GCC) -g -S $< -o $@ $(INCLUDES)
+	$(RV_GCC) -mabi=ilp32 -march=rv32i_zicsr -Wall -ffreestanding -nostdlib -nostartfiles -g -S $< -o $@ $(INCLUDES)
 
 
 $(BUILD_DIR)main.dump: $(BUILD_DIR)main.elf
 	$(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
 
-$(BUILD_DIR)main_text.hex $(BUILD_DIR)main_data.hex: $(TARGET)
-	$(RV_OBJCOPY) -j .text $(RV_FLAGS_OBJCOPY) $^ $(BUILD_DIR)main_text.hex
-	$(RV_OBJCOPY) -j .data $(RV_FLAGS_OBJCOPY) $^ $(BUILD_DIR)main_data.hex
+$(HEX_DIR)main_text.hex $(HEX_DIR)main_data.hex: $(TARGET)
+	$(RV_OBJCOPY) -j .text $(RV_FLAGS_OBJCOPY) $^ $(HEX_DIR)main_text.hex
+	$(RV_OBJCOPY) -j .data $(RV_FLAGS_OBJCOPY) $^ $(HEX_DIR)main_data.hex
+
+$(HEX_DIR)main_text_ver.mem $(HEX_DIR)main_data_ver.mem: $(TARGET)
+	$(RV_OBJCOPY) --verilog-data-width 4 -O verilog -j .text build/main.elf $(HEX_DIR)temp.hex
+	sed '1s/^/@/; s/ /\n/g' $(HEX_DIR)temp.hex > $(HEX_DIR)main_text_ver.mem
+	rm $(HEX_DIR)temp.hex
+	$(RV_OBJCOPY) --verilog-data-width 4 -O verilog -j .data build/main.elf $(HEX_DIR)temp.hex
+	sed '1s/^/@/; s/ /\n/g' $(HEX_DIR)temp.hex > $(HEX_DIR)main_data_ver.mem
+	rm $(HEX_DIR)temp.hex
+
+
 
 
 .PHONY: debug
