@@ -4,11 +4,13 @@ RV_AS := $(RV_PREFIX)as
 RV_LD := $(RV_PREFIX)ld
 RV_OBJDUMP := $(RV_PREFIX)objdump
 RV_bin2hex := $(RV_PREFIX)bin2hex
+RV_OBJCOPY := $(RV_PREFIX)objcopy
 
-RV_FLAGS_GCC := -mabi=ilp32 -march=rv32i_zicsr -lgcc -lc
-RV_FLAGS_AS := -mabi=ilp32 -march=rv32i_zicsr
-RV_FLAGS_OBJ := -S -M no-aliases # --no-addresses  -M numeric
-RV_FLAGS_LD := -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -L/opt/riscv/riscv64-unknown-linux-gnu/lib -L/opt/riscv/lib/gcc/riscv64-unknown-linux-gnu/14.2.0
+RV_FLAGS_GCC     := -mabi=ilp32 -march=rv32i_zicsr -O2 -Wall -ffreestanding -nostdlib -nostartfiles
+RV_FLAGS_AS      := -mabi=ilp32 -march=rv32i_zicsr
+RV_FLAGS_OBJ     := -D -S -M no-aliases # --no-addresses  -M numeric
+RV_FLAGS_LD      := -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -O2 -nostdlib
+RV_FLAGS_OBJCOPY := -O verilog
 
 RV_FLAGS_BIN2HEX := --bit-width 32
 
@@ -22,15 +24,14 @@ FreeRTOS_CONFIG := $(SRC_DIR)
 FreeRTOS_MEMMANG := FreeRTOS-Kernel/portable/MemMang/
 
 
-# /opt/riscv/bin/../lib/gcc/riscv64-unknown-linux-gnu/14.2.0/lib32/ilp32/libgcc.a
-# /opt/riscv/bin/../sysroot/usr/lib32/ilp32/libc.a
-
 SRCS := $(SRC_DIR)main.c \
         $(FreeRTOS)tasks.c \
         $(FreeRTOS)queue.c \
         $(FreeRTOS)list.c \
         $(FreeRTOS_RISCV_INCLUDE)port.c \
-		$(FreeRTOS_MEMMANG)heap_4.c
+        $(FreeRTOS_MEMMANG)heap_4.c \
+        includes/functions.c
+
 
 
 # Generate .s files in the build directory
@@ -41,6 +42,8 @@ ASM_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.s, $(FreeRTOS)tasks.c)
 ASM_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.c, $(BUILD_DIR)%.s, $(FreeRTOS_RISCV_INCLUDE)port.c)
 ASM_SRCS += $(FreeRTOS_RISCV_INCLUDE)portASM.S
 ASM_SRCS += $(patsubst $(FreeRTOS_MEMMANG)%.c, $(BUILD_DIR)%.s, $(FreeRTOS_MEMMANG)heap_4.c)
+ASM_SRCS += $(SRC_DIR)boot_loader.s
+ASM_SRCS += $(BUILD_DIR)functions.s
 
 # Generate .o files in the build directory
 OBJS_SRCS := $(patsubst $(SRC_DIR)%.c, $(BUILD_DIR)%.o, $(SRC_DIR)main.c)
@@ -50,12 +53,21 @@ OBJS_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.o, $(FreeRTOS)tasks.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.c, $(BUILD_DIR)%.o, $(FreeRTOS_RISCV_INCLUDE)port.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.S, $(BUILD_DIR)%.o, $(FreeRTOS_RISCV_INCLUDE)portASM.S)
 OBJS_SRCS += $(patsubst $(FreeRTOS_MEMMANG)%.c, $(BUILD_DIR)%.o, $(FreeRTOS_MEMMANG)heap_4.c)
+OBJS_SRCS += $(patsubst $(SRC_DIR)%.s, $(BUILD_DIR)%.o, $(SRC_DIR)boot_loader.s)
+OBJS_SRCS += $(BUILD_DIR)functions.o
 
 TARGET := $(BUILD_DIR)main.elf
 
 INCLUDES := -I $(FreeRTOS_INCLUDE) -I $(FreeRTOS_RISCV_INCLUDE) -I $(FreeRTOS_CONFIG)
 
-all: $(BUILD_DIR)main.hex
+.PHONY: buildASM
+buildASM: $(ASM_SRCS)
+
+.PHONY: buildOBJS
+buildOBJS: $(OBJS_SRCS)
+
+.PHONY: buildHex
+buildHex: $(BUILD_DIR)main_text.hex $(BUILD_DIR)main_data.hex $(BUILD_DIR)main.dump
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -88,11 +100,20 @@ $(BUILD_DIR)portASM.preprocessed.S: $(FreeRTOS_RISCV_INCLUDE)portASM.S
 $(BUILD_DIR)portASM.o: $(BUILD_DIR)portASM.preprocessed.S
 	$(RV_AS) $(RV_FLAGS_AS) $(INCLUDES) -g $< -o $@
 
-$(BUILD_DIR)main.dump: $(TARGET)
+$(BUILD_DIR)boot_loader.o: $(SRC_DIR)boot_loader.s
+	$(RV_AS) $(RV_FLAGS_AS) $(INCLUDES) -g $< -o $@
+
+$(BUILD_DIR)functions.s: includes/functions.c
+	$(RV_GCC) $(RV_FLAGS_GCC) -g -S $< -o $@ $(INCLUDES)
+
+
+$(BUILD_DIR)main.dump: $(BUILD_DIR)main.elf
 	$(RV_OBJDUMP) $^ $(RV_FLAGS_OBJ) >> $@
 
-$(BUILD_DIR)main.hex: $(TARGET)
-	$(RV_bin2hex) $(RV_FLAGS_BIN2HEX) $^ $@
+$(BUILD_DIR)main_text.hex $(BUILD_DIR)main_data.hex: $(TARGET)
+	$(RV_OBJCOPY) -j .text $(RV_FLAGS_OBJCOPY) $^ $(BUILD_DIR)main_text.hex
+	$(RV_OBJCOPY) -j .data $(RV_FLAGS_OBJCOPY) $^ $(BUILD_DIR)main_data.hex
+
 
 .PHONY: debug
 debug: $(BUILD_DIR)/main.elf
@@ -105,6 +126,6 @@ gdb:
 .PHONY: clean
 clean:
 	clear
-	rm -rf $(BUILD_DIR)
-	mkdir -p $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 
