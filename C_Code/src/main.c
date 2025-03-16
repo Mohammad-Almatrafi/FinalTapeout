@@ -1,71 +1,30 @@
-#include <stdint.h>
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
+#include "functions.h"
+#include "task.h"
 #include <stddef.h>
+#include <stdint.h>
 
-int i = 0;
+int number = 0;
 
-void main(void){
-    while(1) {
-        i = i+1;
-    }
-
-
+void task1(void *param) {
+  uart_puts("Task1\n");
 }
 
-void vApplicationIdleHook(void) {
-    // Custom idle task behavior
+void task2(void *param) {
+  uart_puts("Task2\n");
 }
 
-void vApplicationTickHook(void) {
-    // Custom tick hook behavior
+void main() {
+
+    __asm__ volatile("csrrw zero, mtvec, %0"::"r"(0x12341234));
+  TaskHandle_t Task_1 = NULL;
+  TaskHandle_t Task_2 = NULL;
+
+  uart_setup();
+
+  xTaskCreate(task1, "task 1", 1024, NULL, 1, &Task_1);
+  xTaskCreate(task2, "task 2", 1024, NULL, 2, &Task_2);
+
+  vTaskStartScheduler();
 }
-// TaskHandle_t xTask, char *pcTaskName
-void vApplicationStackOverflowHook(void) {
-    // Handle stack overflow
-}
-// StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize
-void vApplicationGetIdleTaskMemory(void) {
-    // Provide memory for the idle task
-}
-// StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize
-void vApplicationGetTimerTaskMemory(void) {
-    // Provide memory for the timer task
-}
-
-// #include "FreeRTOS.h"
-// #include "task.h"
-
-// // CLINT registers
-// #define CLINT_BASE 0x02000000
-// #define MTIME (volatile uint64_t*)(CLINT_BASE + 0xBFF8)
-// #define MTIMECMP (volatile uint64_t*)(CLINT_BASE + 0x4000)
-
-// // Timer interrupt handler
-// void Timer_Handler(void) {
-//     // Clear the timer interrupt by setting mtimecmp to a future value
-//     *MTIMECMP = *MTIME + (configCPU_CLOCK_HZ / configTICK_RATE_HZ);
-
-//     // Call the FreeRTOS tick handler
-//     xPortSysTickHandler();
-// }
-
-// // Initialize the timer
-// void vPortSetupTimerInterrupt(void) {
-//     // Set the timer compare value
-//     *MTIMECMP = *MTIME + (configCPU_CLOCK_HZ / configTICK_RATE_HZ);
-
-//     // Enable timer interrupts in the mie CSR
-//     __asm volatile("csrs mie, %0" : : "r"(0x80)); // MTIE bit
-// }
-
-// // Start the scheduler
-// void vPortStartScheduler(void) {
-//     // Enable global interrupts in the mstatus CSR
-//     __asm volatile("csrs mstatus, 8");
-
-//     // Start the first task
-//     __asm volatile("mv a0, %0" : : "r"(pxCurrentTCB));
-//     __asm volatile("jr a0");
-// }
-
-
-

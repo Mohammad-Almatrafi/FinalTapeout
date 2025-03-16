@@ -18,6 +18,7 @@ HEX_DIR := hex_files/
 FreeRTOS := FreeRTOS-Kernel/
 FreeRTOS_INCLUDE := $(FreeRTOS)include/
 FreeRTOS_RISCV_INCLUDE := $(FreeRTOS)portable/GCC/RISC-V/
+FUNCTIONS_INCLUDE := includes/
 FreeRTOS_CONFIG := $(SRC_DIR)
 FreeRTOS_MEMMANG := FreeRTOS-Kernel/portable/MemMang/
 
@@ -56,7 +57,7 @@ OBJS_SRCS += $(BUILD_DIR)functions.o
 
 TARGET := $(BUILD_DIR)main.elf
 
-INCLUDES := -I $(FreeRTOS_INCLUDE) -I $(FreeRTOS_RISCV_INCLUDE) -I $(FreeRTOS_CONFIG)
+INCLUDES := -I $(FreeRTOS_INCLUDE) -I $(FreeRTOS_RISCV_INCLUDE) -I $(FreeRTOS_CONFIG) -I $(FUNCTIONS_INCLUDE)
 
 .PHONY: buildASM
 buildASM: $(ASM_SRCS)
