@@ -2,8 +2,9 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#define configMTIME_BASE_ADDRESS                0x20000C08UL
-#define configMTIMECMP_BASE_ADDRESS             0x20000C00UL
+#define configMTIME_BASE_ADDRESS                0x2000008
+#define configMTIMECMP_BASE_ADDRESS             0x2000000
+                                                
 #define configISR_STACK_SIZE_WORDS              500
 
 #define configMINIMAL_STACK_SIZE                32

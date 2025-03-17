@@ -7,17 +7,21 @@
 
 int number = 0;
 
-void task1(void *param) {
-  uart_puts("Task1\n");
-}
+void task1(void *param) { uart_puts("Task1\n"); }
 
-void task2(void *param) {
-  uart_puts("Task2\n");
-}
+void task2(void *param) { uart_puts("Task2\n"); }
 
 void main() {
+  int *mtime_addr =
+      (int *)configMTIME_BASE_ADDRESS;
+  int *mtimecmp_addr = (int *)
+      configMTIMECMP_BASE_ADDRESS;
 
-    __asm__ volatile("csrrw zero, mtvec, %0"::"r"(0x12341234));
+  *(mtimecmp_addr + 0) = (int)0xffffffff;
+  *(mtimecmp_addr + 1) = (int)0xffffffff;
+  *(mtime_addr + 0) = (int)0x0;
+  *(mtime_addr + 1) = (int)0x0;
+
   TaskHandle_t Task_1 = NULL;
   TaskHandle_t Task_2 = NULL;
 
