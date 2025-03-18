@@ -121,9 +121,6 @@ $(HEX_DIR)main_text_ver.mem $(HEX_DIR)main_data_ver.mem: $(TARGET)
 	sed '1s/^/@/; s/ /\n/g' $(HEX_DIR)temp.hex > $(HEX_DIR)main_data_ver.mem
 	rm $(HEX_DIR)temp.hex
 
-
-
-
 .PHONY: debug
 debug: $(BUILD_DIR)/main.elf
 	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -s -S -bios build/main.elf

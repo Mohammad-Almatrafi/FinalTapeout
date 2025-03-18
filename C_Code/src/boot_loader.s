@@ -4,6 +4,7 @@ __start:
 la sp,  __stack_top
 add s0,sp,x0
 la a0,freertos_risc_v_trap_handler
+# slli a0,a0,1
 csrrw zero, mtvec,a0
 add a0, zero, zero
 j main

@@ -1,6 +1,6 @@
+#include "functions.h"
 #include <stddef.h>
 #include <stdint.h>
-#include "functions.h"
 
 void uart_setup() {
   UART0_FCR = UARTFCR_FFENA; // Set the FIFO for polled operation
