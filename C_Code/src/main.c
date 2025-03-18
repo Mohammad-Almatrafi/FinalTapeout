@@ -5,9 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void task1(void *param) uart_puts("Task1\n");
+void task1(void *param) { uart_puts("Task1\n"); }
 
-void task2(void *param) uart_puts("Task2\n");
+void task2(void *param) { uart_puts("Task2\n"); }
 
 void main() {
 
