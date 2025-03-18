@@ -4,9 +4,6 @@
 #include "task.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#define _OPEN_SYS_ITOA_EXT
-#include <stdlib.h>
 
 void task1(void *param) uart_puts("Task1\n");
 

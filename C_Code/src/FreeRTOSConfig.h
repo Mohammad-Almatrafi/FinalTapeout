@@ -2,8 +2,8 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#define configMTIME_BASE_ADDRESS                0x2000008
-#define configMTIMECMP_BASE_ADDRESS             0x2000000
+#define configMTIME_BASE_ADDRESS                0x200BFF8
+#define configMTIMECMP_BASE_ADDRESS             0x2004000
                                                 
 #define configISR_STACK_SIZE_WORDS              500
 
@@ -17,6 +17,14 @@
 #define configCPU_CLOCK_HZ                      1000*1000
 #define configTICK_RATE_HZ                      4
 #define configTOTAL_HEAP_SIZE                   1024
+
+#define configUSE_TIMERS				        1
+#define configTIMER_TASK_PRIORITY		( configMAX_PRIORITIES - 3 )
+#define configTIMER_QUEUE_LENGTH		        20
+#define configTIMER_TASK_STACK_DEPTH	( configMINIMAL_STACK_SIZE * 2 )
+
+#define configUSE_TASK_NOTIFICATIONS	        1
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES   3
 
 #endif /* FREERTOS_CONFIG_H */
 

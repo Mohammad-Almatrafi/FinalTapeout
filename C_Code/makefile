@@ -27,6 +27,7 @@ SRCS := $(SRC_DIR)main.c \
         $(FreeRTOS)tasks.c \
         $(FreeRTOS)queue.c \
         $(FreeRTOS)list.c \
+		$(FreeRTOS)timers.c \
         $(FreeRTOS_RISCV_INCLUDE)port.c \
         $(FreeRTOS_MEMMANG)heap_4.c \
         includes/functions.c
@@ -38,6 +39,7 @@ ASM_SRCS := $(patsubst $(SRC_DIR)%.c, $(BUILD_DIR)%.s, $(SRC_DIR)main.c)
 ASM_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.s, $(FreeRTOS)list.c)
 ASM_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.s, $(FreeRTOS)queue.c)
 ASM_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.s, $(FreeRTOS)tasks.c)
+ASM_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.s, $(FreeRTOS)timers.c)
 ASM_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.c, $(BUILD_DIR)%.s, $(FreeRTOS_RISCV_INCLUDE)port.c)
 ASM_SRCS += $(FreeRTOS_RISCV_INCLUDE)portASM.S
 ASM_SRCS += $(patsubst $(FreeRTOS_MEMMANG)%.c, $(BUILD_DIR)%.s, $(FreeRTOS_MEMMANG)heap_4.c)
@@ -49,6 +51,7 @@ OBJS_SRCS := $(patsubst $(SRC_DIR)%.c, $(BUILD_DIR)%.o, $(SRC_DIR)main.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.o, $(FreeRTOS)list.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.o, $(FreeRTOS)queue.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.o, $(FreeRTOS)tasks.c)
+OBJS_SRCS += $(patsubst $(FreeRTOS)%.c, $(BUILD_DIR)%.o, $(FreeRTOS)timers.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.c, $(BUILD_DIR)%.o, $(FreeRTOS_RISCV_INCLUDE)port.c)
 OBJS_SRCS += $(patsubst $(FreeRTOS_RISCV_INCLUDE)%.S, $(BUILD_DIR)%.o, $(FreeRTOS_RISCV_INCLUDE)portASM.S)
 OBJS_SRCS += $(patsubst $(FreeRTOS_MEMMANG)%.c, $(BUILD_DIR)%.o, $(FreeRTOS_MEMMANG)heap_4.c)
