@@ -1,3 +1,5 @@
+#include "FreeRTOS.h"
+#include "task.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -14,6 +16,26 @@
 #define UARTLSR_THRE                                                           \
   0x20 // UART Line Status Register Transmit Hold Register Empty bit
 #define UART0_FF_THR_EMPTY (UART0_LSR & UARTLSR_THRE)
+
+void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
+                                    StackType_t **ppxTimerTaskStackBuffer,
+                                    uint32_t *pulTimerTaskStackSize);
+
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+                                   StackType_t **ppxIdleTaskStackBuffer,
+                                   StackType_t *pulIdleTaskStackSize);
+
+void vApplicationMallocFailedHook(void);
+
+void vApplicationIdleHook(void);
+
+void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName);
+
+void vApplicationTickHook(void);
+
+void vApplicationDaemonTaskStartupHook(void);
+
+void vAssertCalled(const char *pcFileName, uint32_t ulLine);
 
 void uart_setup();
 

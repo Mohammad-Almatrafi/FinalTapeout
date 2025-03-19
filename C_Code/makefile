@@ -28,6 +28,8 @@ SRCS := $(SRC_DIR)main.c \
         $(FreeRTOS)queue.c \
         $(FreeRTOS)list.c \
 		$(FreeRTOS)timers.c \
+		$(FreeRTOS)event_groups.c \
+		$(FreeRTOS)stream_buffer.c \
         $(FreeRTOS_RISCV_INCLUDE)port.c \
         $(FreeRTOS_MEMMANG)heap_4.c \
         includes/functions.c
