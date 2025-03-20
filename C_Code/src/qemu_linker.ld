@@ -7,6 +7,7 @@ SECTIONS
     .text : 
     {
         *(.init)        /* Place startup code at the beginning */
+        *(.vector_table)
         *(.text*)
     } 
 }

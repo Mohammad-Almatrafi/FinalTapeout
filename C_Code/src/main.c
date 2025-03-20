@@ -6,13 +6,19 @@
 #include <stdint.h>
 
 void task1(void *param) {
-  uart_puts("Task1\n");
-  vTaskDelay(1000);
+
+  while (1) {
+    uart_puts("Task1\n");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
 }
 
 void task2(void *param) {
-  uart_puts("Task2\n");
-  vTaskDelay(1000);
+
+  while (1) {
+    uart_puts("Task2\n");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
 }
 
 void main() {
@@ -22,8 +28,11 @@ void main() {
 
   uart_setup();
 
-  xTaskCreate(task1, "task 1", 1024, NULL, 1, &Task_1);
-  xTaskCreate(task2, "task 2", 1024, NULL, 2, &Task_2);
+  xTaskCreate(task1, "task 1", 1024, NULL, tskIDLE_PRIORITY, &Task_1);
+  xTaskCreate(task2, "task 2", 1024, NULL, tskIDLE_PRIORITY, &Task_2);
 
   vTaskStartScheduler();
+
+  for (;;) {
+  }
 }
