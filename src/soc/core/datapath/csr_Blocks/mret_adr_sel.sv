@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module mret_adr_sel(
-    input logic clk,    
+    input logic clk,
     input logic reset_n,
     input logic clear_counter,
     input logic [31:0] current_pc_if1,
@@ -9,7 +9,7 @@ module mret_adr_sel(
     input logic [31:0] current_pc_id,
     input logic [31:0] current_pc_exe,
     input logic [31:0] current_pc_mem_csr,
-    
+
     output logic [31:0] mepc_adr
     );
     logic [2:0] count_i;
@@ -19,24 +19,24 @@ module mret_adr_sel(
 
     assign count_i = count_o;
     assign count_en = (count_o <=3);
-    
+
     assign mepc_adress_sel[0] = current_pc_if1;
     assign mepc_adress_sel[1] = current_pc_if2;
     assign mepc_adress_sel[2] = current_pc_id;
     assign mepc_adress_sel[3] = current_pc_exe;
     assign mepc_adress_sel[4] = current_pc_mem_csr;
-    
+
     n_bit_count_wclr #(.n(3)) counter_reg(
-        .clk(clk),             
-        .reset_n(reset_n),     
-        .clear(clear_counter), 
-        .wen(count_en),    
+        .clk(clk),
+        .reset_n(reset_n),
+        .clear(clear_counter),
+        .wen(count_en),
         .data_i(count_i),
         .data_o(count_o) );
-    
-    
+
+
     assign mepc_adr = mepc_adress_sel[count_o];
-        
+
 //    mux4x1 #(.n(32)) pc_mux(
 //        .in0(current_pc_if1),
 //        .in1(current_pc_if2),

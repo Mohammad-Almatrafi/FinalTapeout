@@ -17,10 +17,10 @@ module pipeline_controller (
     output logic pc_reg_en
 );
 
-  assign if_id_reg_clr = branch_hazard | mret_type;
+  assign if_id_reg_clr = branch_hazard | mret_type | interrupt;
 
-  assign id_exe_reg_clr = branch_hazard | load_hazard | mret_type| interrupt;
-  assign exe_mem_reg_clr = branch_hazard | mret_type| interrupt;
+  assign id_exe_reg_clr = branch_hazard | load_hazard | mret_type | interrupt;
+  assign exe_mem_reg_clr = branch_hazard | mret_type | interrupt;
   assign mem_wb_reg_clr = interrupt;  // never clear
 
   assign if_id_reg_en = ~(stall_pipl | load_hazard);

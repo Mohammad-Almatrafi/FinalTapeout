@@ -16,13 +16,13 @@
 
 module csr_reg (
     input logic [31:0] csr_in,// This is for the CSR Reg input after doing the control_CSR block DONE
-    
-    input logic [31:0] mip_in,// This is to update the value of the register mip( Takes from the preipherals and goes to the register )
+
+    input logic [31:0] mip_in,// This is to update the value of the register mip( Takes from the preipherals and goes to the register)
                               // This should be connected to the CLINT interrupt only the 7th bit of mip_in will be used
 
     input logic [11:0] offset,
     input logic csr_en,       // This signal will be and gate of csr_type and mret
-    input logic clk,         
+    input logic clk,
     input logic reset_n,
     input logic int_action,   // This is coming from the inerrupt
     input logic ret_action,   // This comes from knowing that the signal is mret which comes from mret_on
@@ -31,7 +31,7 @@ module csr_reg (
     input logic [31:0] current_pc,
     output logic [31:0] mcause, // This will be to decide which address we go to (offset from mvec)
     output logic [31:0] csr_out, // This will be written to Rd
-    output logic [31:0]mepc, // Connect to the 2nd mux 
+    output logic [31:0]mepc, // Connect to the 2nd mux
     output logic MIE, // This is needed as input to int_control which will output to first PC mux
     output logic [31:0]mie,
     output logic [31:0]mip,
@@ -88,7 +88,6 @@ module csr_reg (
         csr_mem`MIE_G_ADDR <= 1'b0;
         csr_mem`MEPC_ADDR <= current_pc;
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
-        ;
     end
 
     3'd5:begin
@@ -98,7 +97,7 @@ module csr_reg (
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
     end
 
-    default:begin 
+    default:begin
     end
     endcase
     csr_mem`MIP_ADDR <= mip_in;
@@ -108,3 +107,4 @@ module csr_reg (
 
     end
 endmodule
+

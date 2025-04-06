@@ -83,12 +83,14 @@ module data_path #(
 
     // inst mem access
     output logic [31:0] current_pc_if,
-    input  logic [31:0] inst_if
+    input  logic [31:0] inst_if,
+    output logic interrupt,
+    output logic mret_type
 
 
 
 );
-  logic interrupt;
+  // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
   logic csr_type_exe, csr_type_mem;
@@ -138,7 +140,7 @@ module data_path #(
       current_pc_id_csr,
       current_pc_exe_csr,
       current_pc_mem_csr;
-    assign current_pc_if1_csr = current_pc_if1;
+  assign current_pc_if1_csr = current_pc_if1;
 
 
   n_bit_reg #(
@@ -579,7 +581,7 @@ module data_path #(
   //    logic MIE;
   //    logic [31:0]mie;
   //    logic [31:0]mtvec;
-  logic mret_type;
+  // logic mret_type;
 
   assign RS1 = reg_rdata1_mem;
 
@@ -604,7 +606,7 @@ module data_path #(
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
       .current_pc(mepc_adr),
-      .csr_en(csr_type_mem & ~mret_type), // this is the mret type
+      .csr_en(csr_type_mem & ~mret_type),  // this is the mret type
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
       .int_action(interrupt),
@@ -621,11 +623,12 @@ module data_path #(
       .fun12(inst_mem[31:20]),
       .fun3(inst_mem[14:12])
   );
-    mret_adr_sel mepc_adress_select (
+  mret_adr_sel mepc_adress_select (
       .clear_counter(mret_type | interrupt | pc_sel_mem),
-      .*);
-      
-      
+      .*
+  );
+
+
   // forwarding for mem_write_data
   mux2x1 #(32) mem_data_in_mux (
       .sel(forward_rd2_mem),
@@ -707,3 +710,4 @@ module data_path #(
   );
 
 endmodule
+

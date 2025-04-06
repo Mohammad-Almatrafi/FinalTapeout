@@ -6,7 +6,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     input logic [31:0]mip_in,
 
     input logic [31:0]mcause,
-    
+
     output logic interrupt,
     output logic [31:0] pc_addr,
     output logic [4:0] int_code
