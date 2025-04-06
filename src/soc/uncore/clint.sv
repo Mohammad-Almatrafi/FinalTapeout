@@ -33,6 +33,7 @@ module clint (
       case (wb_adr_i)
         MTIME_ADDR + 0: mtime[31:0] <= wb_dat_i;
         MTIME_ADDR + 4: mtime[63:32] <= wb_dat_i;
+        default: ;
       endcase
 
     end else mtime <= mtime + 1;
@@ -43,8 +44,9 @@ module clint (
     else if (wb_we_i & wb_acc) begin
 
       case (wb_adr_i)
-        MTIMECMP_ADDR + 0: mtimecmp[31:0] <=  wb_dat_i;
+        MTIMECMP_ADDR + 0: mtimecmp[31:0] <= wb_dat_i;
         MTIMECMP_ADDR + 4: mtimecmp[63:32] <= wb_dat_i;
+        default: ;
       endcase
 
     end
@@ -54,14 +56,14 @@ module clint (
     if (wb_acc && !wb_we_i) begin
 
       case (wb_adr_i)
-        MTIME_ADDR + 0:    wb_dat_o <= mtime[31:0];  // Read lower 32 bits
-        MTIME_ADDR + 4:    wb_dat_o <= mtime[63:32];  // Read upper 32 bits
-        MTIMECMP_ADDR + 0: wb_dat_o <= mtimecmp[31:0];  // Read lower 32 bits of mtimecmp
-        MTIMECMP_ADDR + 4: wb_dat_o <= mtimecmp[63:32];  // Read upper 32 bits of mtimecmp
-        default:           wb_dat_o <= 32'h00000000;  // Default read value
+        MTIME_ADDR + 0:    wb_dat_o = mtime[31:0];  // Read lower 32 bits
+        MTIME_ADDR + 4:    wb_dat_o = mtime[63:32];  // Read upper 32 bits
+        MTIMECMP_ADDR + 0: wb_dat_o = mtimecmp[31:0];  // Read lower 32 bits of mtimecmp
+        MTIMECMP_ADDR + 4: wb_dat_o = mtimecmp[63:32];  // Read upper 32 bits of mtimecmp
+        default:           wb_dat_o = 32'h00000000;  // Default read value
       endcase
 
-    end else wb_dat_o <= 32'h00000000;
+    end else wb_dat_o = 32'h00000000;
   end
 
   always_comb begin
@@ -70,41 +72,3 @@ module clint (
   end
 
 endmodule
-
-
-// 64-bit Machine Time Counter 
-// always_ff @(posedge wb_clk_i or negedge wb_rst_i) begin
-//   if (!wb_rst_i) begin
-//     mtime <= 64'b0;
-//   end else if (wb_we_i & wb_acc) begin
-//     case (wb_adr_i)
-//       MTIME_ADDR + 0: mtime[31:0] <= wb_dat_i;
-//       MTIME_ADDR + 4: mtime[63:32] <= wb_dat_i;
-//     endcase
-//   end else mtime <= mtime + 1;
-// end
-
-// always_ff @(posedge wb_clk_i) begin
-//   if (wb_acc) begin
-//     if (wb_we_i) begin
-//       case (wb_adr_i)
-//         MTIMECMP_ADDR + 0: mtimecmp[31:0] <= wb_dat_i;  // Write lower 32 bits
-//         MTIMECMP_ADDR + 4: mtimecmp[63:32] <= wb_dat_i;  // Write upper 32 bits
-//       endcase
-//     end else begin
-//       case (wb_adr_i)
-//         MTIME_ADDR + 0:    wb_dat_o <= mtime[31:0];  // Read lower 32 bits
-//         MTIME_ADDR + 4:    wb_dat_o <= mtime[63:32];  // Read upper 32 bits
-//         MTIMECMP_ADDR + 0: wb_dat_o <= mtimecmp[31:0];  // Read lower 32 bits of mtimecmp
-//         MTIMECMP_ADDR + 4: wb_dat_o <= mtimecmp[63:32];  // Read upper 32 bits of mtimecmp
-//         default:           wb_dat_o <= 32'h00000000;  // Default read value
-//       endcase
-//     end
-//   end
-// end
-
-//generate interrupt
-// always_ff @(posedge wb_clk_i) begin
-//     if (mtime >= mtimecmp) mtip_o = 1'b1;
-//     else mtip_o = 1'b0;
-// end

@@ -3,8 +3,8 @@ addi x20, x0, 0xff # mie value all enable
 nop
 nop
 nop
-lui x11, 0x10000 # mtime comp value
-# addi x11, x0, 200
+# lui x11, 0x10000 # mtime comp value
+addi x11, x0, 200
 nop
 nop
 nop
