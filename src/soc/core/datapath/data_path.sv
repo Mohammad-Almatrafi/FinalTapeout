@@ -199,7 +199,7 @@ module data_path #(
   mux2x1 #(
       .n(32)
   ) second_pc_mux (
-      .sel(mret_type),
+      .sel(mret_type_id),//NEWCHANGES
       .in0(next_pc_ifff),
       .in1(mepc),
       .out(next_pc_if1)
@@ -268,6 +268,7 @@ module data_path #(
   //              IF-ID Pipeline Register
   // ============================================
 
+
   if_id_reg_t if_id_bus_i, if_id_bus_o;
 
   assign if_id_bus_i = {current_pc_if2, pc_plus_4_if2, inst_if2};
@@ -292,6 +293,16 @@ module data_path #(
   //                Decode Stage 
   // ============================================
 
+
+  logic mret_type_id;
+  //NEWCHANGES (((STILL NOT FINISHED)))
+  //Add another mret unit for our new procedure
+  mret_on mret_unit (
+      .mret_type(mret_type_id),
+      .full_instruction(inst_id)
+  );
+
+assign mret_type = mret_type_id;//This is to give it to the controller to clear the pipeline
 
   // Giving descriptive names to field of instructions 
   logic [4:0] rd_id;
@@ -358,7 +369,7 @@ module data_path #(
   id_exe_reg_t id_exe_bus_i, id_exe_bus_o;
 
   assign id_exe_bus_i = {
-    // data signals 
+    // data signals     
     current_pc_id,  // 32
     pc_plus_4_id,  // 32
     rs1_id,  // 32
@@ -381,7 +392,8 @@ module data_path #(
     auipc_id,
     jal_id,
     alu_op_id,
-    inst_id
+    inst_id,
+    mret_type_id//NEWCHANGES
   };
 
   n_bit_reg_wclr #(
@@ -395,6 +407,9 @@ module data_path #(
       .data_o(id_exe_bus_o)
   );
 
+  //NEWCHANGES
+  logic mret_type_exe;
+  assign mret_type_exe = id_exe_bus_o.mret_type;
   // data signals 
   assign inst_exe = id_exe_bus_o.inst;
   assign current_pc_exe = id_exe_bus_o.current_pc;  // 32
@@ -527,7 +542,8 @@ module data_path #(
     jump_exe,
     lui_exe,
     zero_exe,
-    inst_exe
+    inst_exe,
+    mret_type_exe//NEWCHANGES
   };
 
   n_bit_reg_wclr #(
@@ -540,7 +556,9 @@ module data_path #(
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
   );
-
+  //NEWCHANGES
+  logic mret_type_mem;
+  assign mret_type_mem = exe_mem_bus_o.mret_type;
   // data signals 
   assign reg_rdata1_mem = exe_mem_bus_o.reg_rdata1;
   assign inst_mem       = exe_mem_bus_o.inst;  // 32
@@ -558,6 +576,7 @@ module data_path #(
   assign mem_to_reg_mem = exe_mem_bus_o.mem_to_reg;
   assign branch_mem     = exe_mem_bus_o.branch;
   assign jump_mem       = exe_mem_bus_o.jump;
+  assign jump_or_branch_mem = branch_mem | jump_mem;  
   assign lui_mem        = exe_mem_bus_o.lui;
   assign zero_mem       = exe_mem_bus_o.zero;
 
@@ -579,7 +598,6 @@ module data_path #(
   //    logic MIE;
   //    logic [31:0]mie;
   //    logic [31:0]mtvec;
-  logic mret_type;
 
   assign RS1 = reg_rdata1_mem;
 
@@ -598,15 +616,25 @@ module data_path #(
 
   logic [31:0] jump_mret;
   logic [31:0] mepc_adr;
-
-  //   CSR and logic of commands for CSR
+  
+  mux4x1 #(.n(32)) mepc_mux (
+      .sel({jump_or_branch_mem,jump_or_branch_wb }),
+      .in0(),
+      .in1(),
+      .in2().
+      .in3(),
+      .out(mepc_adr)
+  );
+  
+  //NEWCHANGES ((( STILL NOT FINISHED, care for MEPC )))
+  // LETS COMPLETELY REMOVE THE RET TYPE BLOCK AT THE STAGE OF MEMORY, and make it in the decode stage then pass it forward in the pipeline
   csr_top csr_unit (
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
       .current_pc(mepc_adr),
-      .csr_en(csr_type_mem & ~mret_type), // this is the mret type
+      .csr_en(csr_type_mem & ~mret_type_mem), 
       .offset(inst_mem[31:20]),
-      .ret_action(mret_type),
+      .ret_action(mret_type_mem),
       .int_action(interrupt),
       .func3(inst_mem[14:12]),
       .int_code(int_code),
@@ -615,15 +643,12 @@ module data_path #(
   );
 
 
-  mret_on mret_unit (
-      .mret_type(mret_type),
-      .csr_type(csr_type_mem),
-      .fun12(inst_mem[31:20]),
-      .fun3(inst_mem[14:12])
-  );
-    mret_adr_sel mepc_adress_select (
-      .clear_counter(mret_type | interrupt | pc_sel_mem),
-      .*);
+
+
+  
+//    mret_adr_sel mepc_adress_select (
+//      .clear_counter(mret_type | interrupt | pc_sel_mem),
+//      .*);
       
       
   // forwarding for mem_write_data
@@ -666,7 +691,11 @@ module data_path #(
     result_mem,
     // control signals
     reg_write_mem,
-    mem_to_reg_mem
+    mem_to_reg_mem,
+    branch_mem,
+    jump_mem,
+    
+    pc_jump_mem
   };
 
   n_bit_reg_wclr #(
@@ -680,13 +709,22 @@ module data_path #(
       .data_o(mem_wb_bus_o)
   );
 
+  //NEWCHANGES
+  assign branch_wb = mem_wb_bus_o.branch;
+  assign jump_wb = mem_wb_bus_o.jump;
+  assign jump_or_branch_wb = jump_wb | branch_wb;
+  
+  
+  logic [31:0] pc_jump_wb;
+  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;//NEWCHANGES
+
   // data signals 
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   // control signals
   assign reg_write_wb      = mem_wb_bus_o.reg_write;
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
-
+  
 
   // ============================================
   //                Write Back Stage 

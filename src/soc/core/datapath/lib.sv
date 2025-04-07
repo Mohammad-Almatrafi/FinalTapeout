@@ -236,6 +236,8 @@ package riscv_types;
         logic        jal;
         logic [1:0]  alu_op;
         logic [31:0] inst;
+        logic        mret_type;
+
     } id_exe_reg_t;
 
     // EX/MEM Register Structure
@@ -260,7 +262,9 @@ package riscv_types;
         logic        lui;
         logic        zero;
         logic [31:0] inst;
+        logic        mret_type;
     } exe_mem_reg_t;
+
 
     // MEM/WB Register Structure
     typedef struct packed {
@@ -270,6 +274,10 @@ package riscv_types;
         // Control signals
         logic        reg_write;
         logic [1:0]  mem_to_reg;
+        
+        logic        branch;
+        logic        jump;
+        logic [31:0] pc_jump;
     } mem_wb_reg_t;
 
 endpackage

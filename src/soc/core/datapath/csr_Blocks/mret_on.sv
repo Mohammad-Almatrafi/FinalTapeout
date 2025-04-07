@@ -1,11 +1,12 @@
+// NEWCHANGES
+// Make this at the start of the pipeline then pass it through
+
 module mret_on (
-    input logic [11:0] fun12,
-    input logic [2:0] fun3,
-    input logic csr_type,
+    input logic [31:0] full_instruction,
 
 
     output logic mret_type
 );
 
-  assign mret_type = fun3 == 3'b000 & fun12 == 12'b001100000010 & csr_type;
+  assign mret_type = full_instruction == 32'b00110000001000000000000001110011;
 endmodule
