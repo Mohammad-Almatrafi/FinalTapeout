@@ -10,7 +10,7 @@ module control_unit (
     input logic mret_type,
     input logic interrupt,
     input logic clk, reset_n,
-
+    
     // outputs from the decode controller
     output logic reg_write_id,
     output logic mem_write_id,
@@ -54,6 +54,7 @@ module control_unit (
     // hazard handler data required from the data path
     input wire mem_to_reg_exe,
     input wire [4:0] rd_exe,
+    input wire csr_type_exe,
 
     // signals to control the flow of the pipeline
     output logic if_id_reg_clr,

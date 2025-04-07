@@ -19,6 +19,7 @@ module data_path #(
     output logic [1:0] alu_op_exe,
     output logic jump_mem,
     output logic branch_mem,
+    output logic csr_type_exe,
 
     // control signals from the controller 
     input logic reg_write_id,
@@ -93,7 +94,7 @@ module data_path #(
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
-  logic csr_type_exe, csr_type_mem;
+  logic csr_type_mem;
   logic [31:0] mcause;
   logic [31:0] csr_out;
   logic [31:0] mepc;
@@ -585,16 +586,16 @@ module data_path #(
   // ============================================
 
 
-csr_forwarding csr_forwarding_unit(
-    .rs1_mem(rs1_mem),// From exe/mem reg
-    .rd_wb(rd_wb), // From mem/wb reg
-    .alu_op1_mem(alu_op1_mem), // From exe/mem reg
-    .non_mem_result_wb(non_mem_result_wb), // From mem/wb reg which takes from result_mem
+//csr_forwarding csr_forwarding_unit(
+//    .rs1_mem(rs1_mem),// From exe/mem reg
+//    .rd_wb(rd_wb), // From mem/wb reg
+//    .alu_op1_mem(alu_op1_mem), // From exe/mem reg
+//    .non_mem_result_wb(non_mem_result_wb), // From mem/wb reg which takes from result_mem
     
-    .RS1(RS1)
-);
+//    .RS1(RS1)
+//);
 
-
+assign RS1 = alu_op1_mem;
 
 
   // logic [31:0] mip_in;
