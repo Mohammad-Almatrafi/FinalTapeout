@@ -6,7 +6,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     input logic [31:0]mip_in,
 
     input logic [31:0]mcause,
-
+    input logic invalid_inst, store_misaligned, load_misaligned, inst_addr_misaligned,
     output logic interrupt,
     output logic [31:0] pc_addr,
     output logic [4:0] int_code
@@ -22,6 +22,15 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
         else if(mip_in[5]==1) int_code=5'b101;
         else if(mip_in[6]==1) int_code=5'b110;
         else if(mip_in[7]==1) int_code=5'b111;
+        
+//        if (invalid_inst == 1) int_code = 5'd2;
         else int_code = 3'b0;
+  end
+  
+  always @(invalid_inst, store_misaligned, load_misaligned, inst_addr_misaligned) begin 
+        if (invalid_inst == 1)              int_code = 5'd2;
+        else if (store_misaligned == 1)     int_code = 5'd6;
+        else if (load_misaligned == 1)      int_code = 5'd4;
+        else if (inst_addr_misaligned == 1) int_code = 5'd0;
   end
 endmodule

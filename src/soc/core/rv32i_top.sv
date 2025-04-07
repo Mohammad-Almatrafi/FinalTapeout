@@ -91,7 +91,8 @@ module rv32i #(
 
     logic mem_to_reg_mem;
     
-    
+    logic invalid_inst;
+
     assign current_pc = current_pc_if;
     assign inst_if = inst;
 

@@ -9,6 +9,7 @@ module control_unit (
     input logic branch_mem,
     input logic mret_type,
     input logic interrupt,
+    input logic clk, reset_n,
 
     // outputs from the decode controller
     output logic reg_write_id,
@@ -21,6 +22,8 @@ module control_unit (
     output logic auipc_id,
     output logic jal_id,
     output logic [1:0] alu_op_id,
+    output logic invalid_inst,
+
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
 
@@ -81,7 +84,8 @@ module control_unit (
       .jal(jal_id),
       .r_type(r_type_id),
       .csr_type(csr_type_id),
-      .mem_csr_to_reg(mem_to_reg_id)
+      .mem_csr_to_reg(mem_to_reg_id),
+      .*
   );
 
   wire exe_use_rs1_id;

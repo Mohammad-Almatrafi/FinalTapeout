@@ -241,7 +241,7 @@ package riscv_types;
     // EX/MEM Register Structure
     typedef struct packed {
         // Data signals 
-        logic [31:0] reg_rdata1;
+        logic [31:0] alu_op1;
         logic [31:0] pc_plus_4;
         logic [31:0] pc_jump;
         logic [4:0]  rs2;

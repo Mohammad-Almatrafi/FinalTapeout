@@ -12,6 +12,7 @@ typedef enum logic [6:0] {
 
 module decode_control (
     input logic [6:0] opcode,
+    input logic reset_n, clk,
     output logic reg_write,
     output logic mem_write,
     output logic [1:0] mem_csr_to_reg,
@@ -23,11 +24,18 @@ module decode_control (
     output logic auipc,
     output logic jal,
     output logic r_type,
-    output logic csr_type  // this gives signal that tells us that it is a CSR command or mret
-);
+    output logic csr_type,  // this gives signal that tells us that it is a CSR command or mret
+    output logic invalid_inst
 
-  logic invalid_inst;
-  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
+);
+logic [1:0] invalid_counter;
+
+always@(posedge clk or negedge reset_n) begin
+    if (!reset_n)  invalid_counter = 2'b11;
+    else invalid_counter = invalid_counter>>1;
+    end
+    
+//  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
   parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
   always @(opcode) begin
@@ -45,6 +53,7 @@ module decode_control (
         jal = 0;
         r_type = 1;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // R-type
 
       7'b0010011: begin
@@ -60,6 +69,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // I-type
 
       7'b1100111: begin
@@ -75,6 +85,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // I-type JALR
 
       7'b0000011: begin
@@ -90,6 +101,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // Load
 
       7'b0100011: begin
@@ -105,6 +117,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // Store
 
       7'b1100011: begin
@@ -120,6 +133,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // B-type
 
       7'b1101111: begin
@@ -135,6 +149,7 @@ module decode_control (
         jal = 1;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // J-type
 
       7'b0110111: begin
@@ -150,6 +165,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // LUI
 
       7'b0010111: begin
@@ -165,13 +181,14 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = 1'b0;
       end  // AUIPC
 
       7'b1110011: begin
         reg_write = 1'b1;
         mem_write = 'b0;
         mem_csr_to_reg = 'b10;
-        alu_op = LOAD_STORE;
+        alu_op = R_TYPE;
         alu_src = 'b0;
         branch = 'b0;
         jump = 'b0;
@@ -180,13 +197,14 @@ module decode_control (
         jal = 'b0;
         r_type = 'b0;
         csr_type = 1'b1;
+        invalid_inst = 1'b0;
       end  // CSRR // TODO Xs to be replaced with correct signals
 
       default: begin
         reg_write = 0;
         mem_write = 0;
         mem_csr_to_reg = 'b00;
-        alu_op = 2'b00;
+        alu_op = R_TYPE;
         alu_src = 0;
         branch = 0;
         jump = 0;
@@ -195,8 +213,8 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
+        invalid_inst = ~(|invalid_counter);
       end  // NOP
-
     endcase
   end
 

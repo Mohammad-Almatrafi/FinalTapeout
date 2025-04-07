@@ -9,7 +9,7 @@ module data_path #(
 
 
     input logic [31:0] mip_in,
-
+    input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
     output logic fun7_5_exe,
@@ -470,7 +470,7 @@ module data_path #(
 
 
   // multiplxers at alu inputs (exe stage)
-  logic [31:0] alu_op1_exe;
+  logic [31:0] alu_op1_exe,alu_op1_mem;
   logic [31:0] alu_op2_exe;
   mux2x1 #(
       .n(32)
@@ -501,7 +501,18 @@ module data_path #(
       .alu_result(alu_result_exe),
       .zero(zero_exe)
   );
-
+  
+  logic store_misaligned, load_misaligned, inst_addr_misaligned;
+  
+  align_except alignment_exception( 
+       .alu_result_lsb(alu_result_exe[1:0]), 
+       .alu_op(alu_op_exe),         
+       .func3_exe(fun3_exe),      
+       .pc(next_pc_ifff),            
+       .reg_write(reg_write_exe),            
+       .mem_write(mem_write_exe), 
+       .* 
+       );          
 
   // ============================================
   //           EXE-MEM Pipeline Register
@@ -511,7 +522,7 @@ module data_path #(
   logic [31:0] reg_rdata1_mem;
   assign exe_mem_bus_i = {
     // data signals 
-    reg_rdata1_exe,
+    alu_op1_exe,
     pc_plus_4_exe,
     pc_jump_exe,
     rs2_exe,
@@ -544,7 +555,7 @@ module data_path #(
   );
 
   // data signals 
-  assign reg_rdata1_mem = exe_mem_bus_o.reg_rdata1;
+  assign alu_op1_mem    = exe_mem_bus_o.alu_op1;
   assign inst_mem       = exe_mem_bus_o.inst;  // 32
   assign pc_plus_4_mem  = exe_mem_bus_o.pc_plus_4;  // 32
   assign pc_jump_mem    = exe_mem_bus_o.pc_jump;
@@ -583,7 +594,7 @@ module data_path #(
   //    logic [31:0]mtvec;
   // logic mret_type;
 
-  assign RS1 = reg_rdata1_mem;
+  assign RS1 = alu_op1_mem;
 
   // generating memory access signals (write/read) 
   int_control interrupt_controller (
@@ -595,7 +606,8 @@ module data_path #(
       .mip_in(mip_in),
       .interrupt(interrupt),
       .pc_addr(jump_int_addr),
-      .int_code(int_code)
+      .int_code(int_code),
+      .*
   );
 
   logic [31:0] jump_mret;
