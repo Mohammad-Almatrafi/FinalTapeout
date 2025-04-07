@@ -531,6 +531,7 @@ module data_path #(
     rdata2_frw_exe,
     imm_exe,
     alu_result_exe,
+    rs1_exe,
     // control signals
     csr_type_exe,
     reg_write_exe,
@@ -554,6 +555,8 @@ module data_path #(
       .data_o(exe_mem_bus_o)
   );
 
+  logic [4:0] rs1_mem; 
+   
   // data signals 
   assign alu_op1_mem    = exe_mem_bus_o.alu_op1;
   assign inst_mem       = exe_mem_bus_o.inst;  // 32
@@ -565,6 +568,7 @@ module data_path #(
   assign rdata2_frw_mem = exe_mem_bus_o.rdata2_frw;
   assign imm_mem        = exe_mem_bus_o.imm;
   assign alu_result_mem = exe_mem_bus_o.alu_result;
+  assign rs1_mem        = exe_mem_bus_o.rs1;
   // control signals
   assign reg_write_mem  = exe_mem_bus_o.reg_write;
   assign mem_write_mem  = exe_mem_bus_o.mem_write;
@@ -580,6 +584,19 @@ module data_path #(
   //                Memory Stage 
   // ============================================
 
+
+csr_forwarding csr_forwarding_unit(
+    .rs1_mem(rs1_mem),// From exe/mem reg
+    .rd_wb(rd_wb), // From mem/wb reg
+    .alu_op1_mem(alu_op1_mem), // From exe/mem reg
+    .non_mem_result_wb(non_mem_result_wb), // From mem/wb reg which takes from result_mem
+    
+    .RS1(RS1)
+);
+
+
+
+
   // logic [31:0] mip_in;
   logic [11:0] offset;
   logic ret_action;
@@ -594,7 +611,7 @@ module data_path #(
   //    logic [31:0]mtvec;
   // logic mret_type;
 
-  assign RS1 = alu_op1_mem;
+
 
   // generating memory access signals (write/read) 
   int_control interrupt_controller (
