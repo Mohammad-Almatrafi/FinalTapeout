@@ -94,7 +94,7 @@ module data_path #(
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
-  logic csr_type_exe, csr_type_mem;
+  logic csr_type_mem;
   logic [31:0] mcause;
   logic [31:0] csr_out;
   logic [31:0] mepc;
@@ -679,6 +679,7 @@ module data_path #(
 
   assign mem_wb_bus_i = {
     // data signals 
+    csr_out,
     rd_mem,
     result_mem,
     // control signals
@@ -696,10 +697,11 @@ module data_path #(
       .data_i(mem_wb_bus_i),
       .data_o(mem_wb_bus_o)
   );
-
+  logic [31:0] csr_out_wb;
   // data signals 
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
+  assign csr_out_wb        = mem_wb_bus_o.csr_out;
   // control signals
   assign reg_write_wb      = mem_wb_bus_o.reg_write;
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
@@ -718,8 +720,8 @@ module data_path #(
       .sel(mem_to_reg_wb),
       .in0(non_mem_result_wb),
       .in1(mem_rdata_wb),
-      .in2(csr_out),
-      .in3(csr_out),
+      .in2(csr_out_wb),
+      .in3(csr_out_wb),
       .out(reg_wdata_wb)
   );
 

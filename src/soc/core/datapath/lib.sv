@@ -265,6 +265,7 @@ package riscv_types;
     // MEM/WB Register Structure
     typedef struct packed {
         // Data signals 
+        logic [31:0] csr_out;
         logic [4:0]  rd; 
         logic [31:0] result;
         // Control signals
