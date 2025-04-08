@@ -25,6 +25,7 @@ module csr_reg (
     input logic clk,
     input logic reset_n,
     input logic int_action,   // This is coming from the inerrupt
+//    input logic exp_action,
     input logic ret_action,   // This comes from knowing that the signal is mret which comes from mret_on
     input logic hw_int,       // Hardware or software interrupt (make it one)
     input logic [4:0] int_code,// This changes the cause which means it decides which handler we go to, it will use a encoder and the priority will be from the document
@@ -40,7 +41,7 @@ module csr_reg (
 
   logic [31:0] csr_mem[7];
   logic [3:0] actual_offset;
-
+  
   always @(offset) begin
     case(offset) //address translation block
       12'h304: actual_offset = 3'd6 ;
@@ -96,7 +97,7 @@ module csr_reg (
         csr_mem`MEPC_ADDR <= current_pc;
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
     end
-
+  
     default:begin
     end
     endcase

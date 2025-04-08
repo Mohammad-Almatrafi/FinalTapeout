@@ -96,6 +96,7 @@ module rv32i #(
     assign current_pc = current_pc_if;
     assign inst_if = inst;
 
+    wire csr_type_exe;
     data_path #(
         .DMEM_DEPTH(DMEM_DEPTH),
         .IMEM_DEPTH(IMEM_DEPTH)

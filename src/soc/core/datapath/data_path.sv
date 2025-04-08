@@ -19,6 +19,7 @@ module data_path #(
     output logic [1:0] alu_op_exe,
     output logic jump_mem,
     output logic branch_mem,
+    output logic csr_type_exe,
 
     // control signals from the controller 
     input logic reg_write_id,
@@ -100,7 +101,7 @@ module data_path #(
   logic        MIE;
   logic [31:0] mie;
   logic [31:0] mtvec;
-
+  logic exception;
   logic [31:0] inst_id, inst_exe, inst_mem;
   logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
   logic [31:0] reg_rdata1_id, reg_rdata1_exe;
@@ -188,7 +189,7 @@ module data_path #(
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({interrupt, pc_sel_mem}),
+      .sel({interrupt|exception, pc_sel_mem}),
       .in0(pc_plus_4_if1),
       .in1(pc_jump_mem),
       .in2(jump_int_addr),
@@ -622,6 +623,7 @@ module data_path #(
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
       .int_action(interrupt),
+      .exp_action(exception),
       .func3(inst_mem[14:12]),
       .int_code(int_code),
       // logic hw_int;

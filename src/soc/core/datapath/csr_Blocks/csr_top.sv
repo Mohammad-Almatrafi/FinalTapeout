@@ -5,6 +5,7 @@ module csr_top (
     input logic [11:0] offset,
     input logic csr_en,
     input logic int_action,
+    input logic exp_action,
     input logic ret_action,
     input logic hw_int,
     input logic [4:0] int_code,
@@ -38,7 +39,9 @@ control_CSR control_CSR(
 );
 
 csr_reg csr_reg(
-.*, .csr_in(CSR_intermed)
+.*,
+.hw_int(~exp_action), 
+.csr_in(CSR_intermed)
 );
 
 endmodule
