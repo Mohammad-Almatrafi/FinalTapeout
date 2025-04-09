@@ -265,7 +265,11 @@ module data_path #(
       .clear(if_id_reg_clr)
   );
   assign inst_if2 = if_id_reg_en_ff ? inst_if : inst_if_ff;
-
+  logic [1:0] full_half;
+  compressed_type full_or_half (
+    .inst_current(inst_if2),
+    .full_half_current(full_half),
+    .*);
 
   // ============================================
   //              IF-ID Pipeline Register
