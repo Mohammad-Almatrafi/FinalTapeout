@@ -1,6 +1,7 @@
 module compressed_type (
     input logic clk,
     input logic reset_n,
+    input logic stall_compressed_ff,
     //    input logic [31:0] inst_prev,
     input logic [31:0] inst_current,
 //    output logic [1:0] full_half_current,
@@ -26,16 +27,16 @@ module compressed_type (
   assign second_half = inst_current[17:16];
 
   assign first_bit = (first_half == 2'b11);
-  assign second_bit = (second_half == 2'b11) | (first_half == 2'b11);
+  assign second_bit = (second_half == 2'b11) | ((first_half == 2'b11)& (full_half_prev != 2'b10)&~stall_compressed_ff )&((full_half_prev != 2'b11)&sel);
   assign sel = (full_half_prev == 2'b10);
 
   assign full_half_current = sel ? {second_bit, 1'b1} : {second_bit, first_bit};
 
   assign f1f1 = (full_half_current == 2'b11) & ~(sel);
-  assign f1f2 = (full_half_current == 2'b11) & sel;
+  assign f1f2 = (full_half_current == 2'b11) & sel ;
   assign fh = (full_half_current == 2'b01);
   assign hf = (full_half_current == 2'b10);
-  assign hh = (full_half_current == 2'b00);
+  assign hh = (full_half_current == 2'b00)&(full_half_prev != 2'b10)&((full_half_prev != 2'b11)&sel);
 
 
   always_ff @(posedge clk or negedge reset_n) begin

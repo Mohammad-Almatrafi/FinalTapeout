@@ -3,16 +3,26 @@ module pre_decode (
     input logic reset_n,
      
     input logic [31:0] current_pc_id,
-    input logic [31:0] inst_prev,
+//    input logic [31:0] inst_prev,
     input logic [31:0] inst_current,
     output logic hw_jump_clr,
     output logic [31:0] inst_id,
     output logic stall_compressed
 );
-
+logic [31:0] inst_prev;
 logic f1f1, f1f2, fh, hf,hh;
 logic [31:0] inst_full_correct;
 
+n_bit_reg_wclr #(
+      .n(32)
+  ) inst_id_reg (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(1'b1),
+      .data_i(inst_current),
+      .data_o(inst_prev)
+  );
 compressed_type compressed_type (
     .*);
     

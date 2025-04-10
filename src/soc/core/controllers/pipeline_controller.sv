@@ -27,7 +27,7 @@ module pipeline_controller (
   assign id_exe_reg_en = ~stall_pipl;
   assign exe_mem_reg_en = ~stall_pipl;
   assign mem_wb_reg_en = ~stall_pipl;
-  assign pc_reg_en = ~(stall_pipl | load_hazard);
+  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed);
 
 
 endmodule

@@ -188,7 +188,7 @@ module data_path #(
 
   logic [31:0] jump_int_addr;
   
-  mux2x1 compress_stall_pc_mux (
+  mux2x1#(.n(32)) compress_stall_pc_mux (
     .in0(current_pc_if1),
     .in1(current_pc_if2),
     .sel(stall_compressed),
@@ -310,8 +310,8 @@ module data_path #(
   
     pre_decode pre_decoder (
         .*,
-        .inst_current(inst_id_in),
-        .inst_prev(inst_exe)
+        .inst_current(inst_id_in)
+//        .inst_prev(inst_exe)
         
         );
 
