@@ -3,16 +3,17 @@ module compressed_type (
     input logic reset_n,
     //    input logic [31:0] inst_prev,
     input logic [31:0] inst_current,
-    output logic [1:0] full_half_current
+//    output logic [1:0] full_half_current,
+    output logic f1f1, f1f2, fh, hf,hh
 );
-
+  logic [1:0] full_half_current;
   logic [1:0] full_half_prev;
   logic [1:0] first_half;
   logic [1:0] second_half;
   logic first_bit;
   logic second_bit;
   logic sel;
-  logic f1f1, f1f2, fh, hf;
+//  logic f1f1, f1f2, fh, hf;
   //typedef enum logic [1:0] {
   //    full = 2'b11,
   //    half1 = 2'b00,
@@ -34,6 +35,7 @@ module compressed_type (
   assign f1f2 = (full_half_current == 2'b11) & sel;
   assign fh = (full_half_current == 2'b01);
   assign hf = (full_half_current == 2'b10);
+  assign hh = (full_half_current == 2'b00);
 
 
   always_ff @(posedge clk or negedge reset_n) begin

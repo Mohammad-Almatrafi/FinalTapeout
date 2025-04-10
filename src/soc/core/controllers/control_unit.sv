@@ -61,7 +61,8 @@ module control_unit (
     output logic id_exe_reg_clr,
     output logic exe_mem_reg_clr,
     output logic mem_wb_reg_clr,
-
+    input logic hw_jump_clr,
+    input logic stall_compressed,
     output logic if_id_reg_en,
     output logic id_exe_reg_en,
     output logic exe_mem_reg_en,

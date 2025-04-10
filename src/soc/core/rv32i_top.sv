@@ -17,7 +17,7 @@ module rv32i #(
     // inst mem access 
     output logic [31:0] current_pc,
     input logic [31:0] inst,
-
+    
     // stall signal from wishbone 
     input logic stall_pipl,
     output logic if_id_reg_en
@@ -77,7 +77,8 @@ module rv32i #(
     logic id_exe_reg_clr;
     logic exe_mem_reg_clr;
     logic mem_wb_reg_clr;
-
+    logic hw_jump_clr;
+    logic stall_compressed;
     logic id_exe_reg_en;
     logic exe_mem_reg_en;
     logic mem_wb_reg_en;

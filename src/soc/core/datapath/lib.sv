@@ -235,7 +235,7 @@ package riscv_types;
         logic        auipc;
         logic        jal;
         logic [1:0]  alu_op;
-        logic [31:0] inst;
+//        logic [31:0] inst;
     } id_exe_reg_t;
 
     // EX/MEM Register Structure

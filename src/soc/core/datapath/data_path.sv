@@ -66,7 +66,8 @@ module data_path #(
     input logic id_exe_reg_clr,
     input logic exe_mem_reg_clr,
     input logic mem_wb_reg_clr,
-
+    output logic hw_jump_clr,
+    output logic stall_compressed,
     input logic if_id_reg_en,
     input logic id_exe_reg_en,
     input logic exe_mem_reg_en,
@@ -186,6 +187,13 @@ module data_path #(
   logic [31:0] next_pc_ifff;
 
   logic [31:0] jump_int_addr;
+  
+  mux2x1 compress_stall_pc_mux (
+    .in0(current_pc_if1),
+    .in1(current_pc_if2),
+    .sel(stall_compressed),
+    .out(current_pc_if)
+    );
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
@@ -208,7 +216,7 @@ module data_path #(
       .out(next_pc_if1)
   );
 
-  assign current_pc_if = current_pc_if1;
+//  assign current_pc_if = current_pc_if1;
 
   // ============================================
   //              IF1-IF2 Pipeline Register
@@ -266,10 +274,9 @@ module data_path #(
   );
   assign inst_if2 = if_id_reg_en_ff ? inst_if : inst_if_ff;
   logic [1:0] full_half;
-  compressed_type full_or_half (
-    .inst_current(inst_if2),
-    .full_half_current(full_half),
-    .*);
+  
+  
+ 
 
   // ============================================
   //              IF-ID Pipeline Register
@@ -289,11 +296,24 @@ module data_path #(
       .data_i(if_id_bus_i),
       .data_o(if_id_bus_o)
   );
+  
+// compressed_type full_or_half (
+//    .inst_current(inst_if2),
+//    .full_half_current(full_half),
+//    .*);
 
+  logic  [31:0] inst_id_in;
   assign current_pc_id = if_id_bus_o.current_pc;
   assign pc_plus_4_id  = if_id_bus_o.pc_plus_4;
-  assign inst_id       = if_id_bus_o.inst;
-
+  assign inst_id_in       = if_id_bus_o.inst;
+  
+  
+    pre_decode pre_decoder (
+        .*,
+        .inst_current(inst_id_in),
+        .inst_prev(inst_exe)
+        
+        );
 
   // ============================================
   //                Decode Stage 
@@ -387,10 +407,21 @@ module data_path #(
     lui_id,
     auipc_id,
     jal_id,
-    alu_op_id,
-    inst_id
+    alu_op_id
+    
   };
-
+  
+     n_bit_reg_wclr #(
+      .n($bits(inst_id))
+  ) inst_id_reg (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(id_exe_reg_en),
+      .data_i(inst_id),
+      .data_o(inst_exe)
+  );
+  
   n_bit_reg_wclr #(
       .n($bits(id_exe_reg_t))
   ) id_exe_reg (
@@ -403,7 +434,8 @@ module data_path #(
   );
 
   // data signals 
-  assign inst_exe = id_exe_bus_o.inst;
+//  assign inst_exe = id_exe_bus_o.inst;
+
   assign current_pc_exe = id_exe_bus_o.current_pc;  // 32
   assign pc_plus_4_exe = id_exe_bus_o.pc_plus_4;  // 32
   assign rs1_exe = id_exe_bus_o.rs1;  // 5
