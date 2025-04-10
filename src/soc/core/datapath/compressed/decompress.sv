@@ -46,20 +46,20 @@ module decompress (
 
   assign sp4_imm = {4'd0, inst_16[10:7], inst_16[12:11], inst_16[5], inst_16[6], 2'd0};
   assign sp16_imm = {
-    {'{inst_16[12]}},
+    {5{inst_16[12]}},
     inst_16[12],  // imm[9]
     inst_16[4:3],  //imm[8:7]
     inst_16[5],  //imm[6]
     inst_16[2],  //imm[5]
     inst_16[6],  //imm[4]
-    3'd0
+    4'd0
   };
 
   assign s_l_imm = {5'd0, inst_16[5], inst_16[12:10], inst_16[6], 2'd0};
-  assign comp_logical_imm = {{6{inst_16[12]}}, inst_16[12], inst_16[6:2]};
+  assign comp_logical_imm = {{7{inst_16[12]}}, inst_16[6:2]};
 
   assign j0_imm = {
-    {'{inst_16[12]}},  // sext(imm[11])
+    {12{inst_16[12]}},  // sext(imm[11])
     inst_16[12],  //imm [11]
     inst_16[8],  //imm[10]
     inst_16[10:9],  // imm[9:8]
@@ -136,32 +136,33 @@ module decompress (
       end
 
       5'b10001: begin
+        //////////////////////////////////////////////////////////////////////////////////////
         case (inst_16[11:10])
           2'b00: begin
             // c.srli rd', uimm => srli rd', rd', shamt[5:0]
-            inst_32 = {'b0, inst_16[12], inst_16[6:2], rd_d[1], 3'd5, rd_d[1], I_TYPE};
+            inst_32 = {6'b0, inst_16[12], inst_16[6:2], rd_d[1], 3'd5, rd_d[1], I_TYPE};
           end
           2'b01: begin
             // c.srai rd', uimm => srai rd', rd', shamt[5:0]
             inst_32 = {6'b010000, inst_16[12], inst_16[6:2], rd_d[1], 3'd5, rd_d[1], I_TYPE};
           end
           2'b10: begin
-            // c.andi rd', imm => srai rd', rd', imm
+            // c.andi rd', imm => andi rd', rd', imm
             inst_32 = {comp_logical_imm, rd_d[1], 3'd7, rd_d[1], I_TYPE};
           end
           2'b11: begin
             case (inst_16[6:5])
               //c.sub rd', rs2' => sub rd', rd', rs2'
-              2'b00: inst_32 = {5'b01000, 2'b00, rs2_d, rd_d[0], 3'b000, rd_d[0], R_TYPE};
+              2'b00: inst_32 = {5'b01000, 2'b00, rs2_d, rd_d[1], 3'b000, rd_d[1], R_TYPE};
 
               //c.xor rd', rs2' => xor rd', rd', rs2'
-              2'b01: inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[0], 3'b100, rd_d[0], R_TYPE};
+              2'b01: inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[1], 3'b100, rd_d[1], R_TYPE};
 
               //c.or rd', rs2' => or rd', rd', rs2'
-              2'b10: inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[0], 3'b110, rd_d[0], R_TYPE};
+              2'b10: inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[1], 3'b110, rd_d[1], R_TYPE};
 
               //c.sub rd', rs2' => sub rd', rd', rs2'
-              2'b11:   inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[0], 3'b111, rd_d[0], R_TYPE};
+              2'b11:   inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[1], 3'b111, rd_d[1], R_TYPE};
               default: inst_32 = 0;
             endcase
           end
@@ -182,7 +183,7 @@ module decompress (
       5'b11101: inst_32 = {b1_imm, 5'd0, rs1_d, 3'd1, b0_imm, B_TYPE};
 
       // c.slli rd, uimm => slli rd, rd, shamt[5:0]
-      5'b01001: inst_32 = {'b0, inst_16[12], inst_16[6:2], rd, 3'd1, rd, I_TYPE};
+      5'b00010: inst_32 = {6'b0, inst_16[12], inst_16[6:2], rd, 3'd1, rd, I_TYPE};
 
       // c.lwsp rd, uimm(x2) => lw rd, offset[7:2](x2)
       5'b01010: inst_32 = {lwsp_imm, 5'd2, 3'd2, rd, LOAD};
@@ -194,7 +195,7 @@ module decompress (
             inst_32 = {12'b0, rs1, 3'b0, 5'b0, JALR};
           end else begin
             // c.mv rd, rs2 => add rd,x0,rs2
-            inst_32 = {5'b00000, 2'b00, rs2, 5'b0, 3'b000, rd, R_TYPE};
+            inst_32 = {7'b0, rs2, 5'b0, 3'b0, rd, R_TYPE};
           end
         end else begin
           if (rs2 == 5'b0) begin

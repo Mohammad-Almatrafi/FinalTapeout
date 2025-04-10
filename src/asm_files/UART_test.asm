@@ -1,10 +1,4 @@
 .text 
-nop
-nop
-nop
-
-
-
 lui x10, 0x20000
 nop
 nop
