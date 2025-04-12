@@ -1,3 +1,5 @@
+.option norvc
+.text
 addi x2, x0, 10# x2= 10
 sw x2, 0(x0)
 nop
