@@ -1,65 +1,29 @@
 module compressed_type (
     input logic clk,
     input logic reset_n,
-    input logic stall_compressed_ff,
-    //    input logic [31:0] inst_prev,
-    input logic [31:0] inst_current,
-//    output logic [1:0] full_half_current,
-    output logic f1f1, f1f2, fh, hf,hh
+    input logic [31:0] inst,
+    output logic hf,
+    f1f1,
+    fh,
+    f1f2,
+    hh
 );
-  logic [1:0] full_half_current;
-  logic [1:0] full_half_prev;
-  logic [1:0] first_half;
-  logic [1:0] second_half;
-  logic first_bit;
-  logic second_bit;
-  logic sel;
-//  logic f1f1, f1f2, fh, hf;
-  //typedef enum logic [1:0] {
-  //    full = 2'b11,
-  //    half1 = 2'b00,
-  //    half2 = 2'b01,
-  //    half3 = 2'b10
-  //    }opcode;
 
+  logic prev_info_inst;
 
-  assign first_half = inst_current[1:0];
-  assign second_half = inst_current[17:16];
+  assign first_bits_on = &inst[1:0];
+  assign second_bits_on = &inst[17:16];
 
-  assign first_bit = (first_half == 2'b11);
-  assign second_bit = (second_half == 2'b11) | ((first_half == 2'b11)& (full_half_prev != 2'b10)&~stall_compressed_ff )&((full_half_prev != 2'b11)&sel);
-  assign sel = (full_half_prev == 2'b10);
+  assign f1f1 = ~prev_info_inst & first_bits_on;
+  assign hf = ~prev_info_inst & ~first_bits_on & second_bits_on;
+  assign hh = ~prev_info_inst & ~first_bits_on & ~second_bits_on;
+  assign fh = prev_info_inst & ~second_bits_on;
+  assign f1f2 = prev_info_inst & second_bits_on;
 
-  assign full_half_current = sel ? {second_bit, 1'b1} : {second_bit, first_bit};
-
-  assign f1f1 = (full_half_current == 2'b11) & ~(sel);
-  assign f1f2 = (full_half_current == 2'b11) & sel ;
-  assign fh = (full_half_current == 2'b01);
-  assign hf = (full_half_current == 2'b10);
-  assign hh = (full_half_current == 2'b00)&(full_half_prev != 2'b10)&((full_half_prev != 2'b11)&sel);
-
-
-  always_ff @(posedge clk or negedge reset_n) begin
-    if (~reset_n) full_half_prev <= 2'b00;
-    else full_half_prev <= full_half_current;
+  always_ff @(posedge clk, negedge reset_n) begin : prev_state
+    if (~reset_n) prev_info_inst <= 1'b0;
+    else prev_info_inst <= hf | f1f2;
   end
-
-
-
-  //always_comb begin
-  //    case ({inst_prev[17:16],inst_prev[1:0]})
-  //        {2'bxx,full}: full_half_prev = 00;
-  //        {half, half}: full_half_prev = 11;
-  //        {full, half}: full_half_prev = 01;
-  //    endcase
-
-  //    casez ({inst_current[17:16],inst_current[1:0]})
-  //        {2'b??,full}: full_half_current = 00;
-  //        {half1|half2|half3, half1|half2|half3}: full_half_current = 11;
-  //        {full, half1|half2|half3}: full_half_current = 01;
-  //        default: if(full_half_prev == 01) full_half_current = 10;
-  //    endcase
-  //end
 
 endmodule
 
