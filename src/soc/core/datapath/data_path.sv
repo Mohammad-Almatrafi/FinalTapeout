@@ -189,14 +189,14 @@ module data_path #(
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({interrupt|exception, pc_sel_mem}),
+      .sel({interrupt, pc_sel_mem}),
       .in0(pc_plus_4_if1),
       .in1(pc_jump_mem),
       .in2(jump_int_addr),
       .in3(jump_int_addr),
       .out(next_pc_ifff)
   );
-
+// |exception
   //    jump_int_addr
 
   mux2x1 #(

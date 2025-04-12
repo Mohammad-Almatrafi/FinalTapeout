@@ -1,14 +1,11 @@
-
-addi x20, x0, 0xff # mie value all enable
+# .option norvc
+li x20, x0, -1 # mie value all enable
 nop
 nop
 nop
 # lui x11, 0x10000 # mtime comp value
-addi x11, x0, 0x100
+addi x11, x0, 0x100 # x11 = 256
 nop
-nop
-nop
-addi x28,x0,8 # mstatus value make the MIE bit equal to 1
 nop
 nop
 nop
@@ -37,10 +34,9 @@ nop
 nop
 nop
 nop
-csrrsi x0,mstatus, 0x1f # mstatus = 0x8
+csrrwi x0,mstatus, 0x1f # mstatus = 0x8
 nop
 nop
-add x28,x0,x0
 nop
 nop
 nop
@@ -64,6 +60,9 @@ nop
 nop
 nop
 j loop # executed
+nop
+nop
+nop
 nop # mem
 nop # exec
 nop # id
