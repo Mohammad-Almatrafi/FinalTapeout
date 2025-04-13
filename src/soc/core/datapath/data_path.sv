@@ -84,7 +84,7 @@ module data_path #(
 
     // inst mem access
     output logic [31:0] current_pc_if,
-    input  logic [31:0] inst_if,
+    input logic [31:0] inst_if,
     output logic interrupt,
     output logic mret_type
 
@@ -94,14 +94,14 @@ module data_path #(
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
-  logic csr_type_mem;
+  logic        csr_type_mem;
   logic [31:0] mcause;
   logic [31:0] csr_out;
   logic [31:0] mepc;
   logic        MIE;
   logic [31:0] mie;
   logic [31:0] mtvec;
-  logic exception;
+  logic        exception;
   logic [31:0] inst_id, inst_exe, inst_mem;
   logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
   logic [31:0] reg_rdata1_id, reg_rdata1_exe;
@@ -189,14 +189,13 @@ module data_path #(
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({interrupt, pc_sel_mem}),
+      .sel({interrupt | exception, pc_sel_mem}),
       .in0(pc_plus_4_if1),
       .in1(pc_jump_mem),
       .in2(jump_int_addr),
       .in3(jump_int_addr),
       .out(next_pc_ifff)
   );
-// |exception
   //    jump_int_addr
 
   mux2x1 #(
@@ -471,7 +470,7 @@ module data_path #(
 
 
   // multiplxers at alu inputs (exe stage)
-  logic [31:0] alu_op1_exe,alu_op1_mem;
+  logic [31:0] alu_op1_exe, alu_op1_mem;
   logic [31:0] alu_op2_exe;
   mux2x1 #(
       .n(32)
@@ -502,18 +501,18 @@ module data_path #(
       .alu_result(alu_result_exe),
       .zero(zero_exe)
   );
-  
+
   logic store_misaligned, load_misaligned, inst_addr_misaligned;
-  
-  align_except alignment_exception( 
-       .alu_result_lsb(alu_result_exe[1:0]), 
-       .alu_op(alu_op_exe),         
-       .func3_exe(fun3_exe),      
-       .pc(next_pc_ifff),            
-       .reg_write(reg_write_exe),            
-       .mem_write(mem_write_exe), 
-       .* 
-       );          
+
+  align_except alignment_exception (
+      .alu_result_lsb(alu_result_exe[1:0]),
+      .alu_op(alu_op_exe),
+      .func3_exe(fun3_exe),
+      .pc(next_pc_ifff),
+      .reg_write(reg_write_exe),
+      .mem_write(mem_write_exe),
+      .*
+  );
 
   // ============================================
   //           EXE-MEM Pipeline Register
@@ -638,7 +637,7 @@ module data_path #(
       .fun3(inst_mem[14:12])
   );
   mret_adr_sel mepc_adress_select (
-      .clear_counter(mret_type | interrupt | pc_sel_mem),
+      .clear_counter(mret_type | interrupt | pc_sel_mem | exception),
       .*
   );
 

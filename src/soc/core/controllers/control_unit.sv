@@ -9,12 +9,13 @@ module control_unit (
     input logic branch_mem,
     input logic mret_type,
     input logic interrupt,
-    input logic clk, reset_n,
+    input logic clk,
+    reset_n,
 
     // outputs from the decode controller
     output logic reg_write_id,
     output logic mem_write_id,
-    output logic [1:0]mem_to_reg_id,
+    output logic [1:0] mem_to_reg_id,
     output logic branch_id,
     output logic alu_src_id,
     output logic jump_id,
@@ -86,6 +87,7 @@ module control_unit (
       .r_type(r_type_id),
       .csr_type(csr_type_id),
       .mem_csr_to_reg(mem_to_reg_id),
+      .clear_invalid_counter(pc_sel_mem | interrupt | mret_type),
       .*
   );
 
@@ -129,3 +131,4 @@ module control_unit (
   );
 
 endmodule
+

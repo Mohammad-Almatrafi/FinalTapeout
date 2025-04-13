@@ -12,7 +12,9 @@ typedef enum logic [6:0] {
 
 module decode_control (
     input logic [6:0] opcode,
-    input logic reset_n, clk,
+    input logic reset_n,
+    clk,
+    input clear_invalid_counter,
     output logic reg_write,
     output logic mem_write,
     output logic [1:0] mem_csr_to_reg,
@@ -28,14 +30,14 @@ module decode_control (
     output logic invalid_inst
 
 );
-logic [1:0] invalid_counter;
+  logic [1:0] invalid_counter;
 
-always@(posedge clk or negedge reset_n) begin
-    if (!reset_n)  invalid_counter = 2'b11;
-    else invalid_counter = invalid_counter>>1;
-    end
-    
-//  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
+  always @(posedge clk or negedge reset_n) begin
+    if (!reset_n | clear_invalid_counter) invalid_counter = 2'b11;
+    else invalid_counter = invalid_counter >> 1;
+  end
+
+  //  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
   parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
   always @(opcode) begin
@@ -218,49 +220,49 @@ always@(posedge clk or negedge reset_n) begin
     endcase
   end
 
-//      assign csr_type = (opcode == 7'b1110011);
-        
-
-//      logic jump_or_upper_immediate;
-//      assign jump_or_upper_immediate = opcode[2];
-
-//      logic jalr;
-
-//      logic br_or_jump;
-//      assign br_or_jump = opcode[6];
-
-//      logic [3:0] decoder_o;
-//      n_bit_dec_with_en #(
-//              .n(2)
-//      ) type_decoder (
-//              .en(~jump_or_upper_immediate & ~br_or_jump),
-//              .in(opcode[5:4]),
-//              .out(decoder_o)
-//          );
-
-//      logic i_type, load, store, b_type, u_type;
-
-//      assign b_type = br_or_jump & ~jump;
-//      assign i_type =  decoder_o[1];
-//      assign r_type =  decoder_o[3]&(~csr_type);
-//      assign load   =  decoder_o[0];
-//      assign store =  decoder_o[2];
-//      assign u_type = jump_or_upper_immediate & opcode[4];
+  //      assign csr_type = (opcode == 7'b1110011);
 
 
-//      assign jump     = jump_or_upper_immediate & ~opcode[4] &(~csr_type); 
-//      assign jal   = jump_or_upper_immediate & ~opcode[4] & opcode[3]; 
-//      assign lui   = u_type & opcode[5] &(~csr_type); 
-//      assign auipc = u_type & ~opcode[5] &(~csr_type);
+  //      logic jump_or_upper_immediate;
+  //      assign jump_or_upper_immediate = opcode[2];
+
+  //      logic jalr;
+
+  //      logic br_or_jump;
+  //      assign br_or_jump = opcode[6];
+
+  //      logic [3:0] decoder_o;
+  //      n_bit_dec_with_en #(
+  //              .n(2)
+  //      ) type_decoder (
+  //              .en(~jump_or_upper_immediate & ~br_or_jump),
+  //              .in(opcode[5:4]),
+  //              .out(decoder_o)
+  //          );
+
+  //      logic i_type, load, store, b_type, u_type;
+
+  //      assign b_type = br_or_jump & ~jump;
+  //      assign i_type =  decoder_o[1];
+  //      assign r_type =  decoder_o[3]&(~csr_type);
+  //      assign load   =  decoder_o[0];
+  //      assign store =  decoder_o[2];
+  //      assign u_type = jump_or_upper_immediate & opcode[4];
 
 
-//      assign mem_write = store &(~csr_type);
-//      assign branch    = b_type &(~csr_type);
-//      assign alu_src   = ~(r_type | b_type)&(~csr_type);
-//      assign alu_op = opcode[5:4] & {2{~(store | jump_or_upper_immediate)}};
-//      assign mem_csr_to_reg[0] = load & ~invalid_inst;
-//      assign mem_csr_to_reg[1] = csr_type;
+  //      assign jump     = jump_or_upper_immediate & ~opcode[4] &(~csr_type); 
+  //      assign jal   = jump_or_upper_immediate & ~opcode[4] & opcode[3]; 
+  //      assign lui   = u_type & opcode[5] &(~csr_type); 
+  //      assign auipc = u_type & ~opcode[5] &(~csr_type);
 
-//      assign reg_write = ~ (b_type | store) | csr_type;
+
+  //      assign mem_write = store &(~csr_type);
+  //      assign branch    = b_type &(~csr_type);
+  //      assign alu_src   = ~(r_type | b_type)&(~csr_type);
+  //      assign alu_op = opcode[5:4] & {2{~(store | jump_or_upper_immediate)}};
+  //      assign mem_csr_to_reg[0] = load & ~invalid_inst;
+  //      assign mem_csr_to_reg[1] = csr_type;
+
+  //      assign reg_write = ~ (b_type | store) | csr_type;
 
 endmodule : decode_control
