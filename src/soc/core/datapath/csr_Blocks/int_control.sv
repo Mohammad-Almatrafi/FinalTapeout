@@ -10,13 +10,14 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     store_misaligned,
     load_misaligned,
     inst_addr_misaligned,
+    ecall_type,
     output logic interrupt,
     output logic exception,
     output logic [31:0] pc_addr,
     output logic [4:0] int_code
 );
   assign interrupt = (|(mip & mie)) & MIE;
-  assign exception = invalid_inst | store_misaligned | load_misaligned | inst_addr_misaligned;
+  assign exception = invalid_inst | store_misaligned | load_misaligned | inst_addr_misaligned | ecall_type;
   assign pc_addr   = mtvec[0] ? {mtvec[31:2] + {mcause[28:0], 1'b0}, 2'b0} : {mtvec[31:2], 2'b0};
 
   always_comb begin
@@ -24,6 +25,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     else if (invalid_inst == 1) int_code = 5'd2;
     else if (load_misaligned == 1) int_code = 5'd4;
     else if (store_misaligned == 1) int_code = 5'd6;
+    else if (ecall_type == 1) int_code = 5'd11;
     else if ((mip_in[0] == 1)) int_code = 5'd0;
     else if (mip_in[1] == 1) int_code = 5'd1;
     else if ((mip_in[2] == 1)) int_code = 5'd2;

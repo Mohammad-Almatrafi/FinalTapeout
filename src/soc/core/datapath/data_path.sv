@@ -629,13 +629,15 @@ module data_path #(
       .*
   );
 
-
-  mret_on mret_unit (
+  logic ecall_type;
+  mret_ecall_type mret_unit (
       .mret_type(mret_type),
+      .ecall_type(ecall_type),
       .csr_type(csr_type_mem),
       .fun12(inst_mem[31:20]),
       .fun3(inst_mem[14:12])
   );
+
   mret_adr_sel mepc_adress_select (
       .clear_counter(mret_type | interrupt | pc_sel_mem | exception),
       .*
