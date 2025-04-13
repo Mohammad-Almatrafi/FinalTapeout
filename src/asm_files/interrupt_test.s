@@ -1,5 +1,5 @@
 # .option norvc
-li x20, x0, -1 # mie value all enable
+li x20, -1 # mie value all enable
 nop
 nop
 nop

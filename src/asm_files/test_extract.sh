@@ -1,4 +1,4 @@
-input_file=interrupt_test.s
+input_file=exception_test.s
 
 riscv64-unknown-linux-gnu-as -mabi=ilp32 -march=rv32ic_zicsr -g ${input_file} -o ${input_file}.o
 

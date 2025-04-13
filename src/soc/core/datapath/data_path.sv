@@ -621,7 +621,7 @@ module data_path #(
       .csr_en(csr_type_mem & ~mret_type),  // this is the mret type
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
-      .int_action(interrupt),
+      .int_action(interrupt | exception),
       .exp_action(exception),
       .func3(inst_mem[14:12]),
       .int_code(int_code),

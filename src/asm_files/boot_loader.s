@@ -1,4 +1,12 @@
-
+	.file	"boot_loader.c"
+	.option nopic
+	.attribute arch, "rv32i2p1_zicsr2p0"
+	.attribute unaligned_access, 0
+	.attribute stack_align, 16
+	.text
+	.align	2
+	.globl	trap_handler
+	.type	trap_handler, @function
 trap_handler:
 .LFB2:
 	.cfi_startproc
