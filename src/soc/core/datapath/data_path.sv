@@ -383,7 +383,9 @@ module data_path #(
     auipc_id,
     jal_id,
     alu_op_id,
-    inst_id
+    inst_id,
+    invalid_inst
+
   };
 
   n_bit_reg_wclr #(
@@ -423,7 +425,14 @@ module data_path #(
   assign auipc_exe = id_exe_bus_o.auipc;
   assign jal_exe = id_exe_bus_o.jal;
   assign alu_op_exe = id_exe_bus_o.alu_op;
+  assign invalid_inst_exe = id_exe_bus_o.invalid_inst;
 
+  logic
+      invalid_inst_exe,
+      invalid_inst_mem,
+      store_misaligned_mem,
+      load_misaligned_mem,
+      inst_addr_misaligned_mem;
 
 
   // ============================================
@@ -540,7 +549,11 @@ module data_path #(
     jump_exe,
     lui_exe,
     zero_exe,
-    inst_exe
+    inst_exe,
+    invalid_inst_exe,
+    store_misaligned,
+    load_misaligned,
+    inst_addr_misaligned
   };
 
   n_bit_reg_wclr #(
@@ -555,29 +568,34 @@ module data_path #(
   );
 
   // data signals 
-  assign alu_op1_mem    = exe_mem_bus_o.alu_op1;
-  assign inst_mem       = exe_mem_bus_o.inst;  // 32
-  assign pc_plus_4_mem  = exe_mem_bus_o.pc_plus_4;  // 32
-  assign pc_jump_mem    = exe_mem_bus_o.pc_jump;
-  assign rs2_mem        = exe_mem_bus_o.rs2;
-  assign rd_mem         = exe_mem_bus_o.rd;
-  assign fun3_mem       = exe_mem_bus_o.fun3;
-  assign rdata2_frw_mem = exe_mem_bus_o.rdata2_frw;
-  assign imm_mem        = exe_mem_bus_o.imm;
-  assign alu_result_mem = exe_mem_bus_o.alu_result;
+  assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
+  assign inst_mem                 = exe_mem_bus_o.inst;  // 32
+  assign pc_plus_4_mem            = exe_mem_bus_o.pc_plus_4;  // 32
+  assign pc_jump_mem              = exe_mem_bus_o.pc_jump;
+  assign rs2_mem                  = exe_mem_bus_o.rs2;
+  assign rd_mem                   = exe_mem_bus_o.rd;
+  assign fun3_mem                 = exe_mem_bus_o.fun3;
+  assign rdata2_frw_mem           = exe_mem_bus_o.rdata2_frw;
+  assign imm_mem                  = exe_mem_bus_o.imm;
+  assign alu_result_mem           = exe_mem_bus_o.alu_result;
   // control signals
-  assign reg_write_mem  = exe_mem_bus_o.reg_write;
-  assign mem_write_mem  = exe_mem_bus_o.mem_write;
-  assign mem_to_reg_mem = exe_mem_bus_o.mem_to_reg;
-  assign branch_mem     = exe_mem_bus_o.branch;
-  assign jump_mem       = exe_mem_bus_o.jump;
-  assign lui_mem        = exe_mem_bus_o.lui;
-  assign zero_mem       = exe_mem_bus_o.zero;
+  assign reg_write_mem            = exe_mem_bus_o.reg_write;
+  assign mem_write_mem            = exe_mem_bus_o.mem_write;
+  assign mem_to_reg_mem           = exe_mem_bus_o.mem_to_reg;
+  assign branch_mem               = exe_mem_bus_o.branch;
+  assign jump_mem                 = exe_mem_bus_o.jump;
+  assign lui_mem                  = exe_mem_bus_o.lui;
+  assign zero_mem                 = exe_mem_bus_o.zero;
 
-  assign csr_type_mem   = exe_mem_bus_o.csr_type;
+  assign csr_type_mem             = exe_mem_bus_o.csr_type;
+
+  assign load_misaligned_mem      = exe_mem_bus_o.load_misaligned;
+  assign store_misaligned_mem     = exe_mem_bus_o.store_misaligned;
+  assign invalid_inst_mem         = exe_mem_bus_o.invalid_inst;
+  assign inst_addr_misaligned_mem = exe_mem_bus_o.inst_addr_misaligned;
 
   // ============================================
-  //                Memory Stage 
+  //                Memory Stage
   // ============================================
 
   // logic [31:0] mip_in;
