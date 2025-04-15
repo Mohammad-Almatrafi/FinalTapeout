@@ -74,7 +74,7 @@ module data_path #(
     input logic pc_reg_en,
 
 
-    // memory bus 
+    // memory bus
     output logic [31:0] mem_addr_mem,
     output logic [31:0] mem_wdata_mem,
     output logic [2:0] mem_op_mem,
@@ -604,13 +604,6 @@ module data_path #(
   logic hw_int;
   logic [4:0] int_code;
   logic [31:0] RS1;
-  //    logic [31:0] mcause;
-  //    logic [31:0] csr_out;
-  //    logic [31:0]mepc;
-  //    logic MIE;
-  //    logic [31:0]mie;
-  //    logic [31:0]mtvec;
-  // logic mret_type;
 
   assign RS1 = alu_op1_mem;
 
@@ -636,7 +629,7 @@ module data_path #(
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
       .current_pc(mepc_adr),
-      .csr_en(csr_type_mem & ~mret_type),  // this is the mret type
+      .csr_en(csr_type_mem & ~mret_type & ~ecall_type),  // this is the mret type
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
       .int_action(interrupt | exception),
