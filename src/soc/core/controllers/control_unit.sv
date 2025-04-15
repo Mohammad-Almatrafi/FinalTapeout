@@ -11,6 +11,9 @@ module control_unit (
     input logic interrupt,
     input logic clk,
     reset_n,
+    input logic hw_jump_clr,
+    input logic stall_compressed,
+
 
     // outputs from the decode controller
     output logic reg_write_id,

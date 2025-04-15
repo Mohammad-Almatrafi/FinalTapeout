@@ -22,6 +22,9 @@ module rv32i #(
     input logic stall_pipl,
     output logic if_id_reg_en
 );
+
+
+
     
     // controller to the data path 
     logic reg_write_id; 
@@ -47,7 +50,8 @@ module rv32i #(
     logic [1:0] alu_op_exe;
     logic jump_mem; 
     logic branch_mem;
-
+    logic hw_jump_clr;
+    logic stall_compressed;
 
     // data path to the controller (forwarding unit)
     wire [4:0] rs1_id;

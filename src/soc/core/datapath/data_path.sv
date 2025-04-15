@@ -20,6 +20,9 @@ module data_path #(
     output logic jump_mem,
     output logic branch_mem,
     output logic csr_type_exe,
+    output logic hw_jump_clr,
+    output logic stall_compressed,
+    
 
     // control signals from the controller 
     input logic reg_write_id,
@@ -102,7 +105,7 @@ module data_path #(
   logic [31:0] mie;
   logic [31:0] mtvec;
   logic        exception;
-  logic [31:0] inst_id, inst_exe, inst_mem;
+  logic [31:0] inst_id_pre, inst_id, inst_exe, inst_mem;
   logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
   logic [31:0] reg_rdata1_id, reg_rdata1_exe;
   logic [31:0] reg_rdata2_id, reg_rdata2_exe;
@@ -287,12 +290,23 @@ module data_path #(
 
   assign current_pc_id = if_id_bus_o.current_pc;
   assign pc_plus_4_id  = if_id_bus_o.pc_plus_4;
-  assign inst_id       = if_id_bus_o.inst;
+  assign inst_id_pre       = if_id_bus_o.inst;
 
 
   // ============================================
   //                Decode Stage 
   // ============================================
+
+
+pre_decode pre_decode_inst (
+    .clk(clk),
+    .reset_n(reset_n),
+    .current_pc_id(current_pc_id),
+    .inst_current(inst_id_pre),
+    .hw_jump_clr(hw_jump_clr),
+    .inst_id(inst_id),
+    .stall_compressed(stall_compressed)
+);
 
 
   // Giving descriptive names to field of instructions 
