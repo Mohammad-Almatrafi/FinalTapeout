@@ -35,7 +35,7 @@ j loop # executed
 
 .section .trapvector
 .option norvc
-.balign 128
+.balign 4
 TRAP_HANDLER: 
 sw x0, 8(x10)
 mret

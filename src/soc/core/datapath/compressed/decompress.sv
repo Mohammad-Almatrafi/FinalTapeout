@@ -28,7 +28,7 @@ module decompress (
   logic [11:0] s_l_imm;
   logic [11:0] comp_logical_imm;
   logic [20:0] j0_imm;
-  logic [18:0] j_imm;
+  logic [19:0] j_imm;
   logic [11:0] b_imm;
   logic [7:0] b1_imm;
   logic [4:0] b0_imm;

@@ -91,9 +91,8 @@ module data_path #(
     output logic interrupt,
     output logic mret_type
 
-
-
 );
+
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
@@ -164,7 +163,6 @@ module data_path #(
       .in3(jump_int_addr),
       .out(next_pc_ifff)
   );
-  //    jump_int_addr
 
   mux2x1 #(
       .n(32)

@@ -10,7 +10,7 @@ fffff004:	c0050513          	addi	x10,x10,-1024 # 20000c00 <_start-0xdfffe400>
 fffff008:	6a05                	c.lui	x20,0x1
 fffff00a:	1a7d                	c.addi	x20,-1 # fff <_start-0xffffe001>
 fffff00c:	00000c97          	auipc	x25,0x0
-fffff010:	074c8c93          	addi	x25,x25,116 # fffff080 <TRAP_HANDLER>
+fffff010:	048c8c93          	addi	x25,x25,72 # fffff054 <TRAP_HANDLER>
 fffff014:	10000593          	addi	x11,x0,256
 fffff018:	305c9073          	csrrw	x0,mtvec,x25
 fffff01c:	300fe073          	csrrsi	x0,mstatus,31
@@ -36,9 +36,9 @@ fffff04c:	10068693          	addi	x13,x13,256
 fffff050:	bff1                	c.j	fffff02c <loop>
 	...
 
-fffff080 <TRAP_HANDLER>:
-fffff080:	00052423          	sw	x0,8(x10)
-fffff084:	30200073          	mret
+fffff054 <TRAP_HANDLER>:
+fffff054:	00052423          	sw	x0,8(x10)
+fffff058:	30200073          	mret
 
 Disassembly of section .riscv.attributes:
 

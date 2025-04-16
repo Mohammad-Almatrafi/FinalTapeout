@@ -50,7 +50,7 @@ module pre_decode (
       .sel(stall_compressed_ff | current_pc_id[1]),
       .out(inst_half_correct)
   );
-  
+
   assign hw_jump_clr = current_pc_id[1] & (&inst_current[17:16]);
 
   decompress decompressor (
