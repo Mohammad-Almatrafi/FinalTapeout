@@ -8,7 +8,9 @@ SECTIONS
 {
     .init : {
         *(.init*)        /* Place startup code at the beginning */
+	*(.trapvector*)
     } > ROM
+
 
     .text : {
         *(.text*)
