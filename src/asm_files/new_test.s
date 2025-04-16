@@ -1,3 +1,5 @@
+.section .init
+_start:
 c.addi x1,1
 c.addi x2,2
 c.addi x3,3
