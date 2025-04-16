@@ -1,9 +1,12 @@
 module pre_decode (
     input logic clk,
     input logic reset_n,
-
     input logic [31:0] current_pc_id,
     input logic [31:0] inst_current,
+    input logic clear_state,
+    input logic ff_en,
+
+    
     output logic hw_jump_clr,
     output logic [31:0] inst_id,
     output logic stall_compressed,
@@ -24,7 +27,7 @@ module pre_decode (
       .data_o(inst_prev)
   );
 
-  compressed_type compressed_type (.*);
+  compressed_type compressed_type (.*, .pc(current_pc_id), .inst(inst_current));//
 
   mux2x1 #(
       .n(32)
@@ -36,7 +39,7 @@ module pre_decode (
   );
 
   logic stall_compressed_ff;
-  stall_compressed compressor_stall (.*);
+  stall_compressed compressor_stall (.*, .pc(current_pc_id));//
 
   logic [15:0] inst_half_correct;
   logic [31:0] inst_decompressed;
@@ -47,16 +50,15 @@ module pre_decode (
       .in1(inst_current[31:16]),
       .sel(stall_compressed_ff | current_pc_id[1]),
       .out(inst_half_correct)
-
   );
-  assign hw_jump_clr = current_pc_id[1] & (&inst_current[16:17]);
+  assign hw_jump_clr = current_pc_id[1] & (&inst_current[17:16]);
 
   decompress decompressor (
       .inst_16(inst_half_correct),
       .inst_32(inst_decompressed)
   );
 
-  pc_corrector pc_corrector_inst(
+  pc_corrector pc_corrector_inst(//
   .pc(current_pc_id),          
   .f1f1(f1f1),               
   .f1f2(f1f2),                           
@@ -77,4 +79,3 @@ module pre_decode (
   );
 
 endmodule
-

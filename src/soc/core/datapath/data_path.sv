@@ -111,7 +111,7 @@ module data_path #(
   logic [31:0] reg_rdata2_id, reg_rdata2_exe;
   logic [31:0] reg_wdata_wb;
   logic [31:0] imm_id, imm_exe, imm_mem, imm_wb;
-  logic [31:0] pc_plus_4_if1, pc_plus_4_id, pc_plus_4_exe, pc_plus_4_mem, pc_plus_4_wb;
+  logic [31:0] pc_plus_4_if1, pc_plus_4_id, pc_plus_4_exe, pc_plus_4_mem, pc_plus_4_wb, corrected_pc, corrected_pc_plus_4;
   logic [31:0] pc_jump_exe, pc_jump_mem;
   logic [31:0] next_pc_if1;
   logic [31:0] non_mem_result_wb;
@@ -305,9 +305,13 @@ pre_decode pre_decode_inst (
     .inst_current(inst_id_pre),
     .hw_jump_clr(hw_jump_clr),
     .inst_id(inst_id),
-    .stall_compressed(stall_compressed)
+    .stall_compressed(stall_compressed),
+    .corrected_pc(corrected_pc),
+    .clear_state(if_id_reg_clr),
+    .ff_en(if_id_reg_en)
 );
 
+  assign corrected_pc_plus_4 = corrected_pc + 4;
 
   // Giving descriptive names to field of instructions 
   logic [4:0] rd_id;
@@ -375,8 +379,8 @@ pre_decode pre_decode_inst (
 
   assign id_exe_bus_i = {
     // data signals 
-    current_pc_id,  // 32
-    pc_plus_4_id,  // 32
+    corrected_pc,  // 32
+    corrected_pc_plus_4,  // 32
     rs1_id,  // 32
     rs2_id,
     rd_id,
