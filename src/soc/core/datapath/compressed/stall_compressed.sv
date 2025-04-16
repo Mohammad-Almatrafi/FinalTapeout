@@ -13,7 +13,12 @@ module stall_compressed (
     stall_compressed_ff
 );
 
-  assign stall_compressed = (fh | hh) & (~stall_compressed_ff) & (~pc[1]);
+  always_comb begin
+  if ((fh | hh) & (~stall_compressed_ff) & (~pc[1])) 
+    stall_compressed = 1'b1;
+   else 
+    stall_compressed  = 1'b0;
+  end
 
   n_bit_reg_wclr #(
     .n(1),

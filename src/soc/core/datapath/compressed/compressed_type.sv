@@ -5,6 +5,7 @@ module compressed_type (
     input logic [31:0] pc,
     input logic clear_state,
     input logic ff_en,
+    input logic stall_compressed,
     
     output logic hf,
     f1f1,
@@ -18,7 +19,7 @@ module compressed_type (
   logic first_bits_on;
   logic second_bits_on;
   
-  assign all_zero = |inst;
+  assign all_zero = ~(|inst);
   assign first_bits_on = &inst[1:0];
   assign second_bits_on = &inst[17:16];
 
@@ -41,7 +42,7 @@ module compressed_type (
     ) compress_type_ff (
     .clk(clk),
     .reset_n(reset_n),
-    .wen(ff_en),
+    .wen(ff_en & ~stall_compressed),
     .data_i(pc[1] ? second_bits_on : (hf | f1f2)),
     .data_o(prev_info_inst),
     .clear(clear_state)

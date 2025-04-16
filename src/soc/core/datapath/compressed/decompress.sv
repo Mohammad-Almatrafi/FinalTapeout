@@ -210,7 +210,7 @@ module decompress (
 
       //c.swsp rs2, uimm(x2) => sw rs2, offset[7:2](x2)
       5'b11010: inst_32 = {swsp_imm[11:5], rs2, 5'd2, 3'd2, swsp_imm[4:0], STORE};
-      default:  ;
+      default:  inst_32 = 0;
     endcase
   end
 endmodule

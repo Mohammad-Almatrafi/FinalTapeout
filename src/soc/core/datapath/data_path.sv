@@ -222,7 +222,7 @@ module data_path #(
       .n(1)
   ) if_id_reg_en_ff_inst (
       .*,
-      .data_i(if_id_reg_en),
+      .data_i(if_id_reg_en & ~stall_compressed),
       .data_o(if_id_reg_en_ff),
       .wen(1'b1)
   );
@@ -246,7 +246,7 @@ module data_path #(
       .clk(clk),
       .reset_n(reset_n),
       .clear(if_id_reg_clr),
-      .wen(if_id_reg_en),
+      .wen(if_id_reg_en & ~stall_compressed),
       .data_i(if1_if2_bus_i),
       .data_o(if1_if2_bus_o)
   );
@@ -283,7 +283,7 @@ module data_path #(
       .clk(clk),
       .reset_n(reset_n),
       .clear(if_id_reg_clr | if_id_reg_clr_ff),
-      .wen(if_id_reg_en),
+      .wen(if_id_reg_en & ~stall_compressed),
       .data_i(if_id_bus_i),
       .data_o(if_id_bus_o)
   );
@@ -296,7 +296,6 @@ module data_path #(
   // ============================================
   //                Decode Stage 
   // ============================================
-
 
 pre_decode pre_decode_inst (
     .clk(clk),

@@ -51,6 +51,7 @@ module pre_decode (
       .sel(stall_compressed_ff | current_pc_id[1]),
       .out(inst_half_correct)
   );
+  
   assign hw_jump_clr = current_pc_id[1] & (&inst_current[17:16]);
 
   decompress decompressor (
@@ -69,12 +70,18 @@ module pre_decode (
   .corrected_pc(corrected_pc)
   );
 
+  logic sel_half_full;
+  always_comb begin
+    if(((fh & ~stall_compressed_ff) | f1f2 | f1f1) & ~current_pc_id[1])
+     sel_half_full = 1'b1;
+    else sel_half_full = 1'b0;
+  end
   mux2x1 #(
       .n(32)
   ) half_or_full_mux (
       .in0(inst_decompressed),
       .in1(inst_full_correct),
-      .sel(((fh & ~stall_compressed_ff) | f1f2 | f1f1) & ~current_pc_id[1]),
+      .sel(sel_half_full),
       .out(inst_id)
   );
 
