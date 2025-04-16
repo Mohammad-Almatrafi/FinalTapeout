@@ -224,7 +224,7 @@ package riscv_types;
 
   // ID/EX Register Structure
   typedef struct packed {
-    // Data signals 
+    // Data signals
     logic [31:0] current_pc;
     logic [31:0] pc_plus_4;
     logic [4:0]  rs1;
@@ -253,7 +253,7 @@ package riscv_types;
 
   // EX/MEM Register Structure
   typedef struct packed {
-    // Data signals 
+    // Data signals
     logic [31:0] alu_op1;
     logic [31:0] pc_plus_4;
     logic [31:0] pc_jump;
@@ -277,11 +277,12 @@ package riscv_types;
     logic        store_misaligned;
     logic        load_misaligned;
     logic        inst_addr_misaligned;
+    logic [31:0] current_pc;
   } exe_mem_reg_t;
 
   // MEM/WB Register Structure
   typedef struct packed {
-    // Data signals 
+    // Data signals
     logic [31:0] csr_out;
     logic [4:0]  rd;
     logic [31:0] result;

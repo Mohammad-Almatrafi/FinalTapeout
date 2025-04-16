@@ -8,7 +8,7 @@ module mret_adr_sel(
     input logic [31:0] current_pc_if2,
     input logic [31:0] current_pc_id,
     input logic [31:0] current_pc_exe,
-    input logic [31:0] current_pc_mem_csr,
+    input logic [31:0] current_pc_mem,
 
     output logic [31:0] mepc_adr
     );
@@ -24,7 +24,7 @@ module mret_adr_sel(
     assign mepc_adress_sel[1] = current_pc_if2;
     assign mepc_adress_sel[2] = current_pc_id;
     assign mepc_adress_sel[3] = current_pc_exe;
-    assign mepc_adress_sel[4] = current_pc_mem_csr;
+    assign mepc_adress_sel[4] = current_pc_mem;
 
     n_bit_count_wclr #(.n(3)) counter_reg(
         .clk(clk),

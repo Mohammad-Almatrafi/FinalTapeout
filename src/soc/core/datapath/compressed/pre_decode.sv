@@ -6,7 +6,6 @@ module pre_decode (
     input logic clear_state,
     input logic ff_en,
 
-    
     output logic hw_jump_clr,
     output logic [31:0] inst_id,
     output logic stall_compressed,

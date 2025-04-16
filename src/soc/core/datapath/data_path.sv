@@ -22,7 +22,7 @@ module data_path #(
     output logic csr_type_exe,
     output logic hw_jump_clr,
     output logic stall_compressed,
-    
+
 
     // control signals from the controller 
     input logic reg_write_id,
@@ -111,7 +111,14 @@ module data_path #(
   logic [31:0] reg_rdata2_id, reg_rdata2_exe;
   logic [31:0] reg_wdata_wb;
   logic [31:0] imm_id, imm_exe, imm_mem, imm_wb;
-  logic [31:0] pc_plus_4_if1, pc_plus_4_id, pc_plus_4_exe, pc_plus_4_mem, pc_plus_4_wb, corrected_pc, corrected_pc_plus_4;
+  logic [31:0]
+      pc_plus_4_if1,
+      pc_plus_4_id,
+      pc_plus_4_exe,
+      pc_plus_4_mem,
+      pc_plus_4_wb,
+      corrected_pc,
+      corrected_pc_plus_4;
   logic [31:0] pc_jump_exe, pc_jump_mem;
   logic [31:0] next_pc_if1;
   logic [31:0] non_mem_result_wb;
@@ -138,51 +145,9 @@ module data_path #(
       .*,
       .en(pc_reg_en)
   );
-  logic [31:0]
-      current_pc_if1_csr,
-      current_pc_if2_csr,
-      current_pc_id_csr,
-      current_pc_exe_csr,
-      current_pc_mem_csr;
-  assign current_pc_if1_csr = current_pc_if1;
 
 
-  n_bit_reg #(
-      .n(32)
-  ) current_pc_if1_if2_csr (
-      .*,
-      .data_i(current_pc_if1_csr),
-      .data_o(current_pc_if2_csr),
-      .wen(1'b1)
-  );
 
-  n_bit_reg #(
-      .n(32)
-  ) current_pc_if2_id_csr (
-      .*,
-      .data_i(current_pc_if2_csr),
-      .data_o(current_pc_id_csr),
-      .wen(1'b1)
-  );
-
-  n_bit_reg #(
-      .n(32)
-  ) current_pc_id_exe_csr (
-      .*,
-      .data_i(current_pc_id_csr),
-      .data_o(current_pc_exe_csr),
-      .wen(1'b1)
-  );
-
-
-  n_bit_reg #(
-      .n(32)
-  ) current_pc_exe_mem_csr (
-      .*,
-      .data_i(current_pc_exe_csr),
-      .data_o(current_pc_mem_csr),
-      .wen(1'b1)
-  );
 
   // pc adder 
   assign pc_plus_4_if1 = current_pc_if1 + 4;
@@ -290,25 +255,25 @@ module data_path #(
 
   assign current_pc_id = if_id_bus_o.current_pc;
   assign pc_plus_4_id  = if_id_bus_o.pc_plus_4;
-  assign inst_id_pre       = if_id_bus_o.inst;
+  assign inst_id_pre   = if_id_bus_o.inst;
 
 
   // ============================================
   //                Decode Stage 
   // ============================================
 
-pre_decode pre_decode_inst (
-    .clk(clk),
-    .reset_n(reset_n),
-    .current_pc_id(current_pc_id),
-    .inst_current(inst_id_pre),
-    .hw_jump_clr(hw_jump_clr),
-    .inst_id(inst_id),
-    .stall_compressed(stall_compressed),
-    .corrected_pc(corrected_pc),
-    .clear_state(if_id_reg_clr),
-    .ff_en(if_id_reg_en)
-);
+  pre_decode pre_decode_inst (
+      .clk(clk),
+      .reset_n(reset_n),
+      .current_pc_id(current_pc_id),
+      .inst_current(inst_id_pre),
+      .hw_jump_clr(hw_jump_clr),
+      .inst_id(inst_id),
+      .stall_compressed(stall_compressed),
+      .corrected_pc(corrected_pc),
+      .clear_state(if_id_reg_clr),
+      .ff_en(if_id_reg_en)
+  );
 
   assign corrected_pc_plus_4 = corrected_pc + 4;
 
@@ -570,7 +535,8 @@ pre_decode pre_decode_inst (
     invalid_inst_exe,
     store_misaligned,
     load_misaligned,
-    inst_addr_misaligned
+    inst_addr_misaligned,
+    current_pc_exe
   };
 
   n_bit_reg_wclr #(
@@ -610,6 +576,7 @@ pre_decode pre_decode_inst (
   assign store_misaligned_mem     = exe_mem_bus_o.store_misaligned;
   assign invalid_inst_mem         = exe_mem_bus_o.invalid_inst;
   assign inst_addr_misaligned_mem = exe_mem_bus_o.inst_addr_misaligned;
+  assign current_pc_mem           = exe_mem_bus_o.current_pc;
 
   // ============================================
   //                Memory Stage

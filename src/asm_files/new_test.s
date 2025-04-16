@@ -5,7 +5,6 @@ li x20, 0xfff # mie value all enable
 la x25, TRAP_HANDLER  # mtvec value
 addi x11, x0, 0x100 # mtimecmp value
 
-c.nop
 csrrw x0, mtvec, x25 # mtvec = TRAP_HANDLER
 csrrsi x0, mstatus, 0x1f # mstatus = 0x8
 csrrs x0, mie, x20 # mie = 0xff
