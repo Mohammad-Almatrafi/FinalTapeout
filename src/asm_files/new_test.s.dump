@@ -5,8 +5,8 @@ new_test.s.elf:     file format elf32-littleriscv
 Disassembly of section .init:
 
 fffff000 <_start>:
-fffff000:	20001ab7          	lui	x21,0x20001
-fffff004:	c00a8a93          	addi	x21,x21,-1024 # 20000c00 <_start-0xdfffe400>
+fffff000:	20001fb7          	lui	x31,0x20001
+fffff004:	c00f8f93          	addi	x31,x31,-1024 # 20000c00 <_start-0xdfffe400>
 fffff008:	6a05                	c.lui	x20,0x1
 fffff00a:	1a7d                	c.addi	x20,-1 # fff <_start-0xffffe001>
 fffff00c:	00000c97          	auipc	x25,0x0
@@ -16,8 +16,8 @@ fffff018:	305c9073          	csrrw	x0,mtvec,x25
 fffff01c:	300fe073          	csrrsi	x0,mstatus,31
 fffff020:	304a2073          	csrrs	x0,mie,x20
 fffff024:	0001                	c.addi	x0,0
-fffff026:	00baa023          	sw	x11,0(x21)
-fffff02a:	000aa223          	sw	x0,4(x21)
+fffff026:	00bfa023          	sw	x11,0(x31)
+fffff02a:	000fa223          	sw	x0,4(x31)
 fffff02e:	4501                	c.li	x10,0
 fffff030:	4581                	c.li	x11,0
 fffff032:	4a81                	c.li	x21,0
@@ -78,7 +78,7 @@ fffff098:	b745                	c.j	fffff038 <loop>
 fffff09c <TRAP_HANDLER>:
 fffff09c:	00000013          	addi	x0,x0,0
 fffff0a0:	00000013          	addi	x0,x0,0
-fffff0a4:	000aa423          	sw	x0,8(x21)
+fffff0a4:	000fa423          	sw	x0,8(x31)
 fffff0a8:	00000013          	addi	x0,x0,0
 fffff0ac:	00000013          	addi	x0,x0,0
 fffff0b0:	00000013          	addi	x0,x0,0
