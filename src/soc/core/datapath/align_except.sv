@@ -26,7 +26,7 @@ module align_except (
   assign store_misaligned = mem_write & misalignment;
   assign load_misaligned = reg_write & misalignment;
 
-  assign inst_addr_misaligned = (|pc[1:0]) & reset_n;
+  assign inst_addr_misaligned = (pc[0]) & reset_n;
 
 
 endmodule

@@ -241,7 +241,8 @@ module data_path #(
   assign if_id_bus_i = {current_pc_if2, pc_plus_4_if2, inst_if2};
 
   n_bit_reg_wclr #(
-      .n($bits(if_id_reg_t))  // Automatically sets width
+      .n($bits(if_id_reg_t)),  // Automatically sets width
+      .CLR_VALUE(96'h00000013)
   ) if_id_reg (
       .clk(clk),
       .reset_n(reset_n),
@@ -633,6 +634,7 @@ module data_path #(
 
   mret_adr_sel mepc_adress_select (
       .clear_counter(mret_type | interrupt | pc_sel_mem | exception),
+      .current_pc_id(corrected_pc),
       .*
   );
 

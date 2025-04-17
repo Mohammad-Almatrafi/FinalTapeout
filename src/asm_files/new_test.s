@@ -1,6 +1,6 @@
 .section .init
 _start:
-li x10,0x20000C00  # mtimecmp address
+li x21,0x20000C00  # mtimecmp address
 li x20, 0xfff # mie value all enable
 la x25, TRAP_HANDLER  # mtvec value
 addi x11, x0, 0x100 # mtimecmp value
@@ -9,8 +9,11 @@ csrrw x0, mtvec, x25 # mtvec = TRAP_HANDLER
 csrrsi x0, mstatus, 0x1f # mstatus = 0x8
 csrrs x0, mie, x20 # mie = 0xff
 c.nop
-sw x11, 0(x10) # load 0x100 to mtimecmp_lower
-sw x0, 4(x10) # load zero to mtimecmp_upper
+sw x11, 0(x21) # load 0x100 to mtimecmp_lower
+sw x0, 4(x21) # load zero to mtimecmp_upper
+
+li x10, 0
+li x11, 0
 
 
 loop:
@@ -37,6 +40,12 @@ j loop # executed
 .option norvc
 .balign 4
 TRAP_HANDLER: 
-sw x0, 8(x10)
+nop
+nop
+sw x0, 8(x21)
+nop
+nop
+nop
 mret
+
 
