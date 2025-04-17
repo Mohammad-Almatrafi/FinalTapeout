@@ -27,7 +27,7 @@ module control_unit (
 
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
-    output logic m_type_id,
+    output logic m_type_exe,
 
     // alu_controller output
     output alu_t alu_ctrl_exe,
@@ -97,13 +97,14 @@ module control_unit (
 
   assign exe_use_rs1_id = ~(auipc_id | lui_id);
   assign exe_use_rs2_id = r_type_id | branch_id;
-
+ logic divide_instruction;
   alu_control alu_controller_inst (
       .fun3(fun3_exe),
       .fun7(fun7_exe),
       .alu_op(alu_op_exe),
       .alu_ctrl(alu_ctrl_exe),
-      .m_type(m_type_id)
+      .m_type(m_type_exe),
+      .divide_instruction(divide_instruction)
   );
 
   branch_controller branch_controller_inst (

@@ -38,7 +38,7 @@ module rv32i #(
     logic pc_sel_mem;
     logic [1:0] mem_csr_to_reg_id;
     logic csr_type_id;
-    logic m_type_id;
+    logic m_type_exe;
 
     // data path to the controller 
     logic [6:0] opcode_id;
