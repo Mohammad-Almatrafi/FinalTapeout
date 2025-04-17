@@ -149,7 +149,7 @@ module data_path #(
 
 
   // pc adder 
-  assign pc_plus_4_if1 = current_pc_if1 + 4;
+  assign pc_plus_4_if1 = (current_pc_if1 & ~(32'd3)) + 4;
   logic [31:0] next_pc_ifff;
 
   logic [31:0] jump_int_addr;
@@ -261,6 +261,7 @@ module data_path #(
   //                Decode Stage 
   // ============================================
 
+  logic sel_half_full_id;
   pre_decode pre_decode_inst (
       .clk(clk),
       .reset_n(reset_n),
@@ -271,7 +272,8 @@ module data_path #(
       .stall_compressed(stall_compressed),
       .corrected_pc(corrected_pc),
       .clear_state(if_id_reg_clr),
-      .ff_en(if_id_reg_en)
+      .ff_en(if_id_reg_en),
+      .sel_half_full(sel_half_full_id)
   );
 
   assign corrected_pc_plus_4 = corrected_pc + 4;
@@ -365,8 +367,8 @@ module data_path #(
     jal_id,
     alu_op_id,
     inst_id,
-    invalid_inst
-
+    invalid_inst,
+    sel_half_full_id
   };
 
   n_bit_reg_wclr #(
@@ -379,6 +381,8 @@ module data_path #(
       .data_i(id_exe_bus_i),
       .data_o(id_exe_bus_o)
   );
+  logic sel_half_full_exe;
+  logic sel_half_full_mem;
 
   // data signals 
   assign inst_exe = id_exe_bus_o.inst;
@@ -407,6 +411,7 @@ module data_path #(
   assign jal_exe = id_exe_bus_o.jal;
   assign alu_op_exe = id_exe_bus_o.alu_op;
   assign invalid_inst_exe = id_exe_bus_o.invalid_inst;
+  assign sel_half_full_exe = id_exe_bus_o.sel_half_full;
 
   logic
       invalid_inst_exe,
@@ -535,8 +540,10 @@ module data_path #(
     store_misaligned,
     load_misaligned,
     inst_addr_misaligned,
-    current_pc_exe
+    current_pc_exe,
+    sel_half_full_exe
   };
+
 
   n_bit_reg_wclr #(
       .n($bits(exe_mem_reg_t))
@@ -576,6 +583,7 @@ module data_path #(
   assign invalid_inst_mem         = exe_mem_bus_o.invalid_inst;
   assign inst_addr_misaligned_mem = exe_mem_bus_o.inst_addr_misaligned;
   assign current_pc_mem           = exe_mem_bus_o.current_pc;
+  assign sel_half_full_mem        = exe_mem_bus_o.sel_half_full;
 
   // ============================================
   //                Memory Stage
@@ -634,7 +642,6 @@ module data_path #(
 
   mret_adr_sel mepc_adress_select (
       .clear_counter(mret_type | interrupt | pc_sel_mem | exception),
-      .current_pc_id(corrected_pc),
       .*
   );
 
@@ -656,12 +663,17 @@ module data_path #(
 
   logic alu_to_reg_mem;
   assign alu_to_reg_mem = ~(jump_mem | lui_mem);
+  logic [31:0] actual_pc_return_mem;
+
+  assign actual_pc_return_mem = sel_half_full_mem ? pc_plus_4_mem : pc_plus_4_mem - 2;
+
+
   one_hot_mux3x1 #(
       .n(32)
   ) mem_stage_result_sel_mux (
       .sel({lui_mem, jump_mem, alu_to_reg_mem}),
       .in0(alu_result_mem),
-      .in1(pc_plus_4_mem),
+      .in1(actual_pc_return_mem),
       .in2(imm_mem),
       .out(result_mem)
   );

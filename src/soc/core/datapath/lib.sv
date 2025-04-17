@@ -249,6 +249,7 @@ package riscv_types;
     logic [1:0]  alu_op;
     logic [31:0] inst;
     logic        invalid_inst;
+    logic        sel_half_full;
   } id_exe_reg_t;
 
   // EX/MEM Register Structure
@@ -278,6 +279,7 @@ package riscv_types;
     logic        load_misaligned;
     logic        inst_addr_misaligned;
     logic [31:0] current_pc;
+    logic        sel_half_full;
   } exe_mem_reg_t;
 
   // MEM/WB Register Structure

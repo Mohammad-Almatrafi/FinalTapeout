@@ -9,8 +9,10 @@ module pre_decode (
     output logic hw_jump_clr,
     output logic [31:0] inst_id,
     output logic stall_compressed,
-    output logic [31:0] corrected_pc
+    output logic [31:0] corrected_pc,
+    output logic sel_half_full
 );
+
   logic [31:0] inst_prev;
   logic f1f1, f1f2, fh, hf, hh;
   logic [31:0] inst_full_correct;
@@ -26,7 +28,11 @@ module pre_decode (
       .data_o(inst_prev)
   );
 
-  compressed_type compressed_type (.*, .pc(current_pc_id), .inst(inst_current));//
+  compressed_type compressed_type (
+      .*,
+      .pc  (current_pc_id),
+      .inst(inst_current)
+  );  //
 
   mux2x1 #(
       .n(32)
@@ -38,7 +44,10 @@ module pre_decode (
   );
 
   logic stall_compressed_ff;
-  stall_compressed compressor_stall (.*, .pc(current_pc_id));//
+  stall_compressed compressor_stall (
+      .*,
+      .pc(current_pc_id)
+  );  //
 
   logic [15:0] inst_half_correct;
   logic [31:0] inst_decompressed;
@@ -58,21 +67,20 @@ module pre_decode (
       .inst_32(inst_decompressed)
   );
 
-  pc_corrector pc_corrector_inst(//
-  .pc(current_pc_id),          
-  .f1f1(f1f1),               
-  .f1f2(f1f2),                           
-  .hf(hf),
-  .fh(fh),                             
-  .hh(hh),                             
-  .stall_compressed(stall_compressed),   
-  .corrected_pc(corrected_pc)
+  pc_corrector pc_corrector_inst (  //
+      .pc(current_pc_id),
+      .f1f1(f1f1),
+      .f1f2(f1f2),
+      .hf(hf),
+      .fh(fh),
+      .hh(hh),
+      .stall_compressed(stall_compressed),
+      .corrected_pc(corrected_pc)
   );
 
   logic sel_half_full;
   always_comb begin
-    if(((fh & ~stall_compressed_ff) | f1f2 | f1f1) & ~current_pc_id[1])
-     sel_half_full = 1'b1;
+    if (((fh & ~stall_compressed_ff) | f1f2 | f1f1) & ~current_pc_id[1]) sel_half_full = 1'b1;
     else sel_half_full = 1'b0;
   end
   mux2x1 #(

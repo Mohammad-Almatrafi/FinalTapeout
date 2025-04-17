@@ -11,8 +11,8 @@ module pc_corrector (
   logic no_change, pc_plus_2, pc_minus_2;
 
   assign no_change  = f1f1 | hf | (hh & stall_compressed) | pc[1];
-  assign pc_plus_2  = fh & (~stall_compressed) | (hh & (~stall_compressed));
-  assign pc_minus_2 = f1f2 | (fh & stall_compressed);
+  assign pc_plus_2  = ~pc[1] & ((fh & (~stall_compressed)) | (hh & (~stall_compressed)));
+  assign pc_minus_2 = ~pc[1] & (f1f2 | (fh & stall_compressed));
 
   one_hot_mux3x1 #(
       .n(32)
