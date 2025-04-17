@@ -12,11 +12,11 @@ module data_path #(
     input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
-    output logic fun7_5_exe,
+    output logic [6:0] fun7_exe,
     output logic [2:0] fun3_exe,
     fun3_mem,
     output logic zero_mem,
-    output logic [1:0] alu_op_exe,
+    output logic [2:0] alu_op_exe,
     output logic jump_mem,
     output logic branch_mem,
     output logic csr_type_exe,
@@ -31,11 +31,11 @@ module data_path #(
     input logic lui_id,
     input logic auipc_id,
     input logic jal_id,
-    input logic [1:0] alu_op_id,
+    input logic [2:0] alu_op_id,
     //    input logic [1:0] mem_csr_to_reg_id,
     input logic csr_type_id,
-
-    input logic [3:0] alu_ctrl_exe,
+    input logic m_type_id,
+    input alu_t alu_ctrl_exe,
     input logic pc_sel_mem,
 
 
@@ -306,7 +306,6 @@ module data_path #(
   assign fun3_id   = inst_id[14:12];
   assign fun7_id   = inst_id[31:25];
   assign opcode_id = inst_id[6:0];
-  assign fun7_5_id = fun7_id[5];
 
   logic [31:0] reg_rdata1, reg_rdata2;
 
@@ -367,12 +366,13 @@ module data_path #(
     rs2_id,
     rd_id,
     fun3_id,
-    fun7_5_id,
+    fun7_id,
     reg_rdata1_id,
     reg_rdata2_id,
     imm_id,
     // control signals
     csr_type_id,
+    m_type_id,
     reg_write_id,
     mem_write_id,
     mem_to_reg_id,
@@ -407,14 +407,16 @@ module data_path #(
   assign rs2_exe = id_exe_bus_o.rs2;
   assign rd_exe = id_exe_bus_o.rd;
   assign fun3_exe = id_exe_bus_o.fun3;
-  assign fun7_5_exe = id_exe_bus_o.fun7_5;
+  assign fun7_exe = id_exe_bus_o.fun7;
   assign reg_rdata1_exe = id_exe_bus_o.reg_rdata1;
   assign reg_rdata2_exe = id_exe_bus_o.reg_rdata2;
   assign imm_exe = id_exe_bus_o.imm;
 
   // control signals
+  logic m_type_exe;
   //    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
   assign csr_type_exe    = id_exe_bus_o.csr_type;/////////////////////////////////////////////////////////////////////////////////////
+  assign m_type_exe    = id_exe_bus_o.m_type;
   assign reg_write_exe = id_exe_bus_o.reg_write;
   assign mem_write_exe = id_exe_bus_o.mem_write;
   assign mem_to_reg_exe = id_exe_bus_o.mem_to_reg;
@@ -499,15 +501,21 @@ module data_path #(
       .in1(imm_exe),
       .out(alu_op2_exe)
   );
-
-
-
+    logic [31:0] mul_result_exe;
+    int_mul mul (
+        .rs1(alu_op1_exe),
+        .rs2(alu_op2_exe),
+        .alu_ctrl(alu_t'(alu_ctrl_exe)),
+        .result(mul_result_exe)
+  );
+logic [31:0] alu_result_tmp;
+assign alu_result_exe = m_type_id ? mul_result_exe : alu_result_tmp;
   // instantiating the ALU here (exe_stage)
   alu alu_inst (
       .alu_ctrl(alu_t'(alu_ctrl_exe)),
       .op1(alu_op1_exe),
       .op2(alu_op2_exe),
-      .alu_result(alu_result_exe),
+      .alu_result(alu_result_tmp),
       .zero(zero_exe)
   );
 

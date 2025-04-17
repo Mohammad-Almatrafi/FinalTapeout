@@ -1,6 +1,6 @@
 module align_except (
     input logic [1:0] alu_result_lsb,
-    input logic [1:0] alu_op,
+    input logic [2:0] alu_op,
     input logic [2:0] func3_exe,
     input logic [31:0] pc,
     input logic reg_write,
@@ -13,7 +13,7 @@ module align_except (
 );
   logic misalignment;
   always_comb begin
-    if (alu_op == 2'b00) begin
+    if (alu_op[1:0]== 2'b00) begin//TODO check if the extra bit will matteralu_op[2]
       case (func3_exe[1:0])
         2'b00:   misalignment = 1'b0;  // byte alignment 
         2'b01:   misalignment = alu_result_lsb[0];  // half-word alignment

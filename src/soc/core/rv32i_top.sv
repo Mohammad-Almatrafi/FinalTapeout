@@ -33,18 +33,19 @@ module rv32i #(
     logic lui_id;
     logic auipc_id; 
     logic jal_id;
-    logic [1:0] alu_op_id;
-    logic [3:0] alu_ctrl_exe;
+    logic [2:0] alu_op_id;
+    alu_t alu_ctrl_exe;
     logic pc_sel_mem;
     logic [1:0] mem_csr_to_reg_id;
     logic csr_type_id;
+    logic m_type_id;
 
     // data path to the controller 
     logic [6:0] opcode_id;
-    logic fun7_5_exe;
+    logic [6:0] fun7_exe;
     logic [2:0] fun3_exe, fun3_mem;
     logic zero_mem;
-    logic [1:0] alu_op_exe;
+    logic [2:0] alu_op_exe;
     logic jump_mem; 
     logic branch_mem;
 

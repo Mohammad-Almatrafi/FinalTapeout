@@ -1,10 +1,10 @@
 module control_unit (
     input logic [6:0] opcode_id,
-    input logic fun7_5_exe,
+    input logic [6:0] fun7_exe,
     input logic [2:0] fun3_exe,
     fun3_mem,
     input logic zero_mem,
-    input logic [1:0] alu_op_exe,
+    input logic [2:0] alu_op_exe,
     input logic jump_mem,
     input logic branch_mem,
     input logic mret_type,
@@ -22,14 +22,15 @@ module control_unit (
     output logic lui_id,
     output logic auipc_id,
     output logic jal_id,
-    output logic [1:0] alu_op_id,
+    output logic [2:0] alu_op_id,
     output logic invalid_inst,
 
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
+    output logic m_type_id,
 
     // alu_controller output
-    output [3:0] alu_ctrl_exe,
+    output alu_t alu_ctrl_exe,
 
     // branch controller output 
     output wire pc_sel_mem,
@@ -99,9 +100,10 @@ module control_unit (
 
   alu_control alu_controller_inst (
       .fun3(fun3_exe),
-      .fun7_5(fun7_5_exe),
+      .fun7(fun7_exe),
       .alu_op(alu_op_exe),
-      .alu_ctrl(alu_ctrl_exe)
+      .alu_ctrl(alu_ctrl_exe),
+      .m_type(m_type_id)
   );
 
   branch_controller branch_controller_inst (

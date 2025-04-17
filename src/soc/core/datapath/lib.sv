@@ -189,7 +189,7 @@ endmodule : n_bit_reg_wclr
 package riscv_types;
 
   // ALU operation types
-  typedef enum logic [3:0] {
+  typedef enum logic [4:0] {
     ADD,
     SLL,
     SLT,
@@ -198,8 +198,9 @@ package riscv_types;
     SRL,
     OR,
     AND,
-    SUB  = 4'b1000,
-    SRA  = 4'b1101
+    SUB  = 5'b01000,
+    SRA =  5'b01101,
+    MUL, MULH, MULHSU, MULHU, DIV,DIVU, REM, REMU
   } alu_t;
 
   // Store operation types
@@ -231,12 +232,13 @@ package riscv_types;
     logic [4:0]  rs2;
     logic [4:0]  rd;
     logic [2:0]  fun3;
-    logic        fun7_5;
+    logic [6:0] fun7;
     logic [31:0] reg_rdata1;
     logic [31:0] reg_rdata2;
     logic [31:0] imm;
     // Control signals
     logic        csr_type;
+    logic        m_type;
     logic        reg_write;
     logic        mem_write;
     logic [1:0]  mem_to_reg;
@@ -246,7 +248,7 @@ package riscv_types;
     logic        lui;
     logic        auipc;
     logic        jal;
-    logic [1:0]  alu_op;
+    logic [2:0]  alu_op;
     logic [31:0] inst;
     logic        invalid_inst;
   } id_exe_reg_t;
