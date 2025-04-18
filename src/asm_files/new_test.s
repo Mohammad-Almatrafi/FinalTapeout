@@ -3,7 +3,7 @@ _start:
 li x31,0x20000C00  # mtimecmp address
 li x20, 0xfff # mie value all enable
 la x25, TRAP_HANDLER  # mtvec value
-addi x11, x0, 0x100 # mtimecmp value
+li x11, 12  # mtimecmp value
 
 csrrw x0, mtvec, x25 # mtvec = TRAP_HANDLER
 csrrsi x0, mstatus, 0x1f # mstatus = 0x8
