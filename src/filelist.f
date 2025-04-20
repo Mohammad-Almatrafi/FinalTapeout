@@ -41,7 +41,6 @@ soc/core/controllers/branch_controller.sv
 soc/core/controllers/control_unit.sv
 soc/core/controllers/forwarding_unit.sv
 soc/core/controllers/hazard_controller.sv
-soc/core/controllers/int_pipeline_controller.sv
 soc/core/controllers/main_control.sv
 soc/core/controllers/pipeline_controller.sv
 #------   -------

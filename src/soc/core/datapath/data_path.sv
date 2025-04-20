@@ -381,6 +381,12 @@ module data_path #(
       .data_i(id_exe_bus_i),
       .data_o(id_exe_bus_o)
   );
+  logic
+      invalid_inst_exe,
+      invalid_inst_mem,
+      store_misaligned_mem,
+      load_misaligned_mem,
+      inst_addr_misaligned_mem;
   logic sel_half_full_exe;
   logic sel_half_full_mem;
 
@@ -413,12 +419,6 @@ module data_path #(
   assign invalid_inst_exe = id_exe_bus_o.invalid_inst;
   assign sel_half_full_exe = id_exe_bus_o.sel_half_full;
 
-  logic
-      invalid_inst_exe,
-      invalid_inst_mem,
-      store_misaligned_mem,
-      load_misaligned_mem,
-      inst_addr_misaligned_mem;
 
 
   // ============================================
@@ -614,6 +614,7 @@ module data_path #(
 
   logic [31:0] jump_mret;
   logic [31:0] mepc_adr;
+  logic ecall_type;
 
   //   CSR and logic of commands for CSR
   csr_top csr_unit (
@@ -631,7 +632,6 @@ module data_path #(
       .*
   );
 
-  logic ecall_type;
   mret_ecall_type mret_unit (
       .mret_type(mret_type),
       .ecall_type(ecall_type),

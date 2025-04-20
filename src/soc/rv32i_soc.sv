@@ -21,6 +21,8 @@ module rv32i_soc #(
     logic [2:0]  mem_op_mem;
     logic [31:0] mem_rdata_mem;
     logic        mem_read_mem;
+    logic         wb_io_rty_o;      
+    logic  [31:0] wb_io_adr_i;               
 
 
 /////////////////////////////////////////////// This is to set the other periphirals to zero 
@@ -35,6 +37,7 @@ assign mip_in[6:0]=0;
     //          Processor Core Instantiation
     // ============================================
     //Useless signals but for just connecting
+    logic [31:0] inst;
     logic stall_pipl;
     logic if_id_reg_en;
     // Instantiate the processor core here 
@@ -52,6 +55,19 @@ assign mip_in[6:0]=0;
     // ============================================
     //                 Wishbone Master
     // ============================================
+    // IO ( wb master signals ) 
+                                   
+logic  [31:0] wb_io_dat_i;               
+logic   [3:0] wb_io_sel_i;               
+logic         wb_io_we_i;               
+logic         wb_io_cyc_i;               
+logic         wb_io_stb_i;               
+logic   [2:0] wb_io_cti_i;               
+logic   [1:0] wb_io_bte_i;               
+logic  [31:0] wb_io_dat_o;               
+logic         wb_io_ack_o;               
+logic         wb_io_err_o;               
+             
     wishbone_controller wishbone_master (
         .*,
         .clk        (clk),
@@ -80,22 +96,6 @@ assign mip_in[6:0]=0;
 // Wishbone interconnect signals//
 //===============================//  
               
-    // IO ( wb master signals ) 
-                                   
-              
-logic  [31:0] wb_io_adr_i;               
-logic  [31:0] wb_io_dat_i;               
-logic   [3:0] wb_io_sel_i;               
-logic         wb_io_we_i;               
-logic         wb_io_cyc_i;               
-logic         wb_io_stb_i;               
-logic   [2:0] wb_io_cti_i;               
-logic   [1:0] wb_io_bte_i;               
-logic  [31:0] wb_io_dat_o;               
-logic         wb_io_ack_o;               
-logic         wb_io_err_o;               
-logic         wb_io_rty_o;  
-             
     // SPI FLASH SIGNALS 
                                         
                     
@@ -308,7 +308,7 @@ logic        wb_clint_rty_i;
 
     logic [31:0] imem_addr;
     
-    logic [31:0] inst;
+    logic sel_boot_rom;
     
     assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
 
@@ -373,7 +373,6 @@ logic        wb_clint_rty_i;
 
 
     // Inst selection mux
-    logic sel_boot_rom;
     logic sel_boot_rom_ff;
     
     assign sel_boot_rom = &current_pc[31:12]; // 0xfffff000 - to - 0xffffffff 

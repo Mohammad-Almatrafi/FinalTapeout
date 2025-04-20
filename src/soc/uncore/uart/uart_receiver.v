@@ -189,7 +189,7 @@
 //
 //
 
-`include "uart_defines.v"
+//`include "uart_defines.v"
 
 `default_nettype wire
 

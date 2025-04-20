@@ -110,7 +110,7 @@
 // synopsys translate_off
 //`include "timescale.v"
 // synopsys translate_on
-`include "gpio_defines.v"
+// `include "gpio_defines.v"
 
 module gpio_top(
 	// WISHBONE Interface

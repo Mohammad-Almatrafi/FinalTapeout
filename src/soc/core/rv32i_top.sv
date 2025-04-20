@@ -73,7 +73,7 @@ module rv32i #(
 
 
     // data path to the controller (hazard handler)
-    wire mem_to_reg_exe;
+    wire [1:0] mem_to_reg_exe;
     wire [4:0] rd_exe;
 
     // signals to control the flow of the pipeline (handling hazards, stalls ... )
@@ -93,7 +93,7 @@ module rv32i #(
     logic [31:0] current_pc_if;
     logic [31:0] inst_if;
 
-    logic mem_to_reg_mem;
+    logic [1:0] mem_to_reg_mem;
     
     logic invalid_inst;
 
