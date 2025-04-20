@@ -16,7 +16,7 @@ module data_path #(
     output logic [2:0] fun3_exe,
     fun3_mem,
     output logic zero_mem,
-    output logic [2:0] alu_op_exe,
+    output logic [1:0] alu_op_exe,
     output logic jump_mem,
     output logic branch_mem,
     output logic csr_type_exe,
@@ -31,13 +31,15 @@ module data_path #(
     input logic lui_id,
     input logic auipc_id,
     input logic jal_id,
-    input logic [2:0] alu_op_id,
+    input logic [1:0] alu_op_id,
     //    input logic [1:0] mem_csr_to_reg_id,
     input logic csr_type_id,
     input logic m_type_exe,
     input alu_t alu_ctrl_exe,
     input logic pc_sel_mem,
-
+    
+    input divide_instruction,
+    output divide_stall,
 
     // forwarding unit stuff
     output wire [4:0] rs1_id,
@@ -500,27 +502,29 @@ module data_path #(
   );
   //--------------------------------------------------------------------------------------------------
 logic i_p_signal;
-alu_t alu_ctrl;
 
-logic stall;
-
+logic internal_div_stall;
+logic stall_div;
 logic dbz;
 logic ovf;
 logic [31:0] div_result_exe;
 
 logic en;
 logic clear;
+logic o_p_signal;
 
+assign divide_stall = ((internal_div_stall | divide_instruction) & ~o_p_signal);
 // Instantiate the division module
 int_div_rem #(
   .WIDTH(32)
 ) div_inst (
   .clk(clk),
   .rst(~reset_n),
-  .i_p_signal(m_type_exe),
-  .alu_ctrl(alu_ctrl),
+  .i_p_signal( (divide_instruction & ~o_p_signal) ),
+  .o_p_signal(o_p_signal),
+  .alu_ctrl(alu_ctrl_exe),
 
-  .stall(stall),
+  .stall(internal_div_stall),
 
   .dbz(dbz),
   .ovf(ovf),
@@ -540,8 +544,10 @@ int_div_rem #(
         .alu_ctrl(alu_t'(alu_ctrl_exe)),
         .result(mul_result_exe)
   );
+logic [31:0] m_alu_result;
+assign m_alu_result = o_p_signal ? div_result_exe : mul_result_exe;  
 logic [31:0] alu_result_tmp;
-assign alu_result_exe = m_type_exe ? mul_result_exe : alu_result_tmp;
+assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   // instantiating the ALU here (exe_stage)
   alu alu_inst (
       .alu_ctrl(alu_t'(alu_ctrl_exe)),

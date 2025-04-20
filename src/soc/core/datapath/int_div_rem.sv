@@ -1,5 +1,3 @@
-///////////////////////////// Nehal's Code - Apr 6 ////////////////////////////////////////
-`timescale 1ns / 1ps
 import riscv_types::*;
 
 module int_div_rem #(
@@ -8,9 +6,10 @@ module int_div_rem #(
     input wire clk,    // clock
     input wire rst,    // reset
     input wire i_p_signal,  // start calculation NAME IT i_p_signal used to be start
-    input alu_t   alu_ctrl,
+    input alu_t alu_ctrl,
 
     output     logic stall,   // calculation in progress  NAME IT STALL USED TO BE  BUSY
+    output     logic o_p_signal,   // calculation is complete (high for one tick)   NAME IT o_p_signal
     
     output     logic dbz,    // divide by zero
     output     logic ovf,    // overflow
@@ -81,15 +80,18 @@ module int_div_rem #(
     enum {IDLE, INIT, CALC, FINALIZE} state;
     
     always_ff @(posedge clk) begin
+        o_p_signal<=0;
         if (rst) begin
             state <= IDLE;
             stall <= 0;
+            o_p_signal <= 0;
             dbz <= 0;
             ovf <= 0;
             result <= 0;
         end else if (clear) begin
                 state <= IDLE;
                 stall <= 0;
+                o_p_signal <= 1; 
                 dbz <= 0;
                 ovf <= 0;
                 result <= 0;
@@ -103,6 +105,7 @@ module int_div_rem #(
                     i <= 0;
                     ovf <= 0;
                     dbz <= 0;
+                    o_p_signal<=0;
                     // Initialize calculation registers with full width
                     {acc, quotient} <= {{WIDTH{1'b0}}, a_abs, 1'b0};
 //                    {acc, quotient} <= {{2*WIDTH{1'b0}}, a_abs, 1'b0};
@@ -115,19 +118,26 @@ module int_div_rem #(
                     if (i == ITER-1) begin  // do this in last cycle of "CALC" state
                         state <= FINALIZE;
                         stall<=1;
+                        o_p_signal<=0;
                     end else begin      // do this in "CALC" state
                         i <= i + 1;
                         acc <= acc_next;
                         quotient <= quotient_next;
                         stall<=1;
+                        o_p_signal<=0;
                     end
                 end // End "CALC" case
                 
                 FINALIZE: begin
                     state <= IDLE;
                     stall <= 0;
-//                    dbz <= 0;//TODO make sure these are not important here
-//                    ovf <= 0;
+                    // ACTIVATE o_p_signal IN NORMAL CASES ONLY
+                    if (dbz || ovf)
+                        o_p_signal <= 0;
+                    else
+                        o_p_signal <= 1;
+                    dbz <= 0;
+                    ovf <= 0;
                     
                     // rd that Div_unit uses during calcuation
 //                    temp_rd_div_unit_use <= o_pipeline_control.rd;
@@ -173,6 +183,7 @@ module int_div_rem #(
                             state <= FINALIZE;
 //                            stall <= 1; // TO AVOID ACTIVATING i_p_signal FOR MORE THAN ONE CYCLE
                             stall <= 0;
+                            o_p_signal <= 1;
                             dbz <= 1;
                             result <= 'b0; // Default value
 //                        end else if (is_signed && temp_a_ff == SMALLEST && temp_b_ff == {WIDTH{1'b1}}) begin 
@@ -181,11 +192,13 @@ module int_div_rem #(
 //                            state <= IDLE;
                             state <= FINALIZE;
                             stall <= 0;
+                            o_p_signal <= 1;
                             ovf <= 1;
                             result <= 'b0; // Default value
                         end else begin                 
                             dbz <= 0;
                             ovf <= 0;
+                            o_p_signal <= 0;
                             // rd that Div_unit uses during calcuation
 //                            temp_rd_div_unit_use <= i_pipeline_control.rd;
                             

@@ -21,7 +21,7 @@ module decode_control (
     output logic branch,
     output logic alu_src,
     output logic jump,
-    output logic [2:0] alu_op,
+    output logic [1:0] alu_op,
     output logic lui,
     output logic auipc,
     output logic jal,
@@ -38,7 +38,7 @@ module decode_control (
   end
 
   //  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
-  parameter LOAD_STORE = 3'b000, R_TYPE = 3'b011, I_TYPE = 3'b001, B_TYPE = 3'b010, M_TYPE=3'b100;
+  parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
   always @(opcode) begin
     case (opcode[6:0])

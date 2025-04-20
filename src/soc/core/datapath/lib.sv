@@ -247,7 +247,7 @@ package riscv_types;
     logic        lui;
     logic        auipc;
     logic        jal;
-    logic [2:0]  alu_op;
+    logic [1:0] alu_op;
     logic [31:0] inst;
     logic        invalid_inst;
   } id_exe_reg_t;

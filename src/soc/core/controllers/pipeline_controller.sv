@@ -4,7 +4,7 @@ module pipeline_controller (
     input logic stall_pipl,
     input logic mret_type,
     input logic interrupt,
-    input logic divide_instruction,
+    input logic divide_stall,
     output logic if_id_reg_clr,
     output logic id_exe_reg_clr,
     output logic exe_mem_reg_clr,
@@ -23,9 +23,9 @@ module pipeline_controller (
   assign exe_mem_reg_clr = branch_hazard | mret_type | interrupt;
   assign mem_wb_reg_clr = interrupt;  // never clear
 
-  assign if_id_reg_en = ~(stall_pipl | load_hazard | divide_instruction );
-  assign id_exe_reg_en = ~(stall_pipl | divide_instruction);
-  assign exe_mem_reg_en = ~stall_pipl;
+  assign if_id_reg_en = ~(stall_pipl | load_hazard | divide_stall );
+  assign id_exe_reg_en = ~(stall_pipl | divide_stall);
+  assign exe_mem_reg_en = ~(stall_pipl | divide_stall);
   assign mem_wb_reg_en = ~stall_pipl;
   assign pc_reg_en = ~(stall_pipl | load_hazard);
 

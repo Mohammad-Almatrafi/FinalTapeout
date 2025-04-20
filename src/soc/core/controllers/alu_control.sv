@@ -2,7 +2,7 @@
 module alu_control (
     input logic [2:0] fun3,
     input logic [6:0] fun7,
-    input logic [2:0] alu_op,
+    input logic [1:0] alu_op,
     output alu_t alu_ctrl,
     output logic m_type, // this signal is used to indecate a M extension instruction MUL/DIV/REM along side their different falvours
     output logic  divide_instruction
@@ -24,10 +24,10 @@ always_comb begin
             if(fun7[0])begin
             m_type=1'b1;
                 case (fun3)
-                    3'b000: begin divide_instruction = 1'b1;alu_ctrl = MUL;end
-                    3'b001: begin divide_instruction = 1'b1;alu_ctrl = MULH;end
-                    3'b010: begin divide_instruction = 1'b1;alu_ctrl = MULHSU;end
-                    3'b011: begin divide_instruction = 1'b1;alu_ctrl = MULHU;end
+                    3'b000: begin divide_instruction = 1'b0;alu_ctrl = MUL;end
+                    3'b001: begin divide_instruction = 1'b0;alu_ctrl = MULH;end
+                    3'b010: begin divide_instruction = 1'b0;alu_ctrl = MULHSU;end
+                    3'b011: begin divide_instruction = 1'b0;alu_ctrl = MULHU;end
                     3'b100: begin divide_instruction = 1'b1;alu_ctrl = DIV;end
                     3'b101: begin divide_instruction = 1'b1;alu_ctrl = DIVU;end
                     3'b110: begin divide_instruction = 1'b1;alu_ctrl = REM;end
