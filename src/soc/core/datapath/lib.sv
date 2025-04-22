@@ -237,6 +237,7 @@ package riscv_types;
     logic [31:0] imm;
     // Control signals
     logic        csr_type;
+    logic        is_atomic;
     logic        reg_write;
     logic        mem_write;
     logic [1:0]  mem_to_reg;
@@ -266,6 +267,7 @@ package riscv_types;
     logic [31:0] alu_result;
     // Control signals
     logic        csr_type;
+    logic        is_atomic;
     logic        reg_write;
     logic        mem_write;
     logic [1:0]  mem_to_reg;

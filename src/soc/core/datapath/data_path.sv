@@ -37,7 +37,8 @@ module data_path #(
     input logic [1:0] alu_op_id,
     //    input logic [1:0] mem_csr_to_reg_id,
     input logic csr_type_id,
-
+    input logic is_atomic_id,
+    
     input logic [3:0] alu_ctrl_exe,
     input logic pc_sel_mem,
 
@@ -63,13 +64,14 @@ module data_path #(
     // hazard handler data required from the data path
     output wire [1:0] mem_to_reg_exe,
     output wire [4:0] rd_exe,
-
+    
+    output logic atomic_unit_stall,
     // signals to control the flow of the pipeline
     input logic if_id_reg_clr,
     input logic id_exe_reg_clr,
     input logic exe_mem_reg_clr,
     input logic mem_wb_reg_clr,
-
+    
     input logic if_id_reg_en,
     input logic id_exe_reg_en,
     input logic exe_mem_reg_en,
@@ -84,7 +86,7 @@ module data_path #(
     input logic [31:0] mem_rdata_mem,
     output logic mem_write_mem,
     output logic [1:0] mem_to_reg_mem,
-
+    input logic proc_ack,
     // inst mem access
     output logic [31:0] current_pc_if,
     input logic [31:0] inst_if,
@@ -97,6 +99,7 @@ module data_path #(
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
   logic        csr_type_mem;
+  logic        is_atomic_mem;
   logic [31:0] mcause;
   logic [31:0] csr_out;
   logic [31:0] mepc;
@@ -107,7 +110,7 @@ module data_path #(
   logic [31:0] inst_id_pre, inst_id, inst_exe, inst_mem;
   logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
   logic [31:0] reg_rdata1_id, reg_rdata1_exe;
-  logic [31:0] reg_rdata2_id, reg_rdata2_exe;
+  logic [31:0] reg_rdata2_id, reg_rdata2_exe,reg_rdata2_mem;
   logic [31:0] reg_wdata_wb;
   logic [31:0] imm_id, imm_exe, imm_mem, imm_wb;
   logic [31:0]
@@ -121,7 +124,7 @@ module data_path #(
   logic [31:0] pc_jump_exe, pc_jump_mem;
   logic [31:0] next_pc_if1;
   logic [31:0] non_mem_result_wb;
-
+    
 
   logic reg_write_exe;
   logic mem_write_exe;
@@ -137,6 +140,7 @@ module data_path #(
   logic [31:0] rdata2_frw_mem;
   logic [31:0] current_pc_if1;
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
+  logic is_atomic_exe;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
 
@@ -356,6 +360,7 @@ module data_path #(
     imm_id,
     // control signals
     csr_type_id,
+    is_atomic_id,
     reg_write_id,
     mem_write_id,
     mem_to_reg_id,
@@ -400,6 +405,7 @@ module data_path #(
   // control signals
   //    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
   assign csr_type_exe    = id_exe_bus_o.csr_type;/////////////////////////////////////////////////////////////////////////////////////
+  assign is_atomic_exe    = id_exe_bus_o.is_atomic;
   assign reg_write_exe = id_exe_bus_o.reg_write;
   assign mem_write_exe = id_exe_bus_o.mem_write;
   assign mem_to_reg_exe = id_exe_bus_o.mem_to_reg;
@@ -528,6 +534,7 @@ module data_path #(
     alu_result_exe,
     // control signals
     csr_type_exe,
+    is_atomic_exe,
     reg_write_exe,
     mem_write_exe,
     mem_to_reg_exe,
@@ -555,7 +562,6 @@ module data_path #(
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
   );
-
   // data signals 
   assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
@@ -569,14 +575,15 @@ module data_path #(
   assign alu_result_mem           = exe_mem_bus_o.alu_result;
   // control signals
   assign reg_write_mem            = exe_mem_bus_o.reg_write;
-  assign mem_write_mem            = exe_mem_bus_o.mem_write;
-  assign mem_to_reg_mem           = exe_mem_bus_o.mem_to_reg;
+  assign mem_write_req_mem            = exe_mem_bus_o.mem_write;
+  assign mem_to_reg_req_mem           = exe_mem_bus_o.mem_to_reg;
   assign branch_mem               = exe_mem_bus_o.branch;
   assign jump_mem                 = exe_mem_bus_o.jump;
   assign lui_mem                  = exe_mem_bus_o.lui;
   assign zero_mem                 = exe_mem_bus_o.zero;
 
   assign csr_type_mem             = exe_mem_bus_o.csr_type;
+  assign is_atomic_mem             = exe_mem_bus_o.is_atomic;
 
   assign load_misaligned_mem      = exe_mem_bus_o.load_misaligned;
   assign store_misaligned_mem     = exe_mem_bus_o.store_misaligned;
@@ -645,13 +652,13 @@ module data_path #(
       .*
   );
 
-
+    logic [31:0] mem_wdata_req_mem;
   // forwarding for mem_write_data
   mux2x1 #(32) mem_data_in_mux (
       .sel(forward_rd2_mem),
       .in0(rdata2_frw_mem),
       .in1(reg_wdata_wb),
-      .out(mem_wdata_mem)
+      .out(mem_wdata_req_mem)
   );
 
   assign mem_addr_mem = alu_result_mem;
@@ -677,7 +684,44 @@ module data_path #(
       .in2(imm_mem),
       .out(result_mem)
   );
+    
+    
+ // ============================================
+ //              ATOMIC ACCESS LOGIC
+ // ============================================
+    
+    logic [4:0] fun5_mem;
+    assign fun5_mem = inst_mem[31:27];
+    logic [31:0] atomic_unit_wdata_mem;
+    logic atomic_unit_valid_rd_mem;
+   // Exceptions Currently Are Not Used
+   logic store_amo_addr_malign_mem;
+   logic load_addr_malign_mem;
+    atomic_access_controller aac_inst (
+        .clk(clk),
+        .rst(~reset_n),
+        .is_atomic_mem(is_atomic_mem),
+        .amo_funct5_mem(fun5_mem),
+        .rs2_val_mem(rs2_mem),//need to be forwared?
+        .mem_read_req(mem_to_reg_req_mem),
+        .mem_write_req(mem_write_req_mem),
+        .mem_addr_req(mem_addr_mem), 
+        .mem_wdata_req(mem_wdata_req_mem),
+        
+        .mem_read(mem_to_reg_mem),
+        .mem_write(mem_write_mem),
+        .mem_addr(mem_addr_mem),
+        .mem_wdata(mem_wdata_mem),
+        .mem_rdata(mem_rdata_mem),
+        .mem_ack(proc_ack),
 
+        .stall_mem(atomic_unit_stall),
+        .result_rd(atomic_unit_wdata_mem),
+        .valid_rd(atomic_unit_valid_rd_mem),
+        .load_addr_malign(load_addr_malign_mem),
+        .store_amo_addr_malign(store_amo_addr_malign_mem)
+    );
+    
   // ============================================
   //            MEM-WB Pipeline Register
   // ============================================
@@ -689,7 +733,7 @@ module data_path #(
     // data signals 
     csr_out,
     rd_mem,
-    result_mem,
+    atomic_unit_wdata_mem,
     // control signals
     reg_write_mem,
     mem_to_reg_mem
