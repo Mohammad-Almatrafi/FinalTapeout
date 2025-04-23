@@ -12,7 +12,7 @@ module wishbone_controller (
     input  wire [2:0]  proc_op,       // Processor operation
     output reg  [31:0] proc_rdata,    // Processor read data
     output logic proc_stall_pipl,
-
+    output logic proc_ack,
     // Wishbone bus signals
     output reg  [31:0] wb_adr_o,      // Wishbone address output
     output reg  [31:0] wb_dat_o,      // Wishbone data output
@@ -32,7 +32,7 @@ always_comb begin
     if(proc_write | proc_read) begin
         proc_stall_pipl = ~wb_ack_i;
     end else proc_stall_pipl = 0; // currently there is no stall from the memory side
-    // proc_stall_pipl = 0;
+     proc_ack = wb_ack_i;
 end
 
 

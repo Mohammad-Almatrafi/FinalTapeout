@@ -526,6 +526,7 @@ module data_path #(
     alu_op1_exe,
     pc_plus_4_exe,
     pc_jump_exe,
+    rs1_exe,
     rs2_exe,
     rd_exe,
     fun3_exe,
@@ -562,11 +563,13 @@ module data_path #(
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
   );
+  logic [4:0] rs1_mem;
   // data signals 
   assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
   assign pc_plus_4_mem            = exe_mem_bus_o.pc_plus_4;  // 32
   assign pc_jump_mem              = exe_mem_bus_o.pc_jump;
+  assign rs1_mem                  = exe_mem_bus_o.rs1;
   assign rs2_mem                  = exe_mem_bus_o.rs2;
   assign rd_mem                   = exe_mem_bus_o.rd;
   assign fun3_mem                 = exe_mem_bus_o.fun3;
@@ -575,6 +578,8 @@ module data_path #(
   assign alu_result_mem           = exe_mem_bus_o.alu_result;
   // control signals
   assign reg_write_mem            = exe_mem_bus_o.reg_write;
+  logic mem_write_req_mem;
+  logic [1:0] mem_to_reg_req_mem;
   assign mem_write_req_mem            = exe_mem_bus_o.mem_write;
   assign mem_to_reg_req_mem           = exe_mem_bus_o.mem_to_reg;
   assign branch_mem               = exe_mem_bus_o.branch;
@@ -652,15 +657,16 @@ module data_path #(
       .*
   );
 
-    logic [31:0] mem_wdata_req_mem;
+    logic [31:0] mem_wdata;
   // forwarding for mem_write_data
   mux2x1 #(32) mem_data_in_mux (
       .sel(forward_rd2_mem),
       .in0(rdata2_frw_mem),
       .in1(reg_wdata_wb),
-      .out(mem_wdata_req_mem)
+      .out(mem_wdata_mem)
   );
-
+ logic [31:0] mem_addr;
+    
   assign mem_addr_mem = alu_result_mem;
   assign mem_op_mem   = fun3_mem;
 
@@ -681,10 +687,10 @@ module data_path #(
       .sel({lui_mem, jump_mem, alu_to_reg_mem}),
       .in0(alu_result_mem),
       .in1(actual_pc_return_mem),
+
       .in2(imm_mem),
       .out(result_mem)
   );
-    
     
  // ============================================
  //              ATOMIC ACCESS LOGIC
@@ -694,24 +700,25 @@ module data_path #(
     assign fun5_mem = inst_mem[31:27];
     logic [31:0] atomic_unit_wdata_mem;
     logic atomic_unit_valid_rd_mem;
-   // Exceptions Currently Are Not Used
-   logic store_amo_addr_malign_mem;
-   logic load_addr_malign_mem;
+   //---Exceptions Currently Are Not Use---//
+   /*/ logic store_amo_addr_malign_mem; // 
+   /*/ logic load_addr_malign_mem;            //
+   //----------------------------------------------//
     atomic_access_controller aac_inst (
         .clk(clk),
         .rst(~reset_n),
         .is_atomic_mem(is_atomic_mem),
         .amo_funct5_mem(fun5_mem),
-        .rs2_val_mem(rs2_mem),//need to be forwared?
+        .rs2_val_mem(mem_wdata_mem),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
         .mem_addr_req(mem_addr_mem), 
-        .mem_wdata_req(mem_wdata_req_mem),
+        .mem_wdata_req(rdata2_frw_mem),
         
-        .mem_read(mem_to_reg_mem),
+        .mem_read(mem_to_reg_mem[0]),
         .mem_write(mem_write_mem),
-        .mem_addr(mem_addr_mem),
-        .mem_wdata(mem_wdata_mem),
+        .mem_addr(mem_addr),
+        .mem_wdata(mem_wdata),
         .mem_rdata(mem_rdata_mem),
         .mem_ack(proc_ack),
 
@@ -721,11 +728,13 @@ module data_path #(
         .load_addr_malign(load_addr_malign_mem),
         .store_amo_addr_malign(store_amo_addr_malign_mem)
     );
-    
+    assign mem_to_reg_mem[1]=0; 
+    logic [31:0] result;
+    assign result = atomic_unit_valid_rd_mem ?  atomic_unit_wdata_mem : result_mem;
   // ============================================
   //            MEM-WB Pipeline Register
   // ============================================
-
+    
   mem_wb_reg_t mem_wb_bus_i, mem_wb_bus_o;
   logic [31:0] alu_mem_result_wb;
 
@@ -733,7 +742,7 @@ module data_path #(
     // data signals 
     csr_out,
     rd_mem,
-    atomic_unit_wdata_mem,
+    result,
     // control signals
     reg_write_mem,
     mem_to_reg_mem

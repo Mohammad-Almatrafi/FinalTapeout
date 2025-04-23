@@ -13,7 +13,7 @@ module control_unit (
     reset_n,
     input logic hw_jump_clr,
     input logic stall_compressed,
-
+    input logic atomic_unit_stall,
 
     // outputs from the decode controller
     output logic reg_write_id,
@@ -27,7 +27,7 @@ module control_unit (
     output logic jal_id,
     output logic [1:0] alu_op_id,
     output logic invalid_inst,
-
+    output logic is_atomic_id,
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
 
@@ -89,6 +89,7 @@ module control_unit (
       .jal(jal_id),
       .r_type(r_type_id),
       .csr_type(csr_type_id),
+      .is_atomic(is_atomic_id),
       .mem_csr_to_reg(mem_to_reg_id),
       .clear_invalid_counter(pc_sel_mem | interrupt | mret_type),
       .*

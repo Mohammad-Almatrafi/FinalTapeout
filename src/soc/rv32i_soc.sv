@@ -21,7 +21,7 @@ module rv32i_soc #(
     logic [2:0]  mem_op_mem;
     logic [31:0] mem_rdata_mem;
     logic        mem_read_mem;
-
+    logic proc_ack;
 
 /////////////////////////////////////////////// This is to set the other periphirals to zero 
 
