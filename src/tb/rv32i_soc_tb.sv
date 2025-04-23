@@ -7,9 +7,11 @@ module rv32i_soc_tb;
   logic i_flash_miso;
   logic o_uart_tx;
   logic i_uart_rx;
-
+  parameter IMEM_DEPTH = 100000;
+  parameter DMEM_DEPTH = 128;
   wire [31:0] io_data;
-
+logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
+logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
 
   // ============================================================================ //
   //     Example connection of tracer with WB stage signals in the data path
@@ -40,7 +42,10 @@ module rv32i_soc_tb;
 `endif
 
   // Dut instantiation
-  rv32i_soc DUT (
+  rv32i_soc #(
+    .IMEM_DEPTH(IMEM_DEPTH),
+    .DMEM_DEPTH(DMEM_DEPTH)
+  )DUT (
       .*,
       .i_uart_rx(o_uart_tx)
   );
@@ -57,9 +62,22 @@ module rv32i_soc_tb;
   end
 
 
+
+
+
   // initializing the instruction memory after every reset
   initial begin
-    $readmemh("fib.mem", DUT.inst_mem_inst.dmem);
+
+            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
+            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
+		force DUT.inst_mem_inst.dmem = initial_imem;
+                force DUT.data_mem_inst.dmem = initial_dmem;
+		#1; 
+		release DUT.inst_mem_inst.dmem;
+		release DUT.data_mem_inst.dmem;
+    // $readmemh("/home/it/Documents/RVSOC-FreeRTOS-Kernel-DEMO/instr_formatted.hex",DUT.inst_mem_inst.dmem); // VIVADO
+    // $readmemh("/home/it/Documents/RVSOC-FreeRTOS-Kernel-DEMO/data_formatted.hex",DUT.data_mem_inst.dmem); // VIVADO
+ 
   end  // wait
 
   initial begin
@@ -67,7 +85,7 @@ module rv32i_soc_tb;
     //    for(int i = 0; i<= 14'h0fff; i = i+1) begin
     //        $display("imem[%02d] = %8h", i, DUT.inst_mem_inst.memory[i]);
     //    end
-    repeat (100000) @(posedge clk);
+    repeat (1000) @(posedge clk);
     for (int i = 0; i < 100; i = i + 1) begin
       $display("dmem[%02d] => %8h <=> %8h <= imem[%02d] ", i, DUT.data_mem_inst.dmem[i],
                DUT.inst_mem_inst.dmem[i], i);

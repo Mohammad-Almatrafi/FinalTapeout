@@ -7,4 +7,5 @@ ignored_files
 ignored_files/** 
 C_Code/build
 C_Code/build/**
-
+src/build
+src/build/**

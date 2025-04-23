@@ -5,6 +5,7 @@ module align_except (
     input logic [31:0] pc,
     input logic reg_write,
     input logic mem_write,
+    input logic [1:0] mem_to_reg_exe,
     input logic reset_n,
     output logic store_misaligned,
     load_misaligned,
@@ -24,10 +25,11 @@ module align_except (
   end
 
   assign store_misaligned = mem_write & misalignment;
-  assign load_misaligned = reg_write & misalignment;
+  assign load_misaligned = reg_write & (mem_to_reg_exe == 2'b01) & misalignment;
 
   assign inst_addr_misaligned = (pc[0]) & reset_n;
 
 
 endmodule
+
 

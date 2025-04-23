@@ -1,6 +1,6 @@
 # Filelist for VCS simulation
 
-
++define+tracer
 
 # lib that many module accesses should be compiled first
 soc/core/datapath/lib.sv
@@ -91,7 +91,10 @@ soc/uncore/clint.sv
 soc/rv32i_soc.sv
 
 # Testbench fil
-
+tb/pkg.sv
+tb/tracer_pkg.sv
+tb/tracer.sv
+tb/rv32i_soc_tb.sv
 
 # Optionally, include any other files you want for the simulation.
 
