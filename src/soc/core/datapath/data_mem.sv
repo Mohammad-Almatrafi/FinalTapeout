@@ -28,8 +28,8 @@ assign mem_read  = wb_acc & ~we_i;
 assign ack_o = wb_acc;
 
 
-logic [6:0] word_addr;
-assign word_addr = adr_i[8:2];
+logic [25:0] word_addr;
+assign word_addr = adr_i[27:2];
 
 // inst memory here
 logic [31:0] dmem [0:DEPTH - 1];

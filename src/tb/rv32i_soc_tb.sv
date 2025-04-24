@@ -34,9 +34,9 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
       .rvfi_rd_wdata_t(DUT.rv32i_core_inst.data_path_inst.rvfi_rd_wdata),
       .rvfi_pc_rdata_t(DUT.rv32i_core_inst.data_path_inst.rvfi_pc_rdata),
       .rvfi_pc_wdata_t(DUT.rv32i_core_inst.data_path_inst.rvfi_pc_wdata),
-      .rvfi_mem_addr(DUT.rv32i_core_inst.data_path_inst.rvfi_mem_addr),
-      .rvfi_mem_wdata(DUT.rv32i_core_inst.data_path_inst.rvfi_mem_wdata),
-      .rvfi_mem_rdata(DUT.rv32i_core_inst.data_path_inst.rvfi_mem_rdata),
+      .rvfi_mem_addr(),
+      .rvfi_mem_wdata(),
+      .rvfi_mem_rdata(),
       .rvfi_valid(DUT.rv32i_core_inst.data_path_inst.rvfi_valid)
   );
 `endif
@@ -75,21 +75,15 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
 		#1; 
 		release DUT.inst_mem_inst.dmem;
 		release DUT.data_mem_inst.dmem;
-    // $readmemh("/home/it/Documents/RVSOC-FreeRTOS-Kernel-DEMO/instr_formatted.hex",DUT.inst_mem_inst.dmem); // VIVADO
-    // $readmemh("/home/it/Documents/RVSOC-FreeRTOS-Kernel-DEMO/data_formatted.hex",DUT.data_mem_inst.dmem); // VIVADO
- 
   end  // wait
 
   initial begin
-    //    repeat(100000) @(posedge clk);
-    //    for(int i = 0; i<= 14'h0fff; i = i+1) begin
-    //        $display("imem[%02d] = %8h", i, DUT.inst_mem_inst.memory[i]);
-    //    end
-    repeat (1000) @(posedge clk);
+    repeat (100000) @(posedge clk);
     for (int i = 0; i < 100; i = i + 1) begin
       $display("dmem[%02d] => %8h <=> %8h <= imem[%02d] ", i, DUT.data_mem_inst.dmem[i],
                DUT.inst_mem_inst.dmem[i], i);
     end
+
     for (int i = 0; i < 32; i = i + 1) begin
       $display("reg_file[%02d] = %03d", i,
                DUT.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[i]);

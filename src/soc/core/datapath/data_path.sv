@@ -752,9 +752,9 @@ module data_path #(
   logic [31:0] rvfi_rd_wdata;
   logic [31:0] rvfi_pc_rdata;
   logic [31:0] rvfi_pc_wdata;
-  logic [31:0] rvfi_mem_addr;
-  logic [31:0] rvfi_mem_wdata;
-  logic [31:0] rvfi_mem_rdata;
+  // logic [31:0] rvfi_mem_addr;
+  // logic [31:0] rvfi_mem_wdata;
+  // logic [31:0] rvfi_mem_rdata;
   logic rvfi_valid;
 
   n_bit_reg_wclr #(
@@ -852,16 +852,16 @@ module data_path #(
       .data_o({rvfi_rs1_rdata, rvfi_rs2_rdata})
   );
 
-  n_bit_reg_wclr #(
-      .n(96)
-  ) memd_reg_mem_wb (
-      .clk(clk),
-      .reset_n(reset_n),
-      .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
-      .data_i({mem_addr_mem, mem_wdata_mem, mem_rdata_mem}),
-      .data_o({rvfi_mem_addr, rvfi_mem_wdata, rvfi_mem_rdata})
-  );
+// n_bit_reg_wclr #(
+//     .n(96)
+// ) memd_reg_mem_wb (
+//     .clk(clk),
+//     .reset_n(reset_n),
+//     .clear(mem_wb_reg_clr),
+//     .wen(mem_wb_reg_en),
+//     .data_i({mem_addr_mem, mem_wdata_mem, mem_rdata_mem}),
+//     .data_o({rvfi_mem_addr, rvfi_mem_wdata, rvfi_mem_rdata})
+// );
 
   assign rvfi_rd_addr  = rd_wb;
   assign rvfi_rd_wdata = reg_wdata_wb;
