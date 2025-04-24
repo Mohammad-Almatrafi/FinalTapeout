@@ -8,7 +8,7 @@ module rv32i_soc_tb;
   logic o_uart_tx;
   logic i_uart_rx;
   parameter IMEM_DEPTH = 100000;
-  parameter DMEM_DEPTH = 128;
+  parameter DMEM_DEPTH = 100000;
   wire [31:0] io_data;
 logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
 logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];

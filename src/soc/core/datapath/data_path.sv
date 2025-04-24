@@ -752,21 +752,19 @@ module data_path #(
   logic [31:0] rvfi_rd_wdata;
   logic [31:0] rvfi_pc_rdata;
   logic [31:0] rvfi_pc_wdata;
-  // logic [31:0] rvfi_mem_addr;
-  // logic [31:0] rvfi_mem_wdata;
-  // logic [31:0] rvfi_mem_rdata;
   logic rvfi_valid;
 
-  n_bit_reg_wclr #(
-      .n(1)
-  ) valid_reg_mem_wb (
-      .clk(clk),
-      .reset_n(reset_n),
-      .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
-      .data_i(~invalid_inst_mem),
-      .data_o(rvfi_valid)
-  );
+//  n_bit_reg_wclr #(
+//      .n(1)
+//  ) valid_reg_mem_wb (
+//      .clk(clk),
+//      .reset_n(reset_n),
+//      .clear(mem_wb_reg_clr),
+//      .wen(mem_wb_reg_en),
+//      .data_i(~invalid_inst_mem),
+//      .data_o(rvfi_valid)
+//  );
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0);
 
   logic [31:0] current_pc_wb;
   n_bit_reg_wclr #(
