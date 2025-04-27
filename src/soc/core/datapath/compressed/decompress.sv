@@ -2,7 +2,6 @@ module decompress (
     input  logic [15:0] inst_16,
     output logic [31:0] inst_32
 );
-  // localparam logic [2:0]add
 
   localparam logic [6:0] R_TYPE = 7'b0110011;
   localparam logic [6:0] I_TYPE = 7'b0010011;
@@ -13,7 +12,8 @@ module decompress (
   localparam logic [6:0] STORE = 7'b0100011;
   localparam logic [6:0] LUI = 7'b0110111;
   localparam logic [6:0] AUIPC = 7'b0010111;
-// placement of register adresses in the instructions
+
+  // placement of register adresses in the instructions
   logic [4:0] rd;
   logic [4:0] rd_d[0:1];
   logic [4:0] rs1;
@@ -28,7 +28,7 @@ module decompress (
   logic [11:0] comp_logical_imm;
   logic [20:0] j0_imm;
   logic [19:0] j_imm;
-  logic [11:0] b_imm;
+  logic [12:0] b_imm;
   logic [7:0] b1_imm;
   logic [4:0] b0_imm;
 
@@ -78,7 +78,8 @@ module decompress (
     inst_16[6:5],  // imm[7:6]
     inst_16[2],  // imm[5]
     inst_16[11:10],  // imm[4:3]
-    inst_16[4:3]  // imm[2:1]
+    inst_16[4:3], // imm[2:1]
+    1'b0
   };
 
   assign b0_imm = {b_imm[4:1], b_imm[11]};
