@@ -456,11 +456,11 @@ module data_path #(
   ) jalr_pc_mux (
       .sel(jalr_exe),  // jalr means jump to ([rs1] + imm)
       .in0(current_pc_exe),  // all other (pc + imm)
-      .in1(rdata1_frw_exe & ~(32'd1)),
+      .in1(rdata1_frw_exe),
       .out(jump_base_pc_exe)
   );
 
-  assign pc_jump_exe = jump_base_pc_exe + imm_exe;
+  assign pc_jump_exe = (jump_base_pc_exe + imm_exe) & ~(32'd1);
 
 
 
@@ -756,6 +756,8 @@ module data_path #(
   logic [31:0] rvfi_mem_addr;
   logic [31:0] rvfi_mem_wdata;
   logic [31:0] rvfi_mem_rdata;
+  logic [31:0] inst_wb;
+
 //  n_bit_reg_wclr #(
 //      .n(1)
 //  ) valid_reg_mem_wb (
@@ -766,7 +768,8 @@ module data_path #(
 //      .data_i(~invalid_inst_mem),
 //      .data_o(rvfi_valid)
 //  );
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0);
+
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0); //& mem_wb_reg_en;
 
   logic [31:0] current_pc_wb;
   n_bit_reg_wclr #(
@@ -775,7 +778,7 @@ module data_path #(
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(1'b1),
+      .wen(mem_wb_reg_en),
       .data_i(current_pc_mem),
       .data_o(current_pc_wb)
   );
@@ -805,8 +808,12 @@ module data_path #(
       .clear(mem_wb_reg_clr),
       .wen(mem_wb_reg_en),
       .data_i(inst_mem),
-      .data_o(rvfi_insn)
+      .data_o(inst_wb)
   );
+
+  //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;
+
+  assign rvfi_insn = inst_wb;
 
   n_bit_reg_wclr #(
       .n(10)
@@ -821,8 +828,7 @@ module data_path #(
 
   n_bit_reg_wclr #(
       .n(10)
-  ) rs_reg_mem_wb (
-      .clk(clk),
+  ) rs_reg_mem_wb ( .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
       .wen(mem_wb_reg_en),
@@ -852,20 +858,22 @@ module data_path #(
       .data_o({rvfi_rs1_rdata, rvfi_rs2_rdata})
   );
 
- n_bit_reg_wclr #(
-     .n(64)
- ) memd_reg_mem_wb (
-     .clk(clk),
-     .reset_n(reset_n),
-     .clear(mem_wb_reg_clr),
-     .wen(mem_wb_reg_en),
-     .data_i({mem_addr_mem, mem_wdata_mem}),
-     .data_o({rvfi_mem_addr, rvfi_mem_wdata})
- );
-
+//rvfi_mem_addrn_bit_reg_wclr #(
+//    .n(64)
+//) memd_reg_mem_wb (
+//    .clk(clk),
+//    .reset_n(reset_n),
+//    .clear(mem_wb_reg_clr),
+//    .wen(mem_wb_reg_en),
+//    .data_i({mem_addr_mem, mem_wdata_mem}),
+//    .data_o({, })
+//);
+  assign rvfi_mem_addr = 32'b0;
+  assign rvfi_mem_wdata = 32'b0;
   assign rvfi_rd_addr  = rd_wb;
   assign rvfi_rd_wdata = reg_wdata_wb;
-  assign rvfi_mem_rdata = mem_rdata_wb;
+  // assign rvfi_mem_rdata = reg_wdata_wb;
+  assign rvfi_mem_rdata = 32'b0;
 
 `endif
 

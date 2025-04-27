@@ -7,8 +7,10 @@ module rv32i_soc_tb;
   logic i_flash_miso;
   logic o_uart_tx;
   logic i_uart_rx;
-  parameter IMEM_DEPTH = 100000;
-  parameter DMEM_DEPTH = 100000;
+
+  localparam K = 2**10;
+  parameter IMEM_DEPTH = 32 * K;
+  parameter DMEM_DEPTH = 32 * K;
   wire [31:0] io_data;
 logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
 logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
@@ -67,9 +69,11 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
 
   // initializing the instruction memory after every reset
   initial begin
-
-            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
-            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
+	    initial_imem = '{default: 0};
+	    initial_dmem = '{default: 0};
+            $readmemh("/home/Mohammed_Almatrafi/shared_folder/team_dir_Mohammad/FTO/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
+            $readmemh("/home/Mohammed_Almatrafi/shared_folder/team_dir_Mohammad/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
+		
 		force DUT.inst_mem_inst.dmem = initial_imem;
                 force DUT.data_mem_inst.dmem = initial_dmem;
 		#1; 

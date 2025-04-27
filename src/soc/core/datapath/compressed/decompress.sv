@@ -13,8 +13,7 @@ module decompress (
   localparam logic [6:0] STORE = 7'b0100011;
   localparam logic [6:0] LUI = 7'b0110111;
   localparam logic [6:0] AUIPC = 7'b0010111;
-
-  // placement of register adresses in the instructions
+// placement of register adresses in the instructions
   logic [4:0] rd;
   logic [4:0] rd_d[0:1];
   logic [4:0] rs1;
