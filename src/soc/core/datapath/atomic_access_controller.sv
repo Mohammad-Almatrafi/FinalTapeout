@@ -14,13 +14,13 @@ module atomic_access_controller (
     input         is_atomic_mem,          // Is this an atomic instruction?
     input  [4:0]  amo_funct5_mem,         // AMO funct5 field (from funct7[6:2])
     input  [31:0] rs2_val_mem,            // rs2 value (for SC and AMOs)
-    input         mem_read_req,           // read enable from MEM stage
+    input   [1:0] mem_read_req,           // read enable from MEM stage
     input         mem_write_req,          // write enable from MEM stage
     input  [31:0] mem_addr_req,           // address from MEM stage
     input  [31:0] mem_wdata_req,          // write data from MEM stage
 
     // Interface to memory bus or Wishbone controller
-    output reg         mem_read,
+    output reg    [1:0] mem_read,
     output reg         mem_write,
     output reg [31:0]  mem_addr,
     output reg [31:0]  mem_wdata,
@@ -86,7 +86,7 @@ module atomic_access_controller (
                 reservation_addr <= mem_addr_req;
             end else if (state == READ && mem_ack) begin
                 read_val <= mem_rdata;
-            end else if (state == SC_WRITE && mem_ack) begin
+            end else if ((state == SC_WRITE && mem_ack)|| (reservation_addr==mem_addr&&mem_ack) ) begin // i added the second condition to make sure normal store will affect the validity too
                 reservation_valid <= 1'b0; // Always drop reservation after SC
             end
         end
@@ -113,12 +113,14 @@ module atomic_access_controller (
                         default: next_state = READ;
                     endcase
                     stall_mem = 1'b1;
+                    valid_rd = 1'b0;
                 end
             end
 
             LR_WAIT: begin
-                mem_read = 1'b1;
+                mem_read = 2'b01;
                 stall_mem = 1'b1;
+                valid_rd = 1'b0;
                 if (mem_ack) begin
                     result_rd = mem_rdata;
                     valid_rd = 1'b1;
@@ -129,6 +131,7 @@ module atomic_access_controller (
 
             SC_WRITE: begin
                 stall_mem = 1'b1;
+                valid_rd = 1'b0;
                 if (reservation_valid && reservation_addr == mem_addr_req) begin
                     mem_write = 1'b1;
                     mem_wdata = rs2_val_mem;
@@ -147,8 +150,9 @@ module atomic_access_controller (
             end
 
             READ: begin
-                mem_read = 1'b1;
+                mem_read = 2'b01;
                 stall_mem = 1'b1;
+                valid_rd = 1'b0;
                 if (mem_ack) begin
                     next_state = EXECUTE;
                 end
@@ -156,6 +160,7 @@ module atomic_access_controller (
 
             EXECUTE: begin
                 stall_mem = 1'b1;
+                valid_rd = 1'b0;
                 case (amo_funct5_mem)
                     AMO_ADD:  computed_val = read_val + rs2_val_mem;
                     AMO_XOR:  computed_val = read_val ^ rs2_val_mem;

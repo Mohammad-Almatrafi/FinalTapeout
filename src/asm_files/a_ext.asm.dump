@@ -5,24 +5,15 @@ a_ext.asm.elf:     file format elf32-littleriscv
 Disassembly of section .init:
 
 fffff000 <main>:
-fffff000:	009692b7          	lui	x5,0x969
-fffff004:	60028293          	addi	x5,x5,1536 # 969600 <main-0xff695a00>
-fffff008:	01200313          	addi	x6,x0,18
-fffff00c:	0062a023          	sw	x6,0(x5)
-fffff010:	0bb00313          	addi	x6,x0,187
-fffff014:	00000013          	addi	x0,x0,0
-fffff018:	00000013          	addi	x0,x0,0
-fffff01c:	00000013          	addi	x0,x0,0
-fffff020:	00000013          	addi	x0,x0,0
-fffff024:	00000013          	addi	x0,x0,0
-fffff028:	1002a3af          	lr.w	x7,(x5)
-fffff02c:	1862a4af          	sc.w	x9,x6,(x5)
-fffff030:	00000013          	addi	x0,x0,0
-fffff034:	1862a4af          	sc.w	x9,x6,(x5)
+fffff000:	00000293          	addi	x5,x0,0
+fffff004:	00a00313          	addi	x6,x0,10
+fffff008:	0062a023          	sw	x6,0(x5)
+fffff00c:	1002a3af          	lr.w	x7,(x5)
+fffff010:	1802ae2f          	sc.w	x28,x0,(x5)
 
-fffff038 <loop>:
-fffff038:	0000006f          	jal	x0,fffff038 <loop>
-fffff03c:	00000013          	addi	x0,x0,0
+fffff014 <loop>:
+fffff014:	0000006f          	jal	x0,fffff014 <loop>
+fffff018:	00000013          	addi	x0,x0,0
 
 Disassembly of section .riscv.attributes:
 

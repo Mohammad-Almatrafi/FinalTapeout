@@ -1,21 +1,16 @@
 .section .init
 main:
 
-    li x5, 0x969600
-    li x6, 0x12
-    sw x6, (x5)
-    li x6, 0xbb
-    nop
-    nop
-    nop
-    nop
-    nop
-    
-    lr.w x7, (x5)      # Load-reserved from data-mem into x5
-    sc.w x9, x6, (x5)
-    nop
-    sc.w x9, x6, (x5)  # Attempt to store x2 into data-mem
+    li t0, 0x0       # Base address
 
+    # -------------------------
+    # Init shared = 10
+    li t1, 10
+    sw t1, 0(t0)
+    
+    # -------------------------
+    lr.w t2, (t0)
+    sc.w t3 ,zero, 0(t0)
     # -------------------------
     # Done
     loop:

@@ -88,7 +88,6 @@ module wb_mux
 
    reg  			 wbm_err;
    wire [slave_sel_bits-1:0] 	 slave_sel;
-   reg  [slave_sel_bits-1:0] 	 slave_sel_ff;
    wire [num_slaves-1:0] 	 match;
 
    genvar 			 idx;
@@ -134,13 +133,10 @@ module wb_mux
 
    assign wbs_cti_o = {num_slaves{wbm_cti_i}};
    assign wbs_bte_o = {num_slaves{wbm_bte_i}};
-
-
-   always @(posedge wb_clk_i) slave_sel_ff <= slave_sel;
-
-   assign wbm_dat_o = wbs_dat_i[slave_sel_ff*dw+:dw];
-   assign wbm_ack_o = wbs_ack_i[slave_sel_ff];
-   assign wbm_err_o = wbs_err_i[slave_sel_ff] | wbm_err;
-   assign wbm_rty_o = wbs_rty_i[slave_sel_ff];
+      
+   assign wbm_dat_o = wbs_dat_i[slave_sel*dw+:dw];
+   assign wbm_ack_o = wbs_ack_i[slave_sel];
+   assign wbm_err_o = wbs_err_i[slave_sel] | wbm_err;
+   assign wbm_rty_o = wbs_rty_i[slave_sel];
 
 endmodule

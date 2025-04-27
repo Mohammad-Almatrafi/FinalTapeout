@@ -7,6 +7,8 @@ module pipeline_controller (
     input logic hw_jump_clr,
     input logic stall_compressed,
     input logic atomic_unit_stall,
+    input atomic_unit_hazard,
+    
     output logic if_id_reg_clr,
     output logic id_exe_reg_clr,
     output logic exe_mem_reg_clr,
@@ -22,13 +24,15 @@ module pipeline_controller (
   assign if_id_reg_clr = branch_hazard | mret_type | interrupt ;
 
   assign id_exe_reg_clr = branch_hazard | load_hazard | mret_type | interrupt | hw_jump_clr ;
-  assign exe_mem_reg_clr = branch_hazard | mret_type | interrupt | atomic_unit_stall;
-  assign mem_wb_reg_clr = interrupt ;  // never clear
+  assign exe_mem_reg_clr = branch_hazard | mret_type | interrupt | atomic_unit_hazard ;
+  assign mem_wb_reg_clr = interrupt | atomic_unit_stall | stall_pipl;  // never clear
 
-  assign if_id_reg_en = ~(stall_pipl | load_hazard | atomic_unit_stall);
-  assign id_exe_reg_en = ~(stall_pipl | atomic_unit_stall); 
+  assign if_id_reg_en = ~(stall_pipl | load_hazard | atomic_unit_hazard | atomic_unit_stall);
+  assign id_exe_reg_en = ~(stall_pipl | atomic_unit_hazard | atomic_unit_stall); 
   assign exe_mem_reg_en = ~(stall_pipl | atomic_unit_stall);
   assign mem_wb_reg_en = ~stall_pipl;
-  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed | atomic_unit_stall);
+  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed | atomic_unit_hazard | atomic_unit_stall);
+
+
 
 endmodule

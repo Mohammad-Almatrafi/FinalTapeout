@@ -1,9 +1,7 @@
-
-
 module data_mem #(
     parameter DEPTH = 1024
 )(
-  // 8bit WISHBONE bus slave interface
+  // 32bit WISHBONE bus slave interface
   input  wire        clk_i,         // clock
   input  wire        rst_i,         // reset (synchronous active high)
   input  wire        cyc_i,         // cycle
@@ -13,8 +11,8 @@ module data_mem #(
   input  wire [3:0]  sel_i,
   input  wire [31:0] dat_i,         // data input
   output reg  [31:0] dat_o,         // data output
-  output reg         ack_o,         // normal bus termination
-  input              reset_n
+  output reg         ack_o          // normal bus termination
+
 );
     
        
@@ -25,18 +23,17 @@ assign wb_acc = cyc_i & stb_i;
 assign mem_write = wb_acc &  we_i;
 assign mem_read  = wb_acc & ~we_i;
 
-assign ack_o = wb_acc;
+always_ff @(posedge clk_i) ack_o = wb_acc & ~ack_o; // delayed acknoledge
 
 
-logic [6:0] word_addr;
-assign word_addr = adr_i[8:2];
+logic [$clog2(DEPTH)-1:0] word_addr;
+assign word_addr = adr_i[$clog2(DEPTH)+1:2];
 
-// inst memory here
+// inst memory here 
 logic [31:0] dmem [0:DEPTH - 1];
 
-always_ff @(posedge clk_i) begin
-    
-    if(mem_write) begin
+always_ff @(posedge clk_i) begin 
+    if(mem_write) begin 
         if(sel_i[0]) dmem[word_addr][7:0]   <= dat_i[7:0];
         if(sel_i[1]) dmem[word_addr][15:8]  <= dat_i[15:8];
         if(sel_i[2]) dmem[word_addr][23:16] <= dat_i[23:16];
@@ -61,8 +58,3 @@ assign dat_o = data_o_reg;
 
 
 endmodule
-
-
-
-
-

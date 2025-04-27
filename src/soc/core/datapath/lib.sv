@@ -190,7 +190,7 @@ package riscv_types;
 
   // ALU operation types
   typedef enum logic [3:0] {
-    ADD,
+    ADD ,
     SLL,
     SLT,
     SLTU,
@@ -263,6 +263,7 @@ package riscv_types;
     logic [4:0]  rs2;
     logic [4:0]  rd;
     logic [2:0]  fun3;
+    logic [31:0] rdata1_frw;
     logic [31:0] rdata2_frw;
     logic [31:0] imm;
     logic [31:0] alu_result;
@@ -292,6 +293,8 @@ package riscv_types;
     logic [4:0]  rd;
     logic [31:0] result;
     // Control signals
+    logic is_atomic;
+    logic valid_rd;
     logic        reg_write;
     logic [1:0]  mem_to_reg;
   } mem_wb_reg_t;

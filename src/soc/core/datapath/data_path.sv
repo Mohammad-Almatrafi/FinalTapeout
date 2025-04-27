@@ -39,7 +39,9 @@ module data_path #(
     input logic csr_type_id,
     input logic is_atomic_id,
     
-    input logic [3:0] alu_ctrl_exe,
+    output logic is_atomic_mem,
+
+    input alu_t alu_ctrl_exe,
     input logic pc_sel_mem,
 
 
@@ -99,7 +101,6 @@ module data_path #(
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
   logic        csr_type_mem;
-  logic        is_atomic_mem;
   logic [31:0] mcause;
   logic [31:0] csr_out;
   logic [31:0] mepc;
@@ -110,7 +111,7 @@ module data_path #(
   logic [31:0] inst_id_pre, inst_id, inst_exe, inst_mem;
   logic [31:0] current_pc, current_pc_id, current_pc_exe, current_pc_mem;
   logic [31:0] reg_rdata1_id, reg_rdata1_exe;
-  logic [31:0] reg_rdata2_id, reg_rdata2_exe,reg_rdata2_mem;
+  logic [31:0] reg_rdata2_id, reg_rdata2_exe;
   logic [31:0] reg_wdata_wb;
   logic [31:0] imm_id, imm_exe, imm_mem, imm_wb;
   logic [31:0]
@@ -137,6 +138,7 @@ module data_path #(
   logic [1:0] mem_to_reg_wb;
   logic [31:0] alu_result_exe, alu_result_mem;
   logic [31:0] result_mem;
+  logic [31:0] rdata1_frw_mem;
   logic [31:0] rdata2_frw_mem;
   logic [31:0] current_pc_if1;
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
@@ -530,6 +532,7 @@ module data_path #(
     rs2_exe,
     rd_exe,
     fun3_exe,
+    rdata1_frw_exe,
     rdata2_frw_exe,
     imm_exe,
     alu_result_exe,
@@ -573,6 +576,7 @@ module data_path #(
   assign rs2_mem                  = exe_mem_bus_o.rs2;
   assign rd_mem                   = exe_mem_bus_o.rd;
   assign fun3_mem                 = exe_mem_bus_o.fun3;
+  assign rdata1_frw_mem           = exe_mem_bus_o.rdata1_frw;
   assign rdata2_frw_mem           = exe_mem_bus_o.rdata2_frw;
   assign imm_mem                  = exe_mem_bus_o.imm;
   assign alu_result_mem           = exe_mem_bus_o.alu_result;
@@ -663,11 +667,11 @@ module data_path #(
       .sel(forward_rd2_mem),
       .in0(rdata2_frw_mem),
       .in1(reg_wdata_wb),
-      .out(mem_wdata_mem)
+      .out(mem_wdata)
   );
  logic [31:0] mem_addr;
     
-  assign mem_addr_mem = alu_result_mem;
+//  assign mem_addr_mem = alu_result_mem;
   assign mem_op_mem   = fun3_mem;
 
 
@@ -704,21 +708,22 @@ module data_path #(
    /*/ logic store_amo_addr_malign_mem; // 
    /*/ logic load_addr_malign_mem;            //
    //----------------------------------------------//
+
     atomic_access_controller aac_inst (
         .clk(clk),
         .rst(~reset_n),
         .is_atomic_mem(is_atomic_mem),
         .amo_funct5_mem(fun5_mem),
-        .rs2_val_mem(mem_wdata_mem),
+        .rs2_val_mem(rdata2_frw_mem),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
-        .mem_addr_req(mem_addr_mem), 
+        .mem_addr_req(alu_op1_mem), 
         .mem_wdata_req(rdata2_frw_mem),
         
-        .mem_read(mem_to_reg_mem[0]),
+        .mem_read(mem_to_reg_mem),
         .mem_write(mem_write_mem),
-        .mem_addr(mem_addr),
-        .mem_wdata(mem_wdata),
+        .mem_addr(mem_addr_mem),
+        .mem_wdata(mem_wdata_mem),
         .mem_rdata(mem_rdata_mem),
         .mem_ack(proc_ack),
 
@@ -727,8 +732,7 @@ module data_path #(
         .valid_rd(atomic_unit_valid_rd_mem),
         .load_addr_malign(load_addr_malign_mem),
         .store_amo_addr_malign(store_amo_addr_malign_mem)
-    );
-    assign mem_to_reg_mem[1]=0; 
+    ); 
     logic [31:0] result;
     assign result = atomic_unit_valid_rd_mem ?  atomic_unit_wdata_mem : result_mem;
   // ============================================
@@ -737,13 +741,16 @@ module data_path #(
     
   mem_wb_reg_t mem_wb_bus_i, mem_wb_bus_o;
   logic [31:0] alu_mem_result_wb;
-
+  logic is_atomic_wb;
+  logic valid_rd_wb;
   assign mem_wb_bus_i = {
     // data signals 
     csr_out,
     rd_mem,
     result,
     // control signals
+    is_atomic_mem,
+    atomic_unit_valid_rd_mem,
     reg_write_mem,
     mem_to_reg_mem
   };
@@ -760,11 +767,13 @@ module data_path #(
   );
   logic [31:0] csr_out_wb;
   // data signals 
-  assign rd_wb             = mem_wb_bus_o.rd;
+  assign rd_wb             = mem_wb_bus_o.rd ;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   assign csr_out_wb        = mem_wb_bus_o.csr_out;
   // control signals
-  assign reg_write_wb      = mem_wb_bus_o.reg_write;
+  assign valid_rd_wb = mem_wb_bus_o.valid_rd;
+  assign is_atomic_wb = mem_wb_bus_o.is_atomic;
+  assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
 
 

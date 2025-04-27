@@ -45,7 +45,7 @@ module decode_control (
       7'b0110011: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = R_TYPE;
         alu_src = 0;
         branch = 0;
@@ -62,7 +62,7 @@ module decode_control (
       7'b0010011: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = I_TYPE;
         alu_src = 1;
         branch = 0;
@@ -79,7 +79,7 @@ module decode_control (
       7'b1100111: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -96,7 +96,7 @@ module decode_control (
       7'b0000011: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b01;
+        mem_csr_to_reg = 2'b01;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -113,7 +113,7 @@ module decode_control (
       7'b0100011: begin
         reg_write = 0;
         mem_write = 1;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -130,7 +130,7 @@ module decode_control (
       7'b1100011: begin
         reg_write = 0;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = B_TYPE;
         alu_src = 0;
         branch = 1;
@@ -147,7 +147,7 @@ module decode_control (
       7'b1101111: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -164,7 +164,7 @@ module decode_control (
       7'b0110111: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -181,7 +181,7 @@ module decode_control (
       7'b0010111: begin
         reg_write = 1;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = LOAD_STORE;
         alu_src = 1;
         branch = 0;
@@ -198,7 +198,7 @@ module decode_control (
       7'b1110011: begin
         reg_write = 1'b1;
         mem_write = 'b0;
-        mem_csr_to_reg = 'b10;
+        mem_csr_to_reg = 2'b10;
         alu_op = R_TYPE;
         alu_src = 'b0;
         branch = 'b0;
@@ -214,16 +214,16 @@ module decode_control (
       
       7'b0101111: begin
         reg_write = 1'b1;
-        mem_write = 'b1;
-        mem_csr_to_reg = 'b10;
-        alu_op = R_TYPE;
+        mem_write = 'b0;
+        mem_csr_to_reg = 2'b00;
+        alu_op = LOAD_STORE;
         alu_src = 'b0;
         branch = 'b0;
         jump = 'b0;
         lui = 'b0;
         auipc = 'b0;
         jal = 'b0;
-        r_type = 'b1;
+        r_type = 'b0;
         csr_type = 1'b0;
         invalid_inst = 1'b0;
         is_atomic = 1'b1;
@@ -232,7 +232,7 @@ module decode_control (
       default: begin
         reg_write = 0;
         mem_write = 0;
-        mem_csr_to_reg = 'b00;
+        mem_csr_to_reg = 2'b00;
         alu_op = R_TYPE;
         alu_src = 0;
         branch = 0;
