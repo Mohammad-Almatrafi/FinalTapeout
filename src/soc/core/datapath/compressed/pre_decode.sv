@@ -62,7 +62,7 @@ module pre_decode (
   ) half_inst_mux (
       .in0(inst_current[15:0]),
       .in1(inst_current[31:16]),
-      .sel(secondhalf),
+      .sel(secondHalf),
       .out(inst_half_correct)
   );
 

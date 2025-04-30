@@ -72,6 +72,8 @@ module control_unit (
     output logic mem_wb_reg_en,
     output logic pc_reg_en,
 
+    output logic load_hazard,
+
     input logic stall_pipl
 );
 
@@ -119,7 +121,7 @@ module control_unit (
   forwarding_unit forwarding_unit_inst (.*);
 
   // detect if there is load hazard
-  wire  load_hazard;
+
   wire  branch_hazard;
   logic mem_read_exe;
   assign mem_read_exe = mem_to_reg_exe;

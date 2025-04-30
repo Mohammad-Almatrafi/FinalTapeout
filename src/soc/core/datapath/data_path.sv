@@ -76,6 +76,7 @@ module data_path #(
     input logic mem_wb_reg_en,
     input logic pc_reg_en,
 
+    input logic load_hazard,
 
     // memory bus
     output logic [31:0] mem_addr_mem,
@@ -151,12 +152,58 @@ module data_path #(
   // pc adder 
   assign pc_plus_4_if1 = (current_pc_if1 & ~(32'd3)) + 4;
   logic [31:0] next_pc_ifff;
-
   logic [31:0] jump_int_addr;
+
+
+  // 
+  
+  logic jump_stall_ff;
+  logic jump_stall;
+  assign jump_stall= pc_sel_mem & (load_hazard | stall_compressed);
+  
+    n_bit_reg #(
+        .n(1)
+    ) jump_and_stall_ff (
+        .*,
+        .data_i(jump_stall),
+        .data_o(jump_stall_ff),
+        .wen(1'b1)
+    );
+  
+  assign first_pc_mux_jump = jump_stall_ff | pc_sel_mem;
+
+
+
+
+
+
+
+
+
+
+// need to | (or) interrupt with a delayed (interrupt & load_hazard)
+
+logic trap_loadhazard_ff;
+logic trap_loadhazard;
+logic trap;
+assign trap = interrupt | exception;
+
+assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
+  n_bit_reg #(
+      .n(1)
+  ) trap_lh_ff (
+      .*,
+      .data_i(trap_loadhazard),
+      .data_o(trap_loadhazard_ff),
+      .wen(1'b1)
+  );
+
+assign first_pc_mux_trap = trap_loadhazard_ff | trap;
+
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({interrupt | exception, pc_sel_mem}),
+      .sel({first_pc_mux_trap , first_pc_mux_jump}),
       .in0(pc_plus_4_if1),
       .in1(pc_jump_mem),
       .in2(jump_int_addr),
@@ -164,10 +211,29 @@ module data_path #(
       .out(next_pc_ifff)
   );
 
+
+
+// need to | (or) mret_type with a delayed mret_type and load hazard
+
+logic mret_loadhazard_ff;
+logic mret_loadhazard;
+assign mret_loadhazard = mret_type & (load_hazard | stall_compressed);
+
+  n_bit_reg #(
+      .n(1)
+  ) mret_lh_ff (
+      .*,
+      .data_i(mret_loadhazard),
+      .data_o(mret_loadhazard_ff),
+      .wen(1'b1)
+  );
+
+assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
+
   mux2x1 #(
       .n(32)
   ) second_pc_mux (
-      .sel(mret_type),
+      .sel(second_pc_mux_mret),
       .in0(next_pc_ifff),
       .in1(mepc),
       .out(next_pc_if1)
@@ -615,13 +681,15 @@ module data_path #(
   logic [31:0] jump_mret;
   logic [31:0] mepc_adr;
   logic ecall_type;
+  logic  csr_en;
+  assign csr_en = csr_type_mem & ~mret_type & ~ecall_type;
 
   //   CSR and logic of commands for CSR
   csr_top csr_unit (
       .imm(inst_mem[19:15]),
       //    .func3(fun3_mem),
       .current_pc(mepc_adr),
-      .csr_en(csr_type_mem & ~mret_type & ~ecall_type),  // this is the mret type
+      .csr_en(csr_en),  // this is the mret type
       .offset(inst_mem[31:20]),
       .ret_action(mret_type),
       .int_action(interrupt | exception),
