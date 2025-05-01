@@ -23,7 +23,7 @@ module alu (
         case(alu_ctrl)
             ADD: alu_result = add_sub_result;
             SUB: alu_result = add_sub_result;
-            SLT: alu_result = op1 < op2;
+            SLT: alu_result = $signed(op1) < $signed(op2);
             SLL: alu_result = op1 << op2[4:0];
             SRL: alu_result = op1 >> op2[4:0];
             SRA: alu_result = $signed(op1) >>> op2[4:0];

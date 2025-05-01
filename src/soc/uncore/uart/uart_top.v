@@ -132,7 +132,7 @@
 //
 //
 
-`include "uart_defines.v"
+//`include "uart_defines.v"
 
 module uart_top	(
 

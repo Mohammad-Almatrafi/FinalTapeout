@@ -42,6 +42,8 @@ module rv32i #(
     logic pc_sel_mem;
     logic [1:0] mem_csr_to_reg_id;
     logic csr_type_id;
+    logic load_hazard;
+
     
     logic is_atomic_id;
     // data path to the controller 
@@ -98,6 +100,7 @@ module rv32i #(
     logic [1:0] mem_to_reg_mem;
     
     logic invalid_inst;
+    logic jump_stall_ff;
 
     assign current_pc = current_pc_if;
     assign inst_if = inst;

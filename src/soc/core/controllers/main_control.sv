@@ -294,3 +294,4 @@ module decode_control (
   //      assign reg_write = ~ (b_type | store) | csr_type;
 
 endmodule : decode_control
+

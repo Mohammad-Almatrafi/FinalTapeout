@@ -1,6 +1,6 @@
 # Filelist for VCS simulation
 
-
++define+tracer
 
 # lib that many module accesses should be compiled first
 soc/core/datapath/lib.sv
@@ -41,7 +41,6 @@ soc/core/controllers/branch_controller.sv
 soc/core/controllers/control_unit.sv
 soc/core/controllers/forwarding_unit.sv
 soc/core/controllers/hazard_controller.sv
-soc/core/controllers/int_pipeline_controller.sv
 soc/core/controllers/main_control.sv
 soc/core/controllers/pipeline_controller.sv
 #------   -------
@@ -92,7 +91,10 @@ soc/uncore/clint.sv
 soc/rv32i_soc.sv
 
 # Testbench fil
-
+tb/pkg.sv
+tb/tracer_pkg.sv
+tb/tracer.sv
+tb/rv32i_soc_tb.sv
 
 # Optionally, include any other files you want for the simulation.
 

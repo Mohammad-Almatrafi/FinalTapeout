@@ -25,9 +25,10 @@ assign mem_read  = wb_acc & ~we_i;
 
 always_ff @(posedge clk_i) ack_o = wb_acc & ~ack_o; // delayed acknoledge
 
+localparam  size = $clog2(DEPTH);
+logic [size-1:0] word_addr;
+assign word_addr = adr_i[size+1:2];
 
-logic [$clog2(DEPTH)-1:0] word_addr;
-assign word_addr = adr_i[$clog2(DEPTH)+1:2];
 
 // inst memory here 
 logic [31:0] dmem [0:DEPTH - 1];

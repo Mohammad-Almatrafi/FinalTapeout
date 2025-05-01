@@ -292,6 +292,7 @@ package riscv_types;
     logic [31:0] csr_out;
     logic [4:0]  rd;
     logic [31:0] result;
+//    logic [31:0] pc_jump;
     // Control signals
     logic is_atomic;
     logic valid_rd;

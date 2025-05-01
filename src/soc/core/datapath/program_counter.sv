@@ -11,7 +11,7 @@ module program_counter #(
     always_ff @(posedge clk, negedge reset_n) 
     begin 
         if(~reset_n)
-            current_pc_if1 <= 32'hfffff000; // base address of boot rom
+            current_pc_if1 <= 32'h8000_0000; // base address IM
         else if (en)
             current_pc_if1 <=  next_pc_if1;
     end
