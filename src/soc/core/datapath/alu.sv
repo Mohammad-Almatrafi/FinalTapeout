@@ -31,7 +31,7 @@ module alu (
             AND: alu_result = op1 & op2;
             OR: alu_result  = op1 | op2;
             SLTU: alu_result = $unsigned(op1) < $unsigned(op2);
-            default: alu_result = 32'dz;
+            default: alu_result = op1;
         endcase
     end
     

@@ -14,8 +14,8 @@ parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
 always_comb begin 
     case(alu_op)
-        R_TYPE: begin 
-            alu_ctrl = alu_t'({fun7_5, fun3});
+        R_TYPE: begin
+            alu_ctrl = alu_t'({ fun7_5, fun3});
         end
 
         I_TYPE: begin 

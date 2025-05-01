@@ -24,6 +24,7 @@ module rv32i_soc #(
     logic         wb_io_rty_o;      
     logic  [31:0] wb_io_adr_i;               
 
+    logic proc_ack;
 
 /////////////////////////////////////////////// This is to set the other periphirals to zero 
 

@@ -1,7 +1,7 @@
-input_file=new_test.s
+input_file=a_ext.asm
 
-riscv64-unknown-linux-gnu-as -mabi=ilp32 -march=rv32ic_zicsr ${input_file} -o ${input_file}.o
-riscv64-unknown-linux-gnu-ld -mabi=ilp32 -march=rv32i_zicsr -m elf32lriscv -nostdlib -T linker.ld -o ${input_file}.elf ${input_file}.o
+riscv64-unknown-linux-gnu-as -mabi=ilp32 -march=rv32ia_zicsr ${input_file} -o ${input_file}.o
+riscv64-unknown-linux-gnu-ld -mabi=ilp32 -march=rv32ia_zicsr -m elf32lriscv -nostdlib -T linker.ld -o ${input_file}.elf ${input_file}.o
 
 riscv64-unknown-linux-gnu-objdump ${input_file}.elf -D -S -M no-aliases -M numeric > ${input_file}.dump
 # --no-addresses  

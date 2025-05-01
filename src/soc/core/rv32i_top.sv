@@ -7,13 +7,13 @@ module rv32i #(
     input logic [31:0] mip_in,
     
     // memory bus
-    output logic [31:0] mem_addr_mem, 
-    output logic [31:0] mem_wdata_mem, 
+    output logic [31:0] mem_addr_mem,
+    output logic [31:0] mem_wdata_mem,
     output logic mem_write_mem, 
     output logic [2:0] mem_op_mem,
     input logic [31:0] mem_rdata_mem,
     output logic mem_read_mem,
-
+    input logic proc_ack,
     // inst mem access 
     output logic [31:0] current_pc,
     input logic [31:0] inst,
@@ -25,7 +25,8 @@ module rv32i #(
 
 
 
-    
+     logic atomic_unit_stall;
+     
     // controller to the data path 
     logic reg_write_id; 
     logic mem_write_id;
@@ -37,12 +38,14 @@ module rv32i #(
     logic auipc_id; 
     logic jal_id;
     logic [1:0] alu_op_id;
-    logic [3:0] alu_ctrl_exe;
+    alu_t alu_ctrl_exe;
     logic pc_sel_mem;
     logic [1:0] mem_csr_to_reg_id;
     logic csr_type_id;
     logic load_hazard;
 
+    
+    logic is_atomic_id;
     // data path to the controller 
     logic [6:0] opcode_id;
     logic fun7_5_exe;
@@ -53,7 +56,7 @@ module rv32i #(
     logic branch_mem;
     logic hw_jump_clr;
     logic stall_compressed;
-
+    logic is_atomic_mem;
     // data path to the controller (forwarding unit)
     wire [4:0] rs1_id;
     wire [4:0] rs2_id;
@@ -82,18 +85,18 @@ module rv32i #(
     logic id_exe_reg_clr;
     logic exe_mem_reg_clr;
     logic mem_wb_reg_clr;
-
+    
     logic id_exe_reg_en;
     logic exe_mem_reg_en;
     logic mem_wb_reg_en;
     logic pc_reg_en;
     logic mret_type;
     logic interrupt;
-
+    logic atomic_unit_hazard;
     // inst mem access
     logic [31:0] current_pc_if;
     logic [31:0] inst_if;
-
+    
     logic [1:0] mem_to_reg_mem;
     
     logic invalid_inst;
@@ -115,6 +118,6 @@ module rv32i #(
     );
 
 
-    assign mem_read_mem = mem_to_reg_mem;
+    assign mem_read_mem = mem_to_reg_mem[0];
 
 endmodule 
