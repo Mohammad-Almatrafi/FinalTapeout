@@ -245,9 +245,7 @@ logic        wb_clint_rty_i;
     // ============================================
 
     // Instantiate data memory here 
-     data_mem #(
-        .DEPTH(DMEM_DEPTH)
-     ) data_mem_inst(
+     mem_8k_sram_wrap data_mem_inst(
         // 8bit WISHBONE bus slave interface
         .clk_i(clk),         // clock
         .rst_i(~reset_n),         // reset (synchronous active high)
@@ -312,9 +310,7 @@ logic        wb_clint_rty_i;
     
     assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
 
-    data_mem #(
-        .DEPTH(IMEM_DEPTH)
-    ) inst_mem_inst (
+    mem_32k_sram_wrap inst_mem_inst (
         .clk_i       (clk            ),
         .rst_i       (~reset_n         ),
         .cyc_i       (wb_imem_cyc_o),
