@@ -6,6 +6,7 @@ module pipeline_controller (
     input logic interrupt,
     input logic hw_jump_clr,
     input logic stall_compressed,
+    input logic jump_stall_ff,
 
     output logic if_id_reg_clr,
     output logic id_exe_reg_clr,
@@ -28,7 +29,7 @@ module pipeline_controller (
   assign id_exe_reg_en = ~stall_pipl;
   assign exe_mem_reg_en = ~stall_pipl;
   assign mem_wb_reg_en = ~stall_pipl;
-  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed);
+  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed) | (exe_mem_reg_clr);
 
 
 endmodule

@@ -22,7 +22,7 @@ module data_path #(
     output logic csr_type_exe,
     output logic hw_jump_clr,
     output logic stall_compressed,
-
+    output logic jump_stall_ff,
 
     // control signals from the controller 
     input logic reg_write_id,
@@ -64,6 +64,7 @@ module data_path #(
     output wire [1:0] mem_to_reg_exe,
     output wire [4:0] rd_exe,
 
+
     // signals to control the flow of the pipeline
     input logic if_id_reg_clr,
     input logic id_exe_reg_clr,
@@ -77,7 +78,7 @@ module data_path #(
     input logic pc_reg_en,
 
     input logic load_hazard,
-
+    input logic stall_pipl,
     // memory bus
     output logic [31:0] mem_addr_mem,
     output logic [31:0] mem_wdata_mem,
@@ -118,6 +119,7 @@ module data_path #(
       pc_plus_4_mem,
       pc_plus_4_wb,
       corrected_pc,
+      pc_jump_wb,
       corrected_pc_plus_4;
   logic [31:0] pc_jump_exe, pc_jump_mem;
   logic [31:0] next_pc_if1;
@@ -153,24 +155,22 @@ module data_path #(
   assign pc_plus_4_if1 = (current_pc_if1 & ~(32'd3)) + 4;
   logic [31:0] next_pc_ifff;
   logic [31:0] jump_int_addr;
-
-
-  // 
+// 
   
-  logic jump_stall_ff;
-  logic jump_stall;
-  assign jump_stall= pc_sel_mem & (load_hazard | stall_compressed);
-  
-    n_bit_reg #(
-        .n(1)
-    ) jump_and_stall_ff (
-        .*,
-        .data_i(jump_stall),
-        .data_o(jump_stall_ff),
-        .wen(1'b1)
-    );
-  
-  assign first_pc_mux_jump = jump_stall_ff | pc_sel_mem;
+//  logic jump_stall_ff;
+//  logic jump_stall;
+//  assign jump_stall= pc_sel_mem & (load_hazard | stall_compressed);
+//  
+//    n_bit_reg #(
+//        .n(1)
+//    ) jump_and_stall_ff (
+//        .*,
+//        .data_i(jump_stall),
+//        .data_o(jump_stall_ff),
+//        .wen(1'b1)
+//    );
+//  
+//  assign first_pc_mux_jump = jump_stall_ff | pc_sel_mem;
 
 
 
@@ -181,31 +181,33 @@ module data_path #(
 
 
 
-// need to | (or) interrupt with a delayed (interrupt & load_hazard)
+//// need to | (or) interrupt with a delayed (interrupt & load_hazard)
 
-logic trap_loadhazard_ff;
-logic trap_loadhazard;
+//logic trap_loadhazard_ff;
+//logic trap_loadhazard;
 logic trap;
 assign trap = interrupt | exception;
+//
+//assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
+//  n_bit_reg #(
+//      .n(1)
+//  ) trap_lh_ff (
+//      .*,
+//      .data_i(trap_loadhazard),
+//      .data_o(trap_loadhazard_ff),
+//      .wen(1'b1)
+//  );
+//
+//assign first_pc_mux_trap = trap_loadhazard_ff | trap;
 
-assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
-  n_bit_reg #(
-      .n(1)
-  ) trap_lh_ff (
-      .*,
-      .data_i(trap_loadhazard),
-      .data_o(trap_loadhazard_ff),
-      .wen(1'b1)
-  );
-
-assign first_pc_mux_trap = trap_loadhazard_ff | trap;
-
+//// if there is a stall when jump is in mem, make pc take the value from wb a cycle later
+  
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({first_pc_mux_trap , first_pc_mux_jump}),
+      .sel({trap , pc_sel_mem}),
       .in0(pc_plus_4_if1),
-      .in1(pc_jump_mem),
+      .in1(pc_jump_mem), // .in1(jump_stall_ff? pc_jump_wb:pc_jump_mem)
       .in2(jump_int_addr),
       .in3(jump_int_addr),
       .out(next_pc_ifff)
@@ -213,32 +215,32 @@ assign first_pc_mux_trap = trap_loadhazard_ff | trap;
 
 
 
-// need to | (or) mret_type with a delayed mret_type and load hazard
-
-logic mret_loadhazard_ff;
-logic mret_loadhazard;
-assign mret_loadhazard = mret_type & (load_hazard | stall_compressed);
-
-  n_bit_reg #(
-      .n(1)
-  ) mret_lh_ff (
-      .*,
-      .data_i(mret_loadhazard),
-      .data_o(mret_loadhazard_ff),
-      .wen(1'b1)
-  );
-
-assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
+//// need to | (or) mret_type with a delayed mret_type and load hazard
+//
+//logic mret_loadhazard_ff;
+//logic mret_loadhazard;
+//assign mret_loadhazard = mret_type & (load_hazard | stall_compressed);
+//
+//  n_bit_reg #(
+//      .n(1)
+//  ) mret_lh_ff (
+//      .*,
+//      .data_i(mret_loadhazard),
+//      .data_o(mret_loadhazard_ff),
+//      .wen(1'b1)
+//  );
+//
+//assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
 
   mux2x1 #(
       .n(32)
   ) second_pc_mux (
-      .sel(second_pc_mux_mret),
+      .sel(mret_type),
       .in0(next_pc_ifff),
       .in1(mepc),
       .out(next_pc_if1)
   );
-
+  
   assign current_pc_if = current_pc_if1;
 
   // ============================================
@@ -758,6 +760,7 @@ assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
     csr_out,
     rd_mem,
     result_mem,
+//    pc_jump_mem,  
     // control signals
     reg_write_mem,
     mem_to_reg_mem
@@ -778,6 +781,7 @@ assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   assign csr_out_wb        = mem_wb_bus_o.csr_out;
+//  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
   // control signals
   assign reg_write_wb      = mem_wb_bus_o.reg_write;
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;

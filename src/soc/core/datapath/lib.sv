@@ -288,6 +288,7 @@ package riscv_types;
     logic [31:0] csr_out;
     logic [4:0]  rd;
     logic [31:0] result;
+//    logic [31:0] pc_jump;
     // Control signals
     logic        reg_write;
     logic [1:0]  mem_to_reg;

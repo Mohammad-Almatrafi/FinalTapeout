@@ -13,7 +13,7 @@ module control_unit (
     reset_n,
     input logic hw_jump_clr,
     input logic stall_compressed,
-
+    input logic jump_stall_ff,
 
     // outputs from the decode controller
     output logic reg_write_id,

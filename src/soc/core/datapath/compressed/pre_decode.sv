@@ -29,7 +29,7 @@ module pre_decode (
       .clk(clk),
       .reset_n(reset_n),
       .clear(1'b0),
-      .wen(1'b1),
+      .wen(ff_en & ~stall_compressed),
       .data_i(inst_current),
       .data_o(inst_prev)
   );
