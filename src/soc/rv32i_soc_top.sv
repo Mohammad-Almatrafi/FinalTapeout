@@ -285,6 +285,109 @@ module rv32i_soc_top (
       .C  (reset_n_internal)
   );
 
+  // ================
+  // GPIO[23:19]/SPI1 PADS
+  // ================
+
+  PDD24DGZ GPIO_23_shared (
+      .I  (GPIO_23_SPI1_MOSI_internal),
+      .OEN(OEN_MOSI1_GPIO23),
+      .PAD(GPIO_23_SPI1_MOSI),
+      .C  (GPIO_23_SPI1_MOSI_internal)
+  );
+
+  PDD24DGZ GPIO_22_shared (
+      .I  (GPIO_22_SPI1_MISO_internal),
+      .OEN(OEN_MISO1_GPIO22),
+      .PAD(GPIO_22_SPI1_MISO),
+      .C  (GPIO_22_SPI1_MISO_internal)
+  );
+
+  PDD24DGZ GPIO_21_shared (
+      .I  (GPIO_21_SPI1_SCK_internal),
+      .OEN(OEN_SCK1_GPIO21),
+      .PAD(GPIO_21_SPI1_SCK),
+      .C  (GPIO_21_SPI1_SCK_internal)
+  );
+
+  PDD24DGZ GPIO_20_shared (
+      .I  (GPIO_20_SPI1_SS0_internal),
+      .OEN(OEN_SS0_GPIO20),
+      .PAD(GPIO_20_SPI1_SS0),
+      .C  (GPIO_20_SPI1_SS0_internal)
+  );
+
+  PDD24DGZ GPIO_19_shared (
+      .I  (GPIO_19_SPI1_SS1_internal),
+      .OEN(OEN_SS1_GPIO19),
+      .PAD(GPIO_19_SPI1_SS1),
+      .C  (GPIO_19_SPI1_SS1_internal)
+  );
+
+  // ================
+  // GPIO[23:19]/PWM PADS
+  // ================
+
+    // GPIO_18_PWM,
+  PDD24DGZ GPIO_18_shared (
+      .I  (GPIO_18_PWM_internal),
+      .OEN(OEN_PWM_GPIO18),
+      .PAD(GPIO_18_PWM),
+      .C  (GPIO_18_PWM_internal)
+  );
+
+  PDD24DGZ GPIO_17_shared (
+      .I  (GPIO_17_SDA_internal),
+      .OEN(OEN_SDA_GPIO17),
+      .PAD(GPIO_17_SDA),
+      .C  (GPIO_17_SDA_internal)
+  );
+
+  PDD24DGZ GPIO_16_shared (
+      .I  (GPIO_16_SCL_internal),
+      .OEN(OEN_SCL_GPIO17),
+      .PAD(GPIO_16_SCL),
+      .C  (GPIO_16_SCL_internal)
+  );
+
+  // ================
+  // GPIO[15:11]/SPI2 PADS
+  // ================
+
+  PDD24DGZ GPIO_15_shared (
+      .I  (GPIO_15_SPI2_MOSI_internal),
+      .OEN(OEN_MOSI2_GPIO15),
+      .PAD(GPIO_15_SPI2_MOSI),
+      .C  (GPIO_15_SPI2_MOSI_internal)
+  );
+
+  PDD24DGZ GPIO_14_shared (
+      .I  (GPIO_14_SPI2_MISO_internal),
+      .OEN(OEN_MISO2_GPIO14),
+      .PAD(GPIO_14_SPI2_MISO),
+      .C  (GPIO_14_SPI2_MISO_internal)
+  );
+
+  PDD24DGZ GPIO_13_shared (
+      .I  (GPIO_13_SPI2_SCK_internal),
+      .OEN(OEN_SCK2_GPIO13),
+      .PAD(GPIO_13_SPI2_SCK),
+      .C  (GPIO_13_SPI2_SCK_internal)
+  );
+
+  PDD24DGZ GPIO_12_shared (
+      .I  (GPIO_12_SPI2_SS0_internal),
+      .OEN(OEN_SS0_GPIO12),
+      .PAD(GPIO_12_SPI2_SS0),
+      .C  (GPIO_12_SPI2_SS0_internal)
+  );
+
+  PDD24DGZ GPIO_11_shared (
+      .I  (GPIO_11_SPI2_SS1_internal),
+      .OEN(OEN_SS1_GPIO19),
+      .PAD(GPIO_11_SPI2_SS1),
+      .C  (GPIO_11_SPI2_SS1_internal)
+  );
 
     // // SPI1 GPIO[23:19]
     // GPIO_23_SPI1_MOSI,
