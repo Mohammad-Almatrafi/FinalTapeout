@@ -1,15 +1,15 @@
 module mem_8k_sram_wrap (
-  // 32bit WISHBONE bus slave interface
-  input  wire        clk_i,         // clock
-  input  wire        rst_i,         // reset (synchronous active high)
-  input  wire        cyc_i,         // cycle
-  input  wire        stb_i,         // strobe
-  input  wire [31:0] adr_i,         // address
-  input  wire        we_i,          // write enable
-  input  wire [3:0]  sel_i,
-  input  wire [31:0] dat_i,         // data input
-  output reg  [31:0] dat_o,         // data output
-  output reg         ack_o          // normal bus termination
+    // 32bit WISHBONE bus slave interface
+    input  wire        clk_i,  // clock
+    input  wire        rst_i,  // reset (synchronous active high)
+    input  wire        cyc_i,  // cycle
+    input  wire        stb_i,  // strobe
+    input  wire [31:0] adr_i,  // address
+    input  wire        we_i,   // write enable
+    input  wire [ 3:0] sel_i,
+    input  wire [31:0] dat_i,  // data input
+    output reg  [31:0] dat_o,  // data output
+    output reg         ack_o   // normal bus termination
 
 );
 
@@ -20,8 +20,8 @@ module mem_8k_sram_wrap (
   logic [10:0] word_adr;
 
   assign wb_acc = cyc_i & stb_i;
-  assign mem_write = wb_acc &  we_i;
-  assign mem_read  = wb_acc & ~we_i;
+  assign mem_write = wb_acc & we_i;
+  assign mem_read = wb_acc & ~we_i;
   assign word_adr = adr_i[12:2];
 
   assign write_mask[0] = sel_i[0];
@@ -57,34 +57,32 @@ module mem_8k_sram_wrap (
   assign write_mask[30] = sel_i[3];
   assign write_mask[31] = sel_i[3];
 
-  always_ff @(posedge clk_i) ack_o = wb_acc & ~ack_o; // delayed acknoledge
+  always_ff @(posedge clk_i) ack_o <= wb_acc & ~ack_o;  // delayed acknoledge
 
-  // inst memory here 
+  // inst memory here
 
-  tsmc_8k (
-    .CLK(clk_i),
-    .ADR(word_adr), 
-    .D(dat_i), 
-    .WEM(write_mask), 
-    .WE(mem_write), 
-    .OE(1'b1), 
-    .ME(~rst_i),   //mem_read | mem_write), 
-    .RM(4'b1101),
-    .Q(Q_dat), 
+  tsmc_8k(
+      .CLK(clk_i),
+      .ADR(word_adr),
+      .D(dat_i),
+      .WEM(write_mask),
+      .WE(mem_write),
+      .OE(1'b1),
+      .ME(1'b1),
+      .RM(4'b1101),
+      .Q(Q_dat),
   );
-  
 
-    logic [31:0] data_o_reg;
+  logic [31:0] data_o_reg;
 
-  
   n_bit_reg #(
       .n(32)
   ) data_o_reg_inst (
-      .clk(clk_i),
-      .reset_n (~rst_i),
-      .data_i  (Q_dat),
-      .data_o  (data_o_reg),
-      .wen     (1'b1)
+      .clk    (clk_i),
+      .reset_n(~rst_i),
+      .data_i (Q_dat),
+      .data_o (data_o_reg),
+      .wen    (1'b1)
   );
 
   assign dat_o = data_o_reg;
@@ -92,20 +90,18 @@ module mem_8k_sram_wrap (
 endmodule
 
 
-
-
 module mem_32k_sram_wrap (
-  // 32bit WISHBONE bus slave interface
-  input  wire        clk_i,         // clock
-  input  wire        rst_i,         // reset (synchronous active high)
-  input  wire        cyc_i,         // cycle
-  input  wire        stb_i,         // strobe
-  input  wire [31:0] adr_i,         // address
-  input  wire        we_i,          // write enable
-  input  wire [3:0]  sel_i,
-  input  wire [31:0] dat_i,         // data input
-  output reg  [31:0] dat_o,         // data output
-  output reg         ack_o          // normal bus termination
+    // 32bit WISHBONE bus slave interface
+    input  wire        clk_i,  // clock
+    input  wire        rst_i,  // reset (synchronous active high)
+    input  wire        cyc_i,  // cycle
+    input  wire        stb_i,  // strobe
+    input  wire [31:0] adr_i,  // address
+    input  wire        we_i,   // write enable
+    input  wire [ 3:0] sel_i,
+    input  wire [31:0] dat_i,  // data input
+    output reg  [31:0] dat_o,  // data output
+    output reg         ack_o   // normal bus termination
 );
 
   logic wb_acc;
@@ -115,8 +111,8 @@ module mem_32k_sram_wrap (
   logic [12:0] word_adr;
 
   assign wb_acc = cyc_i & stb_i;
-  assign mem_write = wb_acc &  we_i;
-  assign mem_read  = wb_acc & ~we_i;
+  assign mem_write = wb_acc & we_i;
+  assign mem_read = wb_acc & ~we_i;
   assign word_adr = adr_i[14:2];
 
   assign write_mask[0] = sel_i[0];
@@ -152,34 +148,32 @@ module mem_32k_sram_wrap (
   assign write_mask[30] = sel_i[3];
   assign write_mask[31] = sel_i[3];
 
-  always_ff @(posedge clk_i) ack_o = wb_acc & ~ack_o; // delayed acknoledge
+  always_ff @(posedge clk_i) ack_o <= wb_acc & ~ack_o;  // delayed acknoledge
 
-  // inst memory here 
+  // inst memory here
 
-  tsmc_32k_sq (
-    .CLK(clk_i),
-    .ADR(word_adr), 
-    .D(dat_i), 
-    .WEM(write_mask), 
-    .WE(mem_write), 
-    .OE(1'b1), 
-    .ME(mem_read | mem_write), 
-    .RM(4'b1011),
-    .Q(Q_dat), 
+  tsmc_32k_sq(
+      .CLK(clk_i),
+      .ADR(word_adr),
+      .D(dat_i),
+      .WEM(write_mask),
+      .WE(mem_write),
+      .OE(1'b1),
+      .ME(1'b1),
+      .RM(4'b1011),
+      .Q(Q_dat),
   );
-  
 
   logic [31:0] data_o_reg;
 
-  
   n_bit_reg #(
       .n(32)
   ) data_o_reg_inst (
-      .clk(clk_i),
-      .reset_n (~rst_i),
-      .data_i  (Q_dat),
-      .data_o  (data_o_reg),
-      .wen     (1'b1)
+      .clk    (clk_i),
+      .reset_n(~rst_i),
+      .data_i (Q_dat),
+      .data_o (data_o_reg),
+      .wen    (1'b1)
   );
 
   assign dat_o = data_o_reg;
