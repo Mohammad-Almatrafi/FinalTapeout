@@ -702,7 +702,7 @@ logic [31:0] rvfi_pc_wdata;
       3'b100: mnemonic = "lbu";
       3'b101: mnemonic = "lhu";
       default: begin
-        decode_mnemonic("INVALID");
+        decode_mnemonic("INVALID 0");
         return;
       end
     endcase
@@ -720,7 +720,7 @@ logic [31:0] rvfi_pc_wdata;
     end else if (size == 3'b101) begin
       mnemonic = "lhu";
     end else begin
-      decode_mnemonic("INVALID");
+      decode_mnemonic("INVALID 1");
       return;
     end
 
@@ -738,7 +738,7 @@ logic [31:0] rvfi_pc_wdata;
       2'b01:  mnemonic = "sh";
       2'b10:  mnemonic = "sw";
       default: begin
-        decode_mnemonic("INVALID");
+        decode_mnemonic("INVALID 2");
         return;
       end
     endcase
@@ -749,7 +749,7 @@ logic [31:0] rvfi_pc_wdata;
       decoded_str = $sformatf("%s\tx%0d,%0d(x%0d)", mnemonic, rvfi_rs2_addr,
                       $signed({ {20 {rvfi_insn[31]}}, rvfi_insn[31:25], rvfi_insn[11:7] }), rvfi_rs1_addr);
     end else begin
-      decode_mnemonic("INVALID");
+      decode_mnemonic("INVALID 3");
     end
   endfunction
 
@@ -769,7 +769,7 @@ logic [31:0] rvfi_pc_wdata;
       3'b100: mnemonic = "lbu";
       3'b101: mnemonic = "lhu";
       default: begin
-        decode_mnemonic("INVALID");
+        decode_mnemonic("INVALID 4");
         return;
       end
     endcase
@@ -787,7 +787,7 @@ logic [31:0] rvfi_pc_wdata;
     end else if (size == 3'b101) begin
       mnemonic = "lhu";
     end else begin
-      decode_mnemonic("INVALID");
+      decode_mnemonic("INVALID 5");
       return;
     end
 
@@ -805,7 +805,7 @@ logic [31:0] rvfi_pc_wdata;
       2'b01:  mnemonic = "sh";
       2'b10:  mnemonic = "sw";
       default: begin
-        decode_mnemonic("INVALID");
+        decode_mnemonic("INVALID 6");
         return;
       end
     endcase
@@ -816,7 +816,7 @@ logic [31:0] rvfi_pc_wdata;
       decoded_str = $sformatf("%s\tf%0d,%0d(x%0d)", mnemonic, rvfi_rs2_addr,
                       $signed({ {20 {rvfi_insn[31]}}, rvfi_insn[31:25], rvfi_insn[11:7] }), rvfi_rs1_addr);
     end else begin
-      decode_mnemonic("INVALID");
+      decode_mnemonic("INVALID 7");
     end
   endfunction
 
@@ -1025,7 +1025,7 @@ int i=0;
             rvfi_rs2_addr = rvfi_insn[6:2];    
             decode_compressed_store_insn("c.swsp");
           end
-				  default:         decode_mnemonic("INVALID");
+				  default:         decode_mnemonic("INVALID 8");
 				endcase
 			  end
 			end else begin  /////////////////////   32-Bit INSTRUCTIONS ////////////////////////
@@ -1313,8 +1313,18 @@ int i=0;
             decoded_str = $sformatf("%s\tf%0d,x%0d", "fmv.w.x", rvfi_rd_addr, rvfi_rs1_addr);
              rd_float = 1;
         end        
-		
-				default:         decode_mnemonic("INVALID");
+        AMO_LR    : decode_r_insn("lr.w");
+        AMO_SC    : decode_r_insn("sc.w");
+        AMO_SWAP  : decode_r_insn("amoswap.w");
+        AMO_ADD   : decode_r_insn("amoadd.w");
+        AMO_XOR   : decode_r_insn("amoxor.w");
+        AMO_AND   : decode_r_insn("amoand.w");
+        AMO_OR    : decode_r_insn("amoor.w");
+        AMO_MIN   : decode_r_insn("amomin.w");
+        AMO_MAX   : decode_r_insn("amomax.w");
+        AMO_MINU  : decode_r_insn("amominu.w");
+        AMO_MAXU  : decode_r_insn("amomaxu.w");     
+				default:         decode_mnemonic("INVALID 9");
 			  endcase
 			end
 			printbuffer_dumpline();		
