@@ -776,6 +776,8 @@ assign trap = interrupt | exception;
    // logic store_amo_addr_malign_mem; // 
    // logic load_addr_malign_mem;            //
    //----------------------------------------------//
+    logic [31:0] mem_addr_req;
+    assign mem_addr_req = is_atomic_mem ? rdata1_frw_mem : alu_result_mem;
 
     atomic_access_controller aac_inst (
         .clk(clk),
@@ -785,7 +787,7 @@ assign trap = interrupt | exception;
         .rs2_val_mem(rdata2_frw_mem),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
-        .mem_addr_req(alu_op1_mem), 
+        .mem_addr_req(mem_addr_req), 
         .mem_wdata_req(rdata2_frw_mem),
         
         .mem_read(mem_to_reg_mem),
@@ -801,8 +803,10 @@ assign trap = interrupt | exception;
         .load_addr_malign(load_addr_malign_mem),
         .store_amo_addr_malign(store_amo_addr_malign_mem)
     ); 
+
     logic [31:0] result;
     assign result = atomic_unit_valid_rd_mem ?  atomic_unit_wdata_mem : result_mem;
+
   // ============================================
   //            MEM-WB Pipeline Register
   // ============================================
@@ -850,8 +854,10 @@ assign trap = interrupt | exception;
   //                Write Back Stage 
   // ============================================
 
+//mem_rdata_mem
+
   logic [31:0] mem_rdata_wb;
-  assign mem_rdata_wb = mem_rdata_mem;
+  assign mem_rdata_wb = atomic_unit_wdata_mem;
 
   mux4x1 #(
       .n(32)

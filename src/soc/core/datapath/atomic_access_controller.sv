@@ -101,7 +101,7 @@ module atomic_access_controller (
         mem_addr   = mem_addr_req;
         mem_wdata  = mem_wdata_req;
         result_rd  = mem_rdata;
-        valid_rd   = mem_read_req;
+        valid_rd   = 1'b0;
         computed_val = 'd0;
 
         case (state)
