@@ -773,8 +773,8 @@ assign trap = interrupt | exception;
     logic [31:0] atomic_unit_wdata_mem;
     logic atomic_unit_valid_rd_mem;
    //---Exceptions Currently Are Not Use---//
-   /*/ logic store_amo_addr_malign_mem; // 
-   /*/ logic load_addr_malign_mem;            //
+   // logic store_amo_addr_malign_mem; // 
+   // logic load_addr_malign_mem;            //
    //----------------------------------------------//
 
     atomic_access_controller aac_inst (
@@ -1010,4 +1010,5 @@ assign trap = interrupt | exception;
 
 
 endmodule
+
 

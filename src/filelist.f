@@ -33,6 +33,7 @@ soc/core/datapath/imm_gen.sv
 soc/core/datapath/program_counter.sv
 soc/core/datapath/reg_file.sv
 soc/core/datapath/rom.sv
+soc/core/datapath/atomic_access_controller.sv
 #------   -------
 
 #------ controllers ------
