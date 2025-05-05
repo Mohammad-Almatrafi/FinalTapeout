@@ -14,7 +14,7 @@ module align_except (
 );
   logic misalignment;
   always_comb begin
-    if (alu_op == 2'b00) begin
+    if (alu_op== 2'b00) begin
       case (func3_exe[1:0])
         2'b00:   misalignment = 1'b0;  // byte alignment 
         2'b01:   misalignment = alu_result_lsb[0];  // half-word alignment

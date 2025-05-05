@@ -37,15 +37,16 @@ module rv32i #(
     logic auipc_id; 
     logic jal_id;
     logic [1:0] alu_op_id;
-    logic [3:0] alu_ctrl_exe;
+    alu_t alu_ctrl_exe;
     logic pc_sel_mem;
     logic [1:0] mem_csr_to_reg_id;
     logic csr_type_id;
     logic load_hazard;
+    logic m_type_exe;
 
     // data path to the controller 
     logic [6:0] opcode_id;
-    logic fun7_5_exe;
+    logic [6:0] fun7_exe;
     logic [2:0] fun3_exe, fun3_mem;
     logic zero_mem;
     logic [1:0] alu_op_exe;
@@ -101,17 +102,22 @@ module rv32i #(
 
     assign current_pc = current_pc_if;
     assign inst_if = inst;
-
+    logic divide_stall; //output from datapath and input to control unit
+    logic divide_instruction;//output from control input to datapath
     wire csr_type_exe;
     data_path #(
         .DMEM_DEPTH(DMEM_DEPTH),
         .IMEM_DEPTH(IMEM_DEPTH)
     ) data_path_inst (
-        .*
+        .*,
+        .divide_stall(divide_stall),
+        .divide_instruction(divide_instruction)
     );
 
     control_unit controller_inst(
-        .*
+        .*,
+        .divide_stall(divide_stall),
+        .divide_instruction(divide_instruction)
     );
 
 

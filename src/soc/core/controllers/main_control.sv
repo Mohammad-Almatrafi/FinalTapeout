@@ -201,7 +201,7 @@ module decode_control (
         csr_type = 1'b1;
         invalid_inst = 1'b0;
       end  // CSRR // TODO Xs to be replaced with correct signals
-
+        
       default: begin
         reg_write = 0;
         mem_write = 0;

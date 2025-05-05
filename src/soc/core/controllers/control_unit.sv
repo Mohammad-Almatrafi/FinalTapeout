@@ -1,6 +1,6 @@
 module control_unit (
     input logic [6:0] opcode_id,
-    input logic fun7_5_exe,
+    input logic [6:0] fun7_exe,
     input logic [2:0] fun3_exe,
     fun3_mem,
     input logic zero_mem,
@@ -27,12 +27,14 @@ module control_unit (
     output logic jal_id,
     output logic [1:0] alu_op_id,
     output logic invalid_inst,
-
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
-
+    output logic m_type_exe,
+    output divide_instruction,
+    input divide_stall,
+    
     // alu_controller output
-    output [3:0] alu_ctrl_exe,
+    output alu_t alu_ctrl_exe,
 
     // branch controller output 
     output wire pc_sel_mem,
@@ -100,13 +102,14 @@ module control_unit (
   wire exe_use_rs2_id;
 
   assign exe_use_rs1_id = ~(auipc_id | lui_id);
-  assign exe_use_rs2_id = r_type_id | branch_id;
-
+  assign exe_use_rs2_id = r_type_id | branch_id;;
   alu_control alu_controller_inst (
       .fun3(fun3_exe),
-      .fun7_5(fun7_5_exe),
+      .fun7(fun7_exe),
       .alu_op(alu_op_exe),
-      .alu_ctrl(alu_ctrl_exe)
+      .alu_ctrl(alu_ctrl_exe),
+      .m_type(m_type_exe),
+      .divide_instruction(divide_instruction)
   );
 
   branch_controller branch_controller_inst (
@@ -132,6 +135,7 @@ module control_unit (
       .load_hazard(load_hazard),
       .branch_hazard(branch_hazard),
       .stall_pipl(stall_pipl),
+      .divide_stall(divide_stall),
       .*
   );
 
