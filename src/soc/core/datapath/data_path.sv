@@ -474,7 +474,8 @@ assign trap = interrupt | exception;
   assign fun7_5_exe = id_exe_bus_o.fun7_5;
   assign reg_rdata1_exe = id_exe_bus_o.reg_rdata1;
   assign reg_rdata2_exe = id_exe_bus_o.reg_rdata2;
-  assign imm_exe = id_exe_bus_o.imm;
+//  assign imm_exe = id_exe_bus_o.imm;
+assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction is atmoic AMO/(LR/SC) then we want the imm to be zero
 
   // control signals
   //    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
@@ -777,7 +778,7 @@ assign trap = interrupt | exception;
    // logic load_addr_malign_mem;            //
    //----------------------------------------------//
     logic [31:0] mem_addr_req;
-    assign mem_addr_req = is_atomic_mem ? rdata1_frw_mem : alu_result_mem;
+    assign mem_addr_req = is_atomic_mem ? alu_op1_mem : alu_result_mem;
 
     atomic_access_controller aac_inst (
         .clk(clk),
@@ -787,7 +788,7 @@ assign trap = interrupt | exception;
         .rs2_val_mem(rdata2_frw_mem),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
-        .mem_addr_req(mem_addr_req), 
+        .mem_addr_req(mem_addr_req),  
         .mem_wdata_req(rdata2_frw_mem),
         
         .mem_read(mem_to_reg_mem),
