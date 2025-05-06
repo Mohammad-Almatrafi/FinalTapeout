@@ -102,7 +102,7 @@ module control_unit (
   wire exe_use_rs2_id;
 
   assign exe_use_rs1_id = ~(auipc_id | lui_id);
-  assign exe_use_rs2_id = r_type_id | branch_id;;
+  assign exe_use_rs2_id = r_type_id | branch_id;
   alu_control alu_controller_inst (
       .fun3(fun3_exe),
       .fun7(fun7_exe),

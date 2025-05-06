@@ -4,21 +4,20 @@ module alu_control (
     input logic [6:0] fun7,
     input logic [1:0] alu_op,
     output alu_t alu_ctrl,
-    output logic m_type, // this signal is used to indecate a M extension instruction MUL/DIV/REM along side their different falvours
+    output logic m_type, // this signal is used to indicate an M extension instruction MUL/DIV/REM
     output logic  divide_instruction
 );
 
-// alu_op 000 for load/store
-// alu_op 010 r-type
-// alu_op 011 i-type 
-// alu_op 001 for branches
-// alu_op 100 for M-type
+// alu_op 00 for load/store
+// alu_op 10 r-type
+// alu_op 11 i-type 
+// alu_op 01 for branches
 
-parameter LOAD_STORE = 3'b000, R_TYPE = 3'b011, I_TYPE = 3'b001, B_TYPE = 3'b010;
+parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
 always_comb begin 
 
-    alu_ctrl           = ADD;
+//    alu_ctrl           = ADD;
     case(alu_op)
         R_TYPE: begin 
             if(fun7[0])begin
