@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module clint (
     input logic wb_clk_i,
     input logic wb_rst_i,

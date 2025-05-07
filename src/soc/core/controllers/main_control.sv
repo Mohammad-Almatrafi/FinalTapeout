@@ -31,11 +31,20 @@ module decode_control (
 
 );
   logic [1:0] invalid_counter;
-
-  always @(posedge clk or negedge reset_n) begin
-    if (!reset_n | clear_invalid_counter) invalid_counter = 2'b11;
-    else invalid_counter = invalid_counter >> 1;
+ always @(posedge clk or negedge reset_n) begin /// we split the reset | clear_invalid_counter
+  if (!reset_n) 
+  begin
+    invalid_counter <= 2'b11;
+  end 
+  else if (clear_invalid_counter) 
+  begin
+    invalid_counter <= 2'b11;
+  end 
+  else 
+  begin
+    invalid_counter <= invalid_counter >> 1;
   end
+end
 
   //  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
   parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;

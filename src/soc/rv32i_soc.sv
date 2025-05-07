@@ -10,7 +10,11 @@ module rv32i_soc #(
     input 		i_uart_rx,
     output 		o_uart_tx,
     // gpio signals
-    inout wire [31:0]   io_data
+    inout wire [31:0]   io_data,
+    input [31:0] en_gpio,
+
+    input [31:0] i_gpio,
+    output [31:0] o_gpio
 );
 
 
@@ -201,11 +205,8 @@ logic        wb_clint_rty_i;
 
     // Here is the tri state buffer logic for setting iopin as input or output based
     // on the bits stored in the en_gpio register
-    wire [31:0] en_gpio;
+    
     wire        gpio_irq;
-
-    wire [31:0] i_gpio;
-    wire [31:0] o_gpio;
 
     genvar i;
     generate

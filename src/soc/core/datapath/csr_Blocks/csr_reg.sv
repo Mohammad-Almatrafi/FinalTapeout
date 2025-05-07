@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 
 `define MIE_G_ADDR [3][3]
 // 1000

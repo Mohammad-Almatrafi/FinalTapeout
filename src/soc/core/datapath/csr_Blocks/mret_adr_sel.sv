@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module mret_adr_sel (
     input logic clk,
     input logic reset_n,

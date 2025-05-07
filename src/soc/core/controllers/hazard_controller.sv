@@ -14,12 +14,12 @@ module hazard_handler (
 
     assign branch_hazard = pc_sel_mem;
     assign load_hazard   =   ((mem_read_exe  &  (rd_exe !=0)) 
-                         &   (((rd_exe === rs1_id) & exe_use_rs1_id) | ((rd_exe === rs2_id) & exe_use_rs2_id)))
+                         &   (((rd_exe == rs1_id) & exe_use_rs1_id) | ((rd_exe == rs2_id) & exe_use_rs2_id)))
                          | 
                          
                          ( 
                          (csr_type_exe  &  (rd_exe !=0)) 
-                         &   (((rd_exe === rs1_id) & exe_use_rs1_id) | ((rd_exe === rs2_id) & exe_use_rs2_id))
+                         &   (((rd_exe == rs1_id) & exe_use_rs1_id) | ((rd_exe == rs2_id) & exe_use_rs2_id))
                          );
 
 endmodule : hazard_handler
