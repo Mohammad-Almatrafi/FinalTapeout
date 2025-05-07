@@ -44,6 +44,9 @@ soc/core/controllers/hazard_controller.sv
 soc/core/controllers/main_control.sv
 soc/core/controllers/pipeline_controller.sv
 #------   -------
+soc/core/datapath/int_mul.sv
+
+soc/core/datapath/int_div_rem.sv
 
 soc/core/rv32i_top.sv
 

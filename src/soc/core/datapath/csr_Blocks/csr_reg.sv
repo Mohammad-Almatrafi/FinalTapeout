@@ -89,8 +89,7 @@ module csr_reg (
         csr_mem`MIE_G_ADDR <= 1'b0;
         csr_mem`MEPC_ADDR <= hw_int ? current_pc:current_pc+4;
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
-        csr_mem`EXC_CODE_MCAUSE_ADDR <= {'b0,int_code};
-
+        csr_mem`EXC_CODE_MCAUSE_ADDR <= {27'b0000_0000_0000_0000_0000_0000_000,int_code};
     end
 
     3'd5:begin
@@ -98,7 +97,7 @@ module csr_reg (
         csr_mem`MIE_G_ADDR <= 1'b0;
         csr_mem`MEPC_ADDR <= hw_int ? current_pc:current_pc+4;
         csr_mem`HW_INT_BIT_MCAUSE_ADDR <= hw_int;
-        csr_mem`EXC_CODE_MCAUSE_ADDR <= {'b0,int_code};
+        csr_mem`EXC_CODE_MCAUSE_ADDR <= {27'b0000_0000_0000_0000_0000_0000_000,int_code};
 
     end
   

@@ -887,7 +887,6 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 //      .data_o(rvfi_valid)
 //  );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0); //& mem_wb_reg_en;
 
   logic [31:0] current_pc_wb;
   n_bit_reg_wclr #(
@@ -928,6 +927,34 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_i(inst_mem),
       .data_o(inst_wb)
   );
+
+  logic divide_stall_mem;
+  logic divide_stall_wb;
+
+  n_bit_reg_wclr #(
+      .n(32)
+  ) divide_stall_for_invalid_mem_exe (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(1'b1),
+      .data_i(divide_stall),
+      .data_o(divide_stall_mem)
+  );
+
+  n_bit_reg_wclr #(
+      .n(32)
+  ) divide_stall_for_invalid_mem_wb (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(1'b1),
+      .data_i(divide_stall_mem),
+      .data_o(divide_stall_wb)
+  );
+
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem); //& mem_wb_reg_en;
+
 
   //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;
 

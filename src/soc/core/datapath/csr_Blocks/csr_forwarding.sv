@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module csr_forwarding (
     input logic [4:0] rs1_mem,  // From exe/mem reg
     input logic [4:0] rd_wb,  // From mem/wb reg

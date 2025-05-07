@@ -159,6 +159,12 @@ module int_div_rem #(
                             result <= 'b0; // Hard coded for now
 //                            result <= acc_next[WIDTH:2]; // Hard coded for now
                         // Remainder takes sign of dividend (a) for signed operations
+
+
+                        end else if (a_abs < b_abs) begin
+                            result <=  temp_a;
+
+
                         end else if (is_signed && a_signed) begin
                             result <= -acc[WIDTH:2]; // CORRECT REMAINDER WITHOUT EXTRA SHIFT BITS
                         end else begin
@@ -173,7 +179,7 @@ module int_div_rem #(
                             result <= quotient_next;
                         end
                     end
-                end // End "FINALIZE" case
+                end // End "FINALIZE" case                
                 default: begin  // IDLE
                     if (i_p_signal) begin
                         // Handle special cases
@@ -185,7 +191,7 @@ module int_div_rem #(
                             stall <= 0;
                             o_p_signal <= 1;
                             dbz <= 1;
-                            result <= 'b0; // Default value
+                            result <= (temp_is_remainder ? a : 32'hFFFF_FFFF); // Default value
 //                        end else if (is_signed && temp_a_ff == SMALLEST && temp_b_ff == {WIDTH{1'b1}}) begin 
                         end else if (is_signed && temp_a == SMALLEST && temp_b == {WIDTH{1'b1}}) begin 
                             // Special case: INT_MIN / -1 (overflow)

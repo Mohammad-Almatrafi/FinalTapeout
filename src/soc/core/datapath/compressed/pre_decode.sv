@@ -21,7 +21,6 @@ module pre_decode (
   logic stall_compressed_ff;
   logic [15:0] inst_half_correct;
   logic [31:0] inst_decompressed;
-  logic sel_half_full;
 
   n_bit_reg_wclr #(
       .n(32)

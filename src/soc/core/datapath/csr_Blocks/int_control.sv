@@ -24,7 +24,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
   assign interrupt = pc_reg_en & ((|(mip & mie)) & MIE);
   assign exception = invalid_inst_mem | store_misaligned_mem | load_misaligned_mem | inst_addr_misaligned_mem | ecall_type;
   assign pc_addr = mtvec[0] ? victored : {mtvec[31:2], 2'b0};
-  assign victored = {mtvec[31:2] + {'b0, int_code, 1'b0}, 2'b0};
+  assign victored = {mtvec[31:2] + {24'b0000_0000_0000_0000_0000_0000, int_code, 1'b0}, 2'b0};
   always_comb begin
     if (inst_addr_misaligned_mem == 1) int_code = 5'd0;
     else if (invalid_inst_mem == 1) int_code = 5'd2;

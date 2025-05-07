@@ -86,14 +86,14 @@ module decompress (
   assign b1_imm = {b_imm[12], b_imm[10:5]};
 
   assign swsp_imm = {
-    'b0,  // uextend
+    4'b0000,  // uextend
     inst_16[8:7],  // uimm[7:6]
     inst_16[12:9],  // uimm[5:2]
     2'b00
   };
 
   assign lwsp_imm = {
-    'b0,  // uextend
+    4'b0000,  // uextend
     inst_16[3:2],  // uimm[7:6]
     inst_16[12],  // uimm[5]
     inst_16[6:4],  // uimm[4:2]

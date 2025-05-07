@@ -9,7 +9,7 @@ module control_CSR(
     logic [31:0] data ;
     always @(*) begin
         case (func3[2])
-            1'b1: data = {'b0,imm};
+            1'b1: data = {27'b0000_0000_0000_0000_0000_0000_000,imm};
             1'b0: data = RS1;
             
         endcase
