@@ -1,9 +1,16 @@
+
+import common_pkg::*;
+import debug_pkg::*;
+`default_nettype none
+
 `ifndef PD_BUILD
-    `ifdef VCS_SIM
-      `include "pads/tpz018nv_270a/tpz018nv.v"
-      `include "soc/sram/tsmc_32k_rtl.v"
-      `include "soc/sram/tsmc_8k_rtl.v"
-      `include "soc/rom/tsmc_rom_1k_rtl.v"
+	`ifdef USE_SRAM
+        `ifdef VCS_SIM
+          `include "tpz018nv.v"
+          `include "tsmc_32k_rtl.v"
+          `include "tsmc_8k_rtl.v"
+          `include "tsmc_rom_1k_rtl.v"
+        `endif
     `endif
 `elsif SG
         `include "pads/tpz018nv_270a/tpz018nv.v"
@@ -74,45 +81,45 @@ module rv32i_soc #(
        
     logic [NO_OF_SHARED_PINS- 1:0] io_sel; 
 
-    io_mux #(
-        .NO_OF_SHARED_PINS(13)
-    ) io_mux_instance (
-        // Control
-        .io_sel           (io_sel),
-
-        // SPI Flash
-        .o_flash_sclk     (o_flash_sclk),
-        .o_flash_cs_n     (o_flash_cs_n),
-        .o_flash_mosi     (o_flash_mosi),
-        .i_flash_miso     (i_flash_miso),
-
-        // SPI2
-        .o_sclk           (o_sclk),
-        .o_cs_n           (o_cs_n),
-        .o_mosi           (o_mosi),
-        .i_miso           (i_miso),
-
-        // I2C
-        .i_scl            (i_scl),
-        .o_scl            (o_scl),
-        .o_scl_oen        (o_scl_oen),
-        .i_sda            (i_sda),
-        .o_sda            (o_sda),
-        .o_sda_oen        (o_sda_oen),
-
-        // PTC
-        .pwm_pad_o        (pwm_pad_o),
-
-        // GPIO core <-> pad mux
-        .i_gpio_          (i_gpio_),
-        .o_gpio_          (o_gpio_),
-        .en_gpio_         (en_gpio_),
-
-        // GPIO <-> actual pads
-        .i_gpio           (i_gpio),
-        .o_gpio           (o_gpio),
-        .en_gpio          (en_gpio)
-    );
+//    io_mux #(
+//        .NO_OF_SHARED_PINS(13)
+//    ) io_mux_instance (
+//        // Control
+//        .io_sel           (io_sel),
+// 
+//        // SPI Flash
+//        .o_flash_sclk     (o_flash_sclk),
+//        .o_flash_cs_n     (o_flash_cs_n),
+//        .o_flash_mosi     (o_flash_mosi),
+//        .i_flash_miso     (i_flash_miso),
+// 
+//        // SPI2
+//        .o_sclk           (o_sclk),
+//        .o_cs_n           (o_cs_n),
+//        .o_mosi           (o_mosi),
+//        .i_miso           (i_miso),
+// 
+//        // I2C
+//        .i_scl            (i_scl),
+//        .o_scl            (o_scl),
+//        .o_scl_oen        (o_scl_oen),
+//        .i_sda            (i_sda),
+//        .o_sda            (o_sda),
+//        .o_sda_oen        (o_sda_oen),
+// 
+//        // PTC
+//        .pwm_pad_o        (pwm_pad_o),
+// 
+//        // GPIO core <-> pad mux
+//        .i_gpio_          (i_gpio_),
+//        .o_gpio_          (o_gpio_),
+//        .en_gpio_         (en_gpio_),
+// 
+//        // GPIO <-> actual pads
+//        .i_gpio           (i_gpio),
+//        .o_gpio           (o_gpio),
+//        .en_gpio          (en_gpio)
+//    );
 
 
 
@@ -788,19 +795,18 @@ module rv32i_soc #(
     //                 CLINT INSTANCE
     // ============================================
 
-    clint_top clint_inst (
-        .clk_i       (clk            ),
-        .rst_i       (wb_rst         ),
-        .cyc_i       (wb_m2s_clint_cyc), 
-        .stb_i       (wb_m2s_clint_stb),
-        .adr_i       (wb_m2s_clint_adr),
-        .we_i        (wb_m2s_clint_we ),
-        .sel_i       (wb_m2s_clint_sel),
-        .dat_i       (wb_m2s_clint_dat),
-        .dat_o       (wb_s2m_clint_dat),
-        .ack_o       (wb_s2m_clint_ack),
-        .halt        (core_halted),
-        .timer_irq   (timer_irq)
+    clint clint_inst (
+        .wb_clk_i       (clk            ),
+        .wb_rst_i       (wb_rst         ),
+        .wb_cyc_i       (wb_m2s_clint_cyc), 
+        .wb_stb_i       (wb_m2s_clint_stb),
+        .wb_adr_i       (wb_m2s_clint_adr),
+        .wb_we_i        (wb_m2s_clint_we ),
+        // .wb_sel_i       (wb_m2s_clint_sel),
+        .wb_dat_i       (wb_m2s_clint_dat),
+        .wb_dat_o       (wb_s2m_clint_dat),
+        .wb_ack_o       (wb_s2m_clint_ack),
+        .mtip_o   (timer_irq)
     );
 
 
@@ -937,22 +943,22 @@ module rv32i_soc #(
     // ============================================
 
     // Platform Level Interrupt Controller, according the riscv spec 
-    plic_top #(
-        .NUM_SOURCES_P (6),
-        .NUM_CONTEXTS_P(1)
-    ) plic_inst (
-        .wb_clk_i    (clk             ),
-        .wb_rst_i    (wb_rst          ),
-        .wb_cyc_i    (wb_m2s_plic_cyc),
-        .wb_stb_i    (wb_m2s_plic_stb),
-        .wb_adr_i    (wb_m2s_plic_adr[23:0]),
-        .wb_we_i     (wb_m2s_plic_we ),
-        .wb_sel_i    (wb_m2s_plic_sel),
-        .wb_dat_i    (wb_m2s_plic_dat),
-        .wb_dat_o    (wb_s2m_plic_dat),
-        .wb_ack_o    (wb_s2m_plic_ack),
-        .int_sources({uart_irq, spi_flash_irq, spi2_irq, gpio_irq, i2c_irq, ptc_irq}), // lsb has the small id number so high priority incase of priority clash
-        .external_irq(external_irq)
-    );
+//    plic_top #(
+//        .NUM_SOURCES_P (6),
+//        .NUM_CONTEXTS_P(1)
+//    ) plic_inst (
+//        .wb_clk_i    (clk             ),
+//        .wb_rst_i    (wb_rst          ),
+//        .wb_cyc_i    (wb_m2s_plic_cyc),
+//        .wb_stb_i    (wb_m2s_plic_stb),
+//        .wb_adr_i    (wb_m2s_plic_adr[23:0]),
+//        .wb_we_i     (wb_m2s_plic_we ),
+//        .wb_sel_i    (wb_m2s_plic_sel),
+//        .wb_dat_i    (wb_m2s_plic_dat),
+//        .wb_dat_o    (wb_s2m_plic_dat),
+//        .wb_ack_o    (wb_s2m_plic_ack),
+//        .int_sources({uart_irq, spi_flash_irq, spi2_irq, gpio_irq, i2c_irq, ptc_irq}), // lsb has the small id number so high priority incase of priority clash
+//        .external_irq(external_irq)
+//    );
     
 endmodule : rv32i_soc

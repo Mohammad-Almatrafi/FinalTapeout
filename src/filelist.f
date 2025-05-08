@@ -5,6 +5,9 @@
 
 # lib that many module accesses should be compiled first
 soc/core/datapath/lib.sv
+soc/uncore/debug/debug_pkg.sv
+tb/pkg.sv
+tb/tracer_pkg.sv
 
 # Core files
 # ------ datapath ------
@@ -87,8 +90,6 @@ soc/uncore/uart/uart_wb.v
 
 soc/uncore/clint.sv
 
-# sram 
-##sram/ts1da32kx32_100a_tc.v
 
 soc/
 
@@ -96,15 +97,12 @@ soc/
 soc/rv32i_soc.sv
 
 # Testbench fil
-tb/pkg.sv
-tb/tracer_pkg.sv
 tb/tracer.sv
 tb/rv32i_soc_tb.sv
 
 # Optionally, include any other files you want for the simulation.
 
 soc/uncore/debug/bscan_tap.sv
-soc/uncore/debug/debug_pkg.sv
 soc/uncore/debug/debug_top.sv
 soc/uncore/debug/dm.sv
 soc/uncore/debug/dtm.sv

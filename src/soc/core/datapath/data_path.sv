@@ -145,7 +145,7 @@ module data_path #(
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
-  always_comb begin
+  always_comb begin: mip_assignment
     mip_in = 0;
     mip_in[7] = timer_irq;
     mip_in[11] = external_irq;
