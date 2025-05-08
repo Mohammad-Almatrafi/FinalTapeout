@@ -9,3 +9,6 @@ C_Code/build
 C_Code/build/**
 src/build
 src/build/**
+soc/WishboneInterconnect_qamar/
+soc/WishboneInterconnect_qamar/**
+
