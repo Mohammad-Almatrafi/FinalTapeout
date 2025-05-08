@@ -132,7 +132,7 @@
 //
 //
 
-//`include "uart_defines.v"
+// `include "uart_defines.v"
 
 module uart_top	(
 
@@ -167,9 +167,9 @@ input 								 wb_clk_i;
 
 // WISHBONE interface
 input 								 wb_rst_i;
-input [2:0] 	                     wb_adr_i;
-input [7:0] 	                     wb_dat_i;
-output [7:0] 	                     wb_dat_o;
+input [2:0] 	 wb_adr_i;
+input [7:0] 	 wb_dat_i;
+output [7:0] 	 wb_dat_o;
 input 								 wb_we_i;
 input 								 wb_stb_i;
 input 								 wb_cyc_i;
@@ -259,16 +259,19 @@ uart_regs #(.SIM (SIM))	regs(
 
 );
 
-initial
-begin
-   if(debug) begin
-	`ifdef UART_HAS_BAUDRATE_OUTPUT
-		$display("(%m) UART INFO: Has baudrate output\n");
-	`else
-		$display("(%m) UART INFO: Doesn't have baudrate output\n");
-	`endif
-   end
-end
+
+`ifdef VCS_SIM
+	initial
+	begin
+	if(debug) begin
+		`ifdef UART_HAS_BAUDRATE_OUTPUT
+			$display("(%m) UART INFO: Has baudrate output\n");
+		`else
+			$display("(%m) UART INFO: Doesn't have baudrate output\n");
+		`endif
+	end
+	end
+`endif
 
 endmodule
 
