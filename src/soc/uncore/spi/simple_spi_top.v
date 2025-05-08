@@ -67,7 +67,7 @@
 //
 
 module simple_spi #(
-  parameter SS_WIDTH = 1
+  parameter SS_WIDTH = 2
 )(
   // 8bit WISHBONE bus slave interface
   input  wire       clk_i,         // clock

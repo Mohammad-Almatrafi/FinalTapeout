@@ -1,306 +1,760 @@
+`ifndef PD_BUILD
+    `ifdef VCS_SIM
+      `include "pads/tpz018nv_270a/tpz018nv.v"
+      `include "soc/sram/tsmc_32k_rtl.v"
+      `include "soc/sram/tsmc_8k_rtl.v"
+      `include "soc/rom/tsmc_rom_1k_rtl.v"
+    `endif
+`elsif SG
+        `include "pads/tpz018nv_270a/tpz018nv.v"
+        `include "soc/sram/tsmc_32k_rtl.v"
+        `include "soc/sram/tsmc_8k_rtl.v"
+        `include "soc/rom/tsmc_rom_1k_rtl.v"
+`endif
+
+// Added a comment
 module rv32i_soc #(
     parameter DMEM_DEPTH = 128,
-    parameter IMEM_DEPTH = 128
+    parameter IMEM_DEPTH = 128,
+    parameter NO_OF_GPIO_PINS = 24,
+    parameter NO_OF_SHARED_PINS = 13
 ) (
-    input logic clk,
+    input logic clk, 
     input logic reset_n,
+        
+    // gpio signals
+    input  logic [23:0] i_gpio, 
+    output logic [23:0] o_gpio,
+    output logic [23:0] en_gpio,
+    
+    // uart signal
+    output logic        o_uart_tx,
+    input logic         i_uart_rx
+    
+`ifndef VIVADO_BUILD
+    , 
+    input logic tck_i,
+    input logic tdi_i,
+    input logic tms_i,
+    output logic tdo_o
+`endif
+);
 
     // spi signals to the spi-flash
-    // uart signals
-    input 		i_uart_rx,
-    output 		o_uart_tx,
-    // gpio signals
-    inout wire [31:0]   io_data,
-    input [31:0] en_gpio,
+    logic       o_flash_sclk;     // serial clock output
+    logic [1:0] o_flash_cs_n;     // slave select (active low)
+    logic       o_flash_mosi;     // MasterOut SlaveIN
+    logic       i_flash_miso;     // MasterIn SlaveOut 
 
-    input [31:0] i_gpio,
-    output [31:0] o_gpio
-);
+    // spi signals to the spi-2
+    logic       o_sclk;     // serial clock output
+    logic [1:0] o_cs_n;     // slave select (active low)
+    logic       o_mosi;     // MasterOut SlaveIN
+    logic       i_miso;     // MasterIn SlaveOut    
+
+
+    // i2c signals 
+    logic         i_scl;
+    logic        o_scl;
+    logic        o_scl_oen;
+    logic         i_sda;
+    logic        o_sda;
+    logic        o_sda_oen;
+
+    //  ptc signals 
+    logic pwm_pad_o;
+
+    logic [NO_OF_GPIO_PINS - 1:0] i_gpio_;
+    logic [NO_OF_GPIO_PINS - 1:0] o_gpio_;
+    logic [NO_OF_GPIO_PINS - 1:0] en_gpio_;
+
+    // ============================================
+    //                    IO MUX
+    // ============================================   
+       
+    logic [NO_OF_SHARED_PINS- 1:0] io_sel; 
+
+    io_mux #(
+        .NO_OF_SHARED_PINS(13)
+    ) io_mux_instance (
+        // Control
+        .io_sel           (io_sel),
+
+        // SPI Flash
+        .o_flash_sclk     (o_flash_sclk),
+        .o_flash_cs_n     (o_flash_cs_n),
+        .o_flash_mosi     (o_flash_mosi),
+        .i_flash_miso     (i_flash_miso),
+
+        // SPI2
+        .o_sclk           (o_sclk),
+        .o_cs_n           (o_cs_n),
+        .o_mosi           (o_mosi),
+        .i_miso           (i_miso),
+
+        // I2C
+        .i_scl            (i_scl),
+        .o_scl            (o_scl),
+        .o_scl_oen        (o_scl_oen),
+        .i_sda            (i_sda),
+        .o_sda            (o_sda),
+        .o_sda_oen        (o_sda_oen),
+
+        // PTC
+        .pwm_pad_o        (pwm_pad_o),
+
+        // GPIO core <-> pad mux
+        .i_gpio_          (i_gpio_),
+        .o_gpio_          (o_gpio_),
+        .en_gpio_         (en_gpio_),
+
+        // GPIO <-> actual pads
+        .i_gpio           (i_gpio),
+        .o_gpio           (o_gpio),
+        .en_gpio          (en_gpio)
+    );
+
+
+
+    // Debug Signals 
+    logic core_resumeack;
+    logic core_running;
+    logic core_halted;
+
+    logic dbg_haltreq;
+    logic dbg_resumereq;
+    logic dbg_ndmreset;
+
+    logic        dbg_ar_en;
+    logic        dbg_ar_wr;
+    logic [15:0] dbg_ar_ad;
+    logic        dbg_ar_done;
+    logic [31:0] dbg_ar_di;
+    logic [31:0] dbg_ar_do;
+
+    logic        dbg_am_en;
+    logic        dbg_am_wr;
+    logic [3:0]  dbg_am_st;
+    logic [31:0] dbg_am_ad;
+    logic [31:0] dbg_am_di;
+    logic [31:0] dbg_am_do;
+    logic        dbg_am_done;
 
 
     // Memory bus signals
     logic [31:0] mem_addr_mem;
-    logic [31:0] mem_wdata_mem;
+    logic [31:0] mem_wdata_mem; 
     logic        mem_write_mem;
     logic [2:0]  mem_op_mem;
     logic [31:0] mem_rdata_mem;
     logic        mem_read_mem;
-    logic         wb_io_rty_o;      
-    logic  [31:0] wb_io_adr_i;               
+    logic        mem_ack_mem;
 
-
-/////////////////////////////////////////////// This is to set the other periphirals to zero 
-
-////////////////////////////////////////////////
-logic [31:0] current_pc;
-
-logic [31:0] mip_in;
-assign mip_in[31:8]=0;
-assign mip_in[6:0]=0;
-    // ============================================
-    //          Processor Core Instantiation
-    // ============================================
-    //Useless signals but for just connecting
-    logic [31:0] inst;
     logic stall_pipl;
+    logic [31:0] current_pc, inst;
+    logic sel_boot_rom, sel_boot_rom_ff;
     logic if_id_reg_en;
-    // Instantiate the processor core here 
+    logic timer_irq;
+    logic ptc_irq;
+    logic spi_flash_irq;
+    logic spi2_irq;
+    logic i2c_irq;
+    logic uart_irq;
+    logic gpio_irq;
+    logic external_irq; // to be assigned a value zero until PLIC is added
+
+
+
+    // ============================================
+    //              RISC-V Processor Core
+    // ============================================ 
     rv32i #(
-        .DMEM_DEPTH(1024),
-        .IMEM_DEPTH(1024)
-     )rv32i_core_inst(//Checked all the inputs, block is done. Reset is neg edge
-         .*,
-         .current_pc(current_pc),
-         .inst(inst),
-         .if_id_reg_en(if_id_reg_en),
-         .stall_pipl(stall_pipl)
+        .DMEM_DEPTH(DMEM_DEPTH),
+        .IMEM_DEPTH(IMEM_DEPTH)
+    ) rv32i_core_inst (
+        .*
     );
 
+
     // ============================================
-    //                 Wishbone Master
-    // ============================================
-    // IO ( wb master signals ) 
-                                   
-logic  [31:0] wb_io_dat_i;               
-logic   [3:0] wb_io_sel_i;               
-logic         wb_io_we_i;               
-logic         wb_io_cyc_i;               
-logic         wb_io_stb_i;               
-logic   [2:0] wb_io_cti_i;               
-logic   [1:0] wb_io_bte_i;               
-logic  [31:0] wb_io_dat_o;               
-logic         wb_io_ack_o;               
-logic         wb_io_err_o;               
-             
+    //       Wishbone Controller & Interconnect
+    // ============================================   
+
+    wire   wb_clk;
+    wire   wb_rst;
+    assign wb_clk = clk;
+    assign wb_rst = ~reset_n;
+
+    // IO
+    wire [31:0] wb_m2s_io_adr;
+    wire [31:0] wb_m2s_io_dat;
+    wire  [3:0] wb_m2s_io_sel;
+    wire        wb_m2s_io_we;
+    wire        wb_m2s_io_cyc;
+    wire        wb_m2s_io_stb;
+    wire [31:0] wb_s2m_io_dat;
+    wire        wb_s2m_io_ack;
+    wire        wb_s2m_io_err;
+    wire        wb_s2m_io_rty;
+
+    // SPI FLASH
+    wire [31:0] wb_m2s_spi_flash_adr;
+    wire [31:0] wb_m2s_spi_flash_dat;
+    wire  [3:0] wb_m2s_spi_flash_sel;
+    wire        wb_m2s_spi_flash_we;
+    wire        wb_m2s_spi_flash_cyc;
+    wire        wb_m2s_spi_flash_stb;
+    wire [31:0] wb_s2m_spi_flash_dat;
+    wire        wb_s2m_spi_flash_ack;
+    wire        wb_s2m_spi_flash_err;
+    wire        wb_s2m_spi_flash_rty;
+    
+    // SPI 2
+    wire [31:0] wb_m2s_spi_adr;
+    wire [31:0] wb_m2s_spi_dat;
+    wire  [3:0] wb_m2s_spi_sel;
+    wire        wb_m2s_spi_we;
+    wire        wb_m2s_spi_cyc;
+    wire        wb_m2s_spi_stb;
+    wire [31:0] wb_s2m_spi_dat;
+    wire        wb_s2m_spi_ack;
+    wire        wb_s2m_spi_err;
+    wire        wb_s2m_spi_rty;
+
+    // UART
+    wire [31:0] wb_m2s_uart_adr;
+    wire [31:0] wb_m2s_uart_dat;
+    wire  [3:0] wb_m2s_uart_sel;
+    wire        wb_m2s_uart_we;
+    wire        wb_m2s_uart_cyc;
+    wire        wb_m2s_uart_stb;
+    wire [31:0] wb_s2m_uart_dat;
+    wire        wb_s2m_uart_ack;
+    wire        wb_s2m_uart_err;
+    wire        wb_s2m_uart_rty;
+
+    // GPIO
+    wire [31:0] wb_m2s_gpio_adr;
+    wire [31:0] wb_m2s_gpio_dat;
+    wire  [3:0] wb_m2s_gpio_sel;
+    wire        wb_m2s_gpio_we;
+    wire        wb_m2s_gpio_cyc;
+    wire        wb_m2s_gpio_stb;
+    wire [31:0] wb_s2m_gpio_dat;
+    wire        wb_s2m_gpio_ack;
+    wire        wb_s2m_gpio_err;
+    wire        wb_s2m_gpio_rty;
+
+    // GPIO
+    wire [31:0] wb_m2s_i2c_adr;
+    wire [31:0] wb_m2s_i2c_dat;
+    wire  [3:0] wb_m2s_i2c_sel;
+    wire        wb_m2s_i2c_we;
+    wire        wb_m2s_i2c_cyc;
+    wire        wb_m2s_i2c_stb;
+    wire [31:0] wb_s2m_i2c_dat;
+    wire        wb_s2m_i2c_ack;
+    wire        wb_s2m_i2c_err;
+    wire        wb_s2m_i2c_rty;
+
+
+    // IMEM
+    wire [31:0] wb_m2s_imem_adr;
+    wire [31:0] wb_m2s_imem_dat;
+    wire  [3:0] wb_m2s_imem_sel;
+    wire        wb_m2s_imem_we;
+    wire        wb_m2s_imem_cyc;
+    wire        wb_m2s_imem_stb;
+    wire [31:0] wb_s2m_imem_dat;
+    wire        wb_s2m_imem_ack;
+    wire        wb_s2m_imem_err;
+    wire        wb_s2m_imem_rty;
+
+
+    // DMEM
+    wire [31:0] wb_m2s_dmem_adr;
+    wire [31:0] wb_m2s_dmem_dat;
+    wire  [3:0] wb_m2s_dmem_sel;
+    wire        wb_m2s_dmem_we;
+    wire        wb_m2s_dmem_cyc;
+    wire        wb_m2s_dmem_stb;
+    wire [31:0] wb_s2m_dmem_dat;
+    wire        wb_s2m_dmem_ack;
+    wire        wb_s2m_dmem_err;
+    wire        wb_s2m_dmem_rty;
+
+
+    // CLINT
+    wire [31:0] wb_m2s_clint_adr;
+    wire [31:0] wb_m2s_clint_dat;
+    wire  [3:0] wb_m2s_clint_sel;
+    wire        wb_m2s_clint_we;
+    wire        wb_m2s_clint_cyc;
+    wire        wb_m2s_clint_stb;
+    wire [31:0] wb_s2m_clint_dat;
+    wire        wb_s2m_clint_ack;
+    wire        wb_s2m_clint_err;
+    wire        wb_s2m_clint_rty;
+
+
+    // PTC
+    wire [31:0] wb_m2s_ptc_adr;
+    wire [31:0] wb_m2s_ptc_dat;
+    wire  [3:0] wb_m2s_ptc_sel;
+    wire        wb_m2s_ptc_we;
+    wire        wb_m2s_ptc_cyc;
+    wire        wb_m2s_ptc_stb;
+    wire [31:0] wb_s2m_ptc_dat;
+    wire        wb_s2m_ptc_ack;
+    wire        wb_s2m_ptc_err;
+    wire        wb_s2m_ptc_rty;
+
+
+    // PTC
+    wire [31:0] wb_m2s_plic_adr;
+    wire [31:0] wb_m2s_plic_dat;
+    wire  [3:0] wb_m2s_plic_sel;
+    wire        wb_m2s_plic_we;
+    wire        wb_m2s_plic_cyc;
+    wire        wb_m2s_plic_stb;
+    wire [31:0] wb_s2m_plic_dat;
+    wire        wb_s2m_plic_ack;
+    wire        wb_s2m_plic_err;
+    wire        wb_s2m_plic_rty;
+
+
     wishbone_controller wishbone_master (
-        .*,
         .clk        (clk),
         .rst        (~reset_n),
+
         .proc_addr  (mem_addr_mem),
         .proc_wdata (mem_wdata_mem),
         .proc_write (mem_write_mem),
         .proc_read  (mem_read_mem),
         .proc_op    (mem_op_mem),
         .proc_rdata (mem_rdata_mem),
+        .proc_ack   (mem_ack_mem),
         .proc_stall_pipl(stall_pipl), // Stall pipeline if needed
-        .wb_adr_o   (wb_io_adr_i),     // Connect to the external Wishbone bus as required
-        .wb_dat_o   (wb_io_dat_i),
-        .wb_sel_o   (wb_io_sel_i),
-        .wb_we_o    (wb_io_we_i),
-        .wb_cyc_o   (wb_io_cyc_i),
-        .wb_stb_o   (wb_io_stb_i),
-        .wb_dat_i   (wb_io_dat_o), // For simplicity, no data input
-        .wb_ack_i   (wb_io_ack_o)   // For simplicity, no acknowledgment signal
+
+        // memory access from the debug unit
+        .core_halted(core_halted),
+        .dbg_am_en_i	(dbg_am_en),
+        .dbg_am_wr_i	(dbg_am_wr),
+        .dbg_am_st_i	(dbg_am_st),
+        .dbg_am_ad_i	(dbg_am_ad),
+        .dbg_am_di_o	(dbg_am_di),
+        .dbg_am_do_i	(dbg_am_do),
+        .dbg_am_done_o	(dbg_am_done),
+
+        .wb_adr_o   (wb_m2s_io_adr),     // Connect to the external Wishbone bus as required
+        .wb_dat_o   (wb_m2s_io_dat),
+        .wb_sel_o   (wb_m2s_io_sel),
+        .wb_we_o    (wb_m2s_io_we ),
+        .wb_cyc_o   (wb_m2s_io_cyc),
+        .wb_stb_o   (wb_m2s_io_stb),
+        .wb_dat_i   (wb_s2m_io_dat),  
+        .wb_ack_i   (wb_s2m_io_ack),  
+        .wb_err_i   (wb_s2m_io_err)
     );
-    assign wb_m2s_io_cti = 0;
-    assign wb_m2s_io_bte  = 0;
+
+
+    // wishbone interconnect, // later we should use interfaces to reduces number of lines
+    wb_intercon wb_intercon0
+   (.wb_clk_i           (wb_clk),
+    .wb_rst_i           (wb_rst),
+    .wb_io_adr_i        (wb_m2s_io_adr),
+    .wb_io_dat_i        (wb_m2s_io_dat),
+    .wb_io_sel_i        (wb_m2s_io_sel),
+    .wb_io_we_i         (wb_m2s_io_we),
+    .wb_io_cyc_i        (wb_m2s_io_cyc),
+    .wb_io_stb_i        (wb_m2s_io_stb),
+    .wb_io_dat_o        (wb_s2m_io_dat),
+    .wb_io_ack_o        (wb_s2m_io_ack),
+    .wb_io_err_o        (wb_s2m_io_err),
+    .wb_io_rty_o        (wb_s2m_io_rty),
+
+    .wb_spi_flash_adr_o (wb_m2s_spi_flash_adr),
+    .wb_spi_flash_dat_o (wb_m2s_spi_flash_dat),
+    .wb_spi_flash_sel_o (wb_m2s_spi_flash_sel),
+    .wb_spi_flash_we_o  (wb_m2s_spi_flash_we),
+    .wb_spi_flash_cyc_o (wb_m2s_spi_flash_cyc),
+    .wb_spi_flash_stb_o (wb_m2s_spi_flash_stb),
+    .wb_spi_flash_dat_i (wb_s2m_spi_flash_dat),
+    .wb_spi_flash_ack_i (wb_s2m_spi_flash_ack),
+    .wb_spi_flash_err_i (wb_s2m_spi_flash_err),
+    .wb_spi_flash_rty_i (wb_s2m_spi_flash_rty),
+
+
+// SPI 2
+    .wb_spi_adr_o (wb_m2s_spi_adr),
+    .wb_spi_dat_o (wb_m2s_spi_dat),
+    .wb_spi_sel_o (wb_m2s_spi_sel),
+    .wb_spi_we_o  (wb_m2s_spi_we),
+    .wb_spi_cyc_o (wb_m2s_spi_cyc),
+    .wb_spi_stb_o (wb_m2s_spi_stb),
+    .wb_spi_dat_i (wb_s2m_spi_dat),
+    .wb_spi_ack_i (wb_s2m_spi_ack),
+    .wb_spi_err_i (wb_s2m_spi_err),
+    .wb_spi_rty_i (wb_s2m_spi_rty),
+
+    .wb_dmem_adr_o       (wb_m2s_dmem_adr),
+    .wb_dmem_dat_o       (wb_m2s_dmem_dat),
+    .wb_dmem_sel_o       (wb_m2s_dmem_sel),
+    .wb_dmem_we_o        (wb_m2s_dmem_we),
+    .wb_dmem_cyc_o       (wb_m2s_dmem_cyc),
+    .wb_dmem_stb_o       (wb_m2s_dmem_stb),
+    .wb_dmem_dat_i       (wb_s2m_dmem_dat),
+    .wb_dmem_ack_i       (wb_s2m_dmem_ack),
+    .wb_dmem_err_i       (wb_s2m_dmem_err),
+    .wb_dmem_rty_i       (wb_s2m_dmem_rty),
+
+    .wb_imem_adr_o       (wb_m2s_imem_adr),
+    .wb_imem_dat_o       (wb_m2s_imem_dat),
+    .wb_imem_sel_o       (wb_m2s_imem_sel),
+    .wb_imem_we_o        (wb_m2s_imem_we),
+    .wb_imem_cyc_o       (wb_m2s_imem_cyc),
+    .wb_imem_stb_o       (wb_m2s_imem_stb),
+    .wb_imem_dat_i       (wb_s2m_imem_dat),
+    .wb_imem_ack_i       (wb_s2m_imem_ack),
+    .wb_imem_err_i       (wb_s2m_imem_err),
+    .wb_imem_rty_i       (wb_s2m_imem_rty),
+
+    .wb_uart_adr_o      (wb_m2s_uart_adr),
+    .wb_uart_dat_o      (wb_m2s_uart_dat),
+    .wb_uart_sel_o      (wb_m2s_uart_sel),
+    .wb_uart_we_o       (wb_m2s_uart_we),
+    .wb_uart_cyc_o      (wb_m2s_uart_cyc),
+    .wb_uart_stb_o      (wb_m2s_uart_stb),
+    .wb_uart_dat_i      (wb_s2m_uart_dat),
+    .wb_uart_ack_i      (wb_s2m_uart_ack),
+    .wb_uart_err_i      (wb_s2m_uart_err),
+    .wb_uart_rty_i      (wb_s2m_uart_rty),
+
+// GPIO
+    .wb_gpio_adr_o      (wb_m2s_gpio_adr),
+    .wb_gpio_dat_o      (wb_m2s_gpio_dat),
+    .wb_gpio_sel_o      (wb_m2s_gpio_sel),
+    .wb_gpio_we_o       (wb_m2s_gpio_we), 
+    .wb_gpio_cyc_o      (wb_m2s_gpio_cyc),
+    .wb_gpio_stb_o      (wb_m2s_gpio_stb),
+    .wb_gpio_dat_i      (wb_s2m_gpio_dat),
+    .wb_gpio_ack_i      (wb_s2m_gpio_ack),
+    .wb_gpio_err_i      (wb_s2m_gpio_err),
+    .wb_gpio_rty_i      (wb_s2m_gpio_rty), 
+
+// I2C
+    .wb_i2c_adr_o       (wb_m2s_i2c_adr),
+    .wb_i2c_dat_o       (wb_m2s_i2c_dat),
+    .wb_i2c_sel_o       (wb_m2s_i2c_sel),
+    .wb_i2c_we_o        (wb_m2s_i2c_we), 
+    .wb_i2c_cyc_o       (wb_m2s_i2c_cyc),
+    .wb_i2c_stb_o       (wb_m2s_i2c_stb),
+    .wb_i2c_dat_i       (wb_s2m_i2c_dat),
+    .wb_i2c_ack_i       (wb_s2m_i2c_ack),
+    .wb_i2c_err_i       (wb_s2m_i2c_err),
+    .wb_i2c_rty_i       (wb_s2m_i2c_rty), 
     
+// CLINT   
+    .wb_clint_adr_o      (wb_m2s_clint_adr),
+    .wb_clint_dat_o      (wb_m2s_clint_dat),
+    .wb_clint_sel_o      (wb_m2s_clint_sel),
+    .wb_clint_we_o       (wb_m2s_clint_we), 
+    .wb_clint_cyc_o      (wb_m2s_clint_cyc),
+    .wb_clint_stb_o      (wb_m2s_clint_stb),
+    .wb_clint_dat_i      (wb_s2m_clint_dat),
+    .wb_clint_ack_i      (wb_s2m_clint_ack),
+    .wb_clint_err_i      (wb_s2m_clint_err),
+    .wb_clint_rty_i      (wb_s2m_clint_rty),
     
-//===============================//
-// Wishbone interconnect signals//
-//===============================//  
-              
-    // SPI FLASH SIGNALS 
-                                        
-                    
-logic  [31:0] wb_spi_flash_adr_o;        
-logic  [31:0] wb_spi_flash_dat_o;        
-logic   [3:0] wb_spi_flash_sel_o;        
-logic         wb_spi_flash_we_o;        
-logic         wb_spi_flash_cyc_o;        
-logic         wb_spi_flash_stb_o;        
-logic   [2:0] wb_spi_flash_cti_o;        
-logic   [1:0] wb_spi_flash_bte_o;        
-logic  [31:0] wb_spi_flash_dat_i;        
-logic         wb_spi_flash_ack_i;        
-logic         wb_spi_flash_err_i;        
-logic         wb_spi_flash_rty_i;        
-                                    
-//  DATA MEM  
-                            
-logic  [31:0] wb_dmem_adr_o;             
-logic  [31:0] wb_dmem_dat_o;             
-logic   [3:0] wb_dmem_sel_o;             
-logic         wb_dmem_we_o;             
-logic         wb_dmem_cyc_o;             
-logic         wb_dmem_stb_o;             
-logic   [2:0] wb_dmem_cti_o;             
-logic   [1:0] wb_dmem_bte_o;             
-logic  [31:0] wb_dmem_dat_i;             
-logic         wb_dmem_ack_i;             
-logic         wb_dmem_err_i;             
-logic         wb_dmem_rty_i;             
-                                    
-    // IMEM
-                                 
-logic  [31:0] wb_imem_adr_o;           
-logic  [31:0] wb_imem_dat_o;           
-logic   [3:0] wb_imem_sel_o;           
-logic         wb_imem_we_o;           
-logic         wb_imem_cyc_o;           
-logic         wb_imem_stb_o;           
-logic   [2:0] wb_imem_cti_o;           
-logic   [1:0] wb_imem_bte_o;           
-logic  [31:0] wb_imem_dat_i;           
-logic         wb_imem_ack_i;           
-logic         wb_imem_err_i;           
-logic         wb_imem_rty_i;
-                           
-    // UART                
-                              
-logic  [31:0] wb_uart_adr_o;           
-logic  [31:0] wb_uart_dat_o;           
-logic   [3:0] wb_uart_sel_o;           
-logic         wb_uart_we_o;           
-logic         wb_uart_cyc_o;           
-logic         wb_uart_stb_o;           
-logic   [2:0] wb_uart_cti_o;           
-logic   [1:0] wb_uart_bte_o;           
-logic  [31:0] wb_uart_dat_i;           
-logic         wb_uart_ack_i;           
-logic         wb_uart_err_i;           
-logic         wb_uart_rty_i;
-                           
-    // GPIO                
-                             
-logic  [31:0] wb_gpio_adr_o;           
-logic  [31:0] wb_gpio_dat_o;           
-logic   [3:0] wb_gpio_sel_o;           
-logic         wb_gpio_we_o;           
-logic         wb_gpio_cyc_o;           
-logic         wb_gpio_stb_o;           
-logic   [2:0] wb_gpio_cti_o;           
-logic   [1:0] wb_gpio_bte_o;           
-logic  [31:0] wb_gpio_dat_i;           
-logic         wb_gpio_ack_i;           
-logic         wb_gpio_err_i;           
-logic         wb_gpio_rty_i;           
-     
-// CLINT 
+// PTC
+    .wb_ptc_adr_o       (wb_m2s_ptc_adr),
+    .wb_ptc_dat_o       (wb_m2s_ptc_dat),
+    .wb_ptc_sel_o       (wb_m2s_ptc_sel),
+    .wb_ptc_we_o        (wb_m2s_ptc_we),
+    .wb_ptc_cyc_o       (wb_m2s_ptc_cyc),
+    .wb_ptc_stb_o       (wb_m2s_ptc_stb),
+    .wb_ptc_dat_i       (wb_s2m_ptc_dat),
+    .wb_ptc_ack_i       (wb_s2m_ptc_ack),
+    .wb_ptc_err_i       (wb_s2m_ptc_err),
+    .wb_ptc_rty_i       (wb_s2m_ptc_rty),
 
-logic [31:0] wb_clint_adr_o;
-logic [31:0] wb_clint_dat_o;
-logic  [3:0] wb_clint_sel_o;
-logic        wb_clint_we_o;
-logic        wb_clint_cyc_o;
-logic        wb_clint_stb_o;
-logic  [2:0] wb_clint_cti_o;
-logic  [1:0] wb_clint_bte_o;
-logic [31:0] wb_clint_dat_i;
-logic        wb_clint_ack_i;
-logic        wb_clint_err_i;
-logic        wb_clint_rty_i;
+// PLIC
+    .wb_plic_adr_o       (wb_m2s_plic_adr),
+    .wb_plic_dat_o       (wb_m2s_plic_dat),
+    .wb_plic_sel_o       (wb_m2s_plic_sel),
+    .wb_plic_we_o        (wb_m2s_plic_we),
+    .wb_plic_cyc_o       (wb_m2s_plic_cyc),
+    .wb_plic_stb_o       (wb_m2s_plic_stb),
+    .wb_plic_dat_i       (wb_s2m_plic_dat),
+    .wb_plic_ack_i       (wb_s2m_plic_ack),
+    .wb_plic_err_i       (wb_s2m_plic_err),
+    .wb_plic_rty_i       (wb_s2m_plic_rty));
+
+
+    assign wb_s2m_imem_err  = 1'b0;
+    assign wb_s2m_imem_rty  = 1'b0;
+    assign wb_s2m_dmem_err  = 1'b0;
+    assign wb_s2m_dmem_rty  = 1'b0;
+    assign wb_s2m_clint_err = 1'b0;
+    assign wb_s2m_clint_rty = 1'b0;
+    assign wb_s2m_plic_err  = 1'b0;
+    assign wb_s2m_plic_rty  = 1'b0;
+
     // ============================================
-    //             Wishbone Interconnect 
+    //                  SPI Flash
+    // ============================================   
+
+   wire [7:0] 		       spi_rdt;
+   assign wb_s2m_spi_flash_dat = {24'd0,spi_rdt};
+   simple_spi spi1
+     (// Wishbone slave interface
+      .clk_i  (clk),
+      .rst_i  (wb_rst),
+      .adr_i  (wb_m2s_spi_flash_adr[4:2]),
+      .dat_i  (wb_m2s_spi_flash_dat[7:0]),
+      .we_i   (wb_m2s_spi_flash_we),
+      .cyc_i  (wb_m2s_spi_flash_cyc),
+      .stb_i  (wb_m2s_spi_flash_stb),
+      .dat_o  (spi_rdt),
+      .ack_o  (wb_s2m_spi_flash_ack),
+      .inta_o (spi_flash_irq),
+      // SPI interface
+      .sck_o  (o_flash_sclk),
+      .ss_o   (o_flash_cs_n),
+      .mosi_o (o_flash_mosi),
+      .miso_i (i_flash_miso));
+   
+   assign wb_s2m_spi_flash_err = 1'b0;
+   assign wb_s2m_spi_flash_rty = 1'b0;
+
+
     // ============================================
+    //                  SPI 2
+    // ============================================   
+
+   wire [7:0] 		       spi_rdt_2;
+   assign wb_s2m_spi_dat = {24'd0,spi_rdt_2};
+   simple_spi spi2
+     (// Wishbone slave interface
+      .clk_i  (clk),
+      .rst_i  (wb_rst),
+      .adr_i  (wb_m2s_spi_adr[4:2]),
+      .dat_i  (wb_m2s_spi_dat[7:0]),
+      .we_i   (wb_m2s_spi_we),
+      .cyc_i  (wb_m2s_spi_cyc),
+      .stb_i  (wb_m2s_spi_stb),
+      .dat_o  (spi_rdt_2),
+      .ack_o  (wb_s2m_spi_ack),
+      .inta_o (spi2_irq),
+      // SPI interface
+      .sck_o  (o_sclk),
+      .ss_o   (o_cs_n),
+      .mosi_o (o_mosi),
+      .miso_i (i_miso));
+   
+   assign wb_s2m_spi_err = 1'b0;
+   assign wb_s2m_spi_rty = 1'b0;
+
+
+
+    // ============================================
+    //                  UART
+    // ============================================  
+
+   wire [7:0] 		       uart_rdt;
+   assign wb_s2m_uart_dat = {24'd0, uart_rdt};
+   assign wb_s2m_uart_err = 1'b0;
+   assign wb_s2m_uart_rty = 1'b0;
+
+   uart_top uart16550_0
+     (// Wishbone slave interface
+
+      .wb_clk_i	(clk),
+      .wb_rst_i	(~reset_n),
+      .wb_adr_i	(wb_m2s_uart_adr[4:2]),
+      .wb_dat_i	(wb_m2s_uart_dat[7:0]),
+      .wb_we_i	(wb_m2s_uart_we),
+      .wb_cyc_i	(wb_m2s_uart_cyc),
+      .wb_stb_i	(wb_m2s_uart_stb),
+      .wb_sel_i	(4'b0), // Not used in 8-bit mode
+      .wb_dat_o	(uart_rdt),
+      .wb_ack_o	(wb_s2m_uart_ack),
+
+      // Outputs
+      .int_o     (uart_irq),
+      .stx_pad_o (o_uart_tx),
+      .rts_pad_o (), // intentionally left unconnected
+      .dtr_pad_o (), // intentionally left unconnected
+
+      // Inputs
+      .srx_pad_i (i_uart_rx),
+      .cts_pad_i (1'b0),
+      .dsr_pad_i (1'b0),
+      .ri_pad_i  (1'b0),
+      .dcd_pad_i (1'b0));
+
+
+    // ============================================
+    //                  GPIO
+    // ============================================  
+
+   gpio_top #(
+    .NO_OF_GPIO_PINS(NO_OF_GPIO_PINS),
+    .NO_OF_SHARED_PINS(NO_OF_SHARED_PINS)
+   )gpio_module (
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .wb_cyc_i     (wb_m2s_gpio_cyc), 
+        .wb_adr_i     ({2'b0,wb_m2s_gpio_adr[5:2],2'b0}), 
+        .wb_dat_i     (wb_m2s_gpio_dat), 
+        .wb_sel_i     (wb_m2s_gpio_sel),
+        .wb_we_i      (wb_m2s_gpio_we), 
+        .wb_stb_i     (wb_m2s_gpio_stb), 
+        .wb_dat_o     (wb_s2m_gpio_dat),
+        .wb_ack_o     (wb_s2m_gpio_ack), 
+        .wb_err_o     (wb_s2m_gpio_err),
+        .wb_inta_o    (gpio_irq),
+        // gpio signals 
+        .i_gpio(i_gpio_),
+        .o_gpio(o_gpio_),
+        .en_gpio(en_gpio_),
+        .io_sel(io_sel)
+        );
+    assign wb_s2m_gpio_rty = 1'b0;
+
+    assign wb_s2m_i2c_dat[31:8] = 'h0;
+    i2c_master_top  i2c_master_inst (
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .arst_i       (reset_n),
+        .wb_cyc_i     (wb_m2s_i2c_cyc), 
+        .wb_adr_i      ({wb_m2s_i2c_adr[4:2]}), 
+        .wb_dat_i     (wb_m2s_i2c_dat[7:0]), 
+        .wb_we_i      (wb_m2s_i2c_we), 
+        .wb_stb_i     (wb_m2s_i2c_stb), 
+        .wb_dat_o     (wb_s2m_i2c_dat[7:0]),
+        .wb_ack_o     (wb_s2m_i2c_ack), 
+        .wb_inta_o    (i2c_irq),
+        // i2c signals 
+        .scl_pad_i (i_scl),
+        .scl_pad_o (o_scl),
+        .scl_padoen_o (o_scl_oen),
+        .sda_pad_i (i_sda),
+        .sda_pad_o (o_sda),
+        .sda_padoen_o (o_sda_oen)
+        );
+        assign wb_s2m_i2c_err = 1'b0;
+        assign wb_s2m_i2c_rty = 1'b0;
+
+`ifdef USE_SRAM
+
+    // ============================================
+    //            SRAM Memory Instances
+    // ============================================    
+
+
+    sram_8k_wrapper data_mem_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       (wb_m2s_dmem_cyc), 
+        .stb_i       (wb_m2s_dmem_stb),
+        .adr_i       (wb_m2s_dmem_adr),
+        .we_i        (wb_m2s_dmem_we ),
+        .sel_i       (wb_m2s_dmem_sel),
+        .dat_i       (wb_m2s_dmem_dat),
+        .dat_o       (wb_s2m_dmem_dat),
+        .ack_o       (wb_s2m_dmem_ack)
+    );
+
+
+
+    logic [31:0] imem_inst;
+
+    logic [31:0] imem_addr;
     
-      wb_intercon  wishbone_intercon (.wb_clk_i(clk),
-                                      .wb_rst_i(~reset_n),
-                                      .*);
+    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
 
-    // ============================================
-    //                   Peripherals
-    // ============================================
-    // Instantate the peripherals here
+    sram_32k_wrapper inst_mem_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_cyc : 1'b1), 
+        .stb_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_stb : 1'b1),
+        .adr_i       (imem_addr      ),
+        .we_i        ((sel_boot_rom | core_halted) & wb_m2s_imem_we),
+        .sel_i       (wb_m2s_imem_sel),
+        .dat_i       (wb_m2s_imem_dat),
+        .dat_o       (wb_s2m_imem_dat),
+        .ack_o       (wb_s2m_imem_ack)
+    );
 
-    // Here is the tri state buffer logic for setting iopin as input or output based
-    // on the bits stored in the en_gpio register
+    assign imem_inst = wb_s2m_imem_dat;
+
+
+
+`elsif PD_BUILD
+    // ============================================
+    //            SRAM Memory Instances
+    // ============================================    
+
+     sram_8k_wrapper data_mem_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       (wb_m2s_dmem_cyc), 
+        .stb_i       (wb_m2s_dmem_stb),
+        .adr_i       (wb_m2s_dmem_adr),
+        .we_i        (wb_m2s_dmem_we ),
+        .sel_i       (wb_m2s_dmem_sel),
+        .dat_i       (wb_m2s_dmem_dat),
+        .dat_o       (wb_s2m_dmem_dat),
+        .ack_o       (wb_s2m_dmem_ack)
+    );
+
+
+
+    logic [31:0] imem_inst;
+
+    logic [31:0] imem_addr;
     
-    wire        gpio_irq;
+    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
 
-    genvar i;
-    generate
-            for( i = 0; i<32; i = i+1) 
-            begin:gpio_gen_loop
-                bidirec gpio1  (.oe(en_gpio[i] ), .inp(o_gpio[i] ), .outp(i_gpio[i] ), .bidir(io_data[i]));
-            end
-    endgenerate
+    sram_32k_wrapper inst_mem_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_cyc : 1'b1), 
+        .stb_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_stb : 1'b1),
+        .adr_i       (imem_addr      ),
+        .we_i        ((sel_boot_rom | core_halted) & wb_m2s_imem_we),
+        .sel_i       (wb_m2s_imem_sel),
+        .dat_i       (wb_m2s_imem_dat),
+        .dat_o       (wb_s2m_imem_dat),
+        .ack_o       (wb_s2m_imem_ack)
+    );
 
-    // ============================================
-    //                 GPIO Instantiation
-    // ============================================
+    assign imem_inst = wb_s2m_imem_dat;
 
-    gpio_top  GPIO  ( 
-                    .wb_clk_i(clk),   
-                    .wb_rst_i(~reset_n), 
-                    .wb_cyc_i(wb_gpio_cyc_o),   
-                    .wb_adr_i(wb_gpio_adr_o),   
-                    .wb_dat_i(wb_gpio_dat_o),   
-                    .wb_sel_i(wb_gpio_sel_o),   
-                    .wb_we_i(wb_gpio_we_o)  ,  
-                    .wb_stb_i(wb_gpio_stb_o) ,  
-	                .wb_dat_o(wb_gpio_dat_i) , 
-	                .wb_ack_o(wb_gpio_ack_i) , 
-	                .wb_err_o(wb_gpio_err_i) , 
-	                
-                    .i_gpio(i_gpio),
-                    .o_gpio(o_gpio),
-                    .en_gpio(en_gpio)
-                    
-
-   );
-
-
+ 
+  
+`else
     // ============================================
     //             Data Memory Instance
     // ============================================
 
-    // Instantiate data memory here 
-     data_mem #(
+    data_mem #(
         .DEPTH(DMEM_DEPTH)
-     ) data_mem_inst(
-        // 8bit WISHBONE bus slave interface
-        .clk_i(clk),         // clock
-        .rst_i(~reset_n),         // reset (synchronous active high)
-        .cyc_i(wb_dmem_cyc_o),         // cycle
-        .stb_i(wb_dmem_stb_o),         // strobe
-        .adr_i(wb_dmem_adr_o),         // address
-        .we_i(wb_dmem_we_o),          // write enable
-        .sel_i(wb_dmem_sel_o),
-        .dat_i(wb_dmem_dat_o),         // data input
-        .dat_o(wb_dmem_dat_i),         // data output
-        .ack_o(wb_dmem_ack_i)         // normal bus termination
+    ) data_mem_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       (wb_m2s_dmem_cyc), 
+        .stb_i       (wb_m2s_dmem_stb),
+        .adr_i       (wb_m2s_dmem_adr),
+        .we_i        (wb_m2s_dmem_we ),
+        .sel_i       (wb_m2s_dmem_sel),
+        .dat_i       (wb_m2s_dmem_dat),
+        .dat_o       (wb_s2m_dmem_dat),
+        .ack_o       (wb_s2m_dmem_ack)
     );
 
-    // logic  [31:0] wb_dmem_adr_o;
-    // logic  [31:0] wb_dmem_dat_o;
-    // logic   [3:0] wb_dmem_sel_o;
-    // logic         wb_dmem_we_o;
-    // logic         wb_dmem_cyc_o;
-    // logic         wb_dmem_stb_o;
-    // logic   [2:0] wb_dmem_cti_o;
-    // logic   [1:0] wb_dmem_bte_o;
-    // logic  [31:0] wb_dmem_dat_i;
-    // logic         wb_dmem_ack_i;
-    // logic         wb_dmem_err_i;
-    // logic         wb_dmem_rty_i;
-    // ============================================
-    //          UART Instance
-    // ============================================
-    //input 		srx_pad_i;
-    //output 		stx_pad_o;
-    //output 		rts_pad_o;
-    //input 		cts_pad_i;
-    //output 		dtr_pad_o;
-    //input 		dsr_pad_i;
-    //input 		ri_pad_i;
-    //input 		dcd_pad_i;
 
-    uart_top UART(
- 	              .wb_adr_i(wb_uart_adr_o),
-                  .wb_dat_i(wb_uart_dat_o),
- 	              .wb_dat_o(wb_uart_dat_i),
- 				  .wb_cyc_i(wb_uart_cyc_o),
-                  .wb_clk_i(clk),
-                  .wb_rst_i(~reset_n),
-                  .wb_we_i (wb_uart_we_o),
-                  .wb_stb_i(wb_uart_stb_o),
-                  .wb_sel_i(wb_uart_sel_o),
-                  //.int_o   (),
-                  .wb_ack_o(wb_uart_ack_i),
-                  .srx_pad_i(i_uart_rx), 
-                  .stx_pad_o(o_uart_tx)
-    );
     // ============================================
     //          Instruction Memory Instance
     // ============================================
@@ -309,75 +763,124 @@ logic        wb_clint_rty_i;
 
     logic [31:0] imem_addr;
     
-    logic sel_boot_rom;
-    
-    assign imem_addr = sel_boot_rom ? wb_dmem_adr_o: current_pc;
+    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
 
     data_mem #(
         .DEPTH(IMEM_DEPTH)
     ) inst_mem_inst (
         .clk_i       (clk            ),
-        .rst_i       (~reset_n         ),
-        .cyc_i       (wb_imem_cyc_o),
-        .stb_i       (wb_imem_stb_o),
-        .adr_i       (imem_addr),
-        .we_i        (wb_imem_we_o ),
-        .sel_i       (wb_imem_sel_o),
-        .dat_i       (wb_imem_dat_o),
-        .dat_o       (wb_imem_dat_i),
-        .ack_o       (wb_imem_ack_i)
+        .rst_i       (wb_rst         ),
+        .cyc_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_cyc : 1'b1), 
+        .stb_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_stb : 1'b1),
+        .adr_i       (imem_addr      ),
+        .we_i        ((sel_boot_rom | core_halted) & wb_m2s_imem_we),
+        .sel_i       (wb_m2s_imem_sel),
+        .dat_i       (wb_m2s_imem_dat),
+        .dat_o       (wb_s2m_imem_dat),
+        .ack_o       (wb_s2m_imem_ack)
+    );
+
+    assign imem_inst = wb_s2m_imem_dat;
+
+`endif
+
+    // ============================================
+    //                 CLINT INSTANCE
+    // ============================================
+
+    clint_top clint_inst (
+        .clk_i       (clk            ),
+        .rst_i       (wb_rst         ),
+        .cyc_i       (wb_m2s_clint_cyc), 
+        .stb_i       (wb_m2s_clint_stb),
+        .adr_i       (wb_m2s_clint_adr),
+        .we_i        (wb_m2s_clint_we ),
+        .sel_i       (wb_m2s_clint_sel),
+        .dat_i       (wb_m2s_clint_dat),
+        .dat_o       (wb_s2m_clint_dat),
+        .ack_o       (wb_s2m_clint_ack),
+        .halt        (core_halted),
+        .timer_irq   (timer_irq)
     );
 
 
     // ============================================
-    //          CLINT Instance
+    //                 PTC INSTANCE
     // ============================================
-    
-    
-    clint CLINT (
-                    .wb_clk_i(clk),
-                    .wb_rst_i(~reset_n),
-                    .wb_cyc_i(wb_clint_cyc_o),
-                    .wb_stb_i(wb_clint_stb_o),
-                    .wb_we_i (wb_clint_we_o),
-                    .wb_adr_i(wb_clint_adr_o),
-                    .wb_dat_i(wb_clint_dat_o) ,
-                    .wb_dat_o(wb_clint_dat_i),
-                    .wb_ack_o(wb_clint_ack_i),
-                    .mtip_o  (mip_in[7])
-                              
-                          );    
-                    
-                    
-                     
-    assign imem_inst = wb_imem_dat_i;
 
+    logic pwm_padoen_o;
+    ptc_top ptc_top_inst(
 
-    // BOOT ROM 
-    logic [31:0] rom_inst, rom_inst_ff;
-    rom rom_instance(
-        .addr     (current_pc[11:0]),
-        .inst     (rom_inst  )
+            // Wishbone Interface
+            .wb_clk_i     (clk), 
+            .wb_rst_i     (wb_rst), 
+            .wb_cyc_i     (wb_m2s_ptc_cyc), 
+            .wb_adr_i     ({10'b0,wb_m2s_ptc_adr[5:2],2'b0}), 
+            .wb_dat_i     (wb_m2s_ptc_dat), 
+            .wb_sel_i     (4'b1111),
+            .wb_we_i      (wb_m2s_ptc_we), 
+            .wb_stb_i     (wb_m2s_ptc_stb), 
+            .wb_dat_o     (wb_s2m_ptc_dat),
+            .wb_ack_o     (wb_s2m_ptc_ack), 
+            .wb_err_o     (wb_s2m_ptc_err),
+            .wb_inta_o    (ptc_irq),
+
+            // External PTC Interface
+            .gate_clk_pad_i (1'b0), // not using external clk
+            .capt_pad_i     (1'b0), // capture feature is not used 
+            .pwm_pad_o      (pwm_pad_o),
+            .oen_padoen_o   (pwm_padoen_o)
     );
-
-    // register after boot rom (to syncronize with the pipeline and inst mem)
-    n_bit_reg #(
-        .n(32)
-    ) rom_inst_reg (
-        .clk(clk),
-        .reset_n(reset_n),
-        .data_i(rom_inst),
-        .data_o(rom_inst_ff),
-        .wen(if_id_reg_en)
-    );
+    assign wb_s2m_ptc_rty = 1'b0;
 
 
+    // ============================================
+    //                   BOOT ROM
+    // ============================================
+
+	logic [31:0] rom_inst_ff;
+	`ifdef USE_SRAM
+	    tsmc_rom_1k #(
+		.PreloadFilename("/home/qamar/Desktop/RivRtos/src/tb/rom.hex")		
+		)tsmc_rom_inst (
+		.Q(rom_inst_ff),
+		.ADR(current_pc[9:2]),
+		.ME(sel_boot_rom),
+		.OE(reset_n),
+		.CLK(clk)
+		);
+	`elsif PD_BUILD
+	    tsmc_rom_1k #(
+		.PreloadFilename("/home/qamar/Desktop/RivRtos/src/tb/rom.hex")		
+		)tsmc_rom_inst (
+		.Q(rom_inst_ff),
+		.ADR(current_pc[9:2]),
+		.ME(sel_boot_rom),
+		.OE(reset_n),
+		.CLK(clk)
+		);
+	`else
+	    logic [31:0] rom_inst;
+	    rom rom_instance(
+		.addr     (current_pc[11:0]),
+		.inst     (rom_inst  )
+	    );
+
+	    // register after boot rom (to syncronize with the pipeline and inst mem)
+	    n_bit_reg #(
+		.n(32)
+	    ) rom_inst_reg (
+		.clk(clk),
+		.reset_n(reset_n),
+		.data_i(rom_inst),
+		.data_o(rom_inst_ff),
+		.wen(if_id_reg_en)
+	    );
+
+	`endif
 
     // Inst selection mux
-    logic sel_boot_rom_ff;
-    
     assign sel_boot_rom = &current_pc[31:12]; // 0xfffff000 - to - 0xffffffff 
-    
     always @(posedge clk) sel_boot_rom_ff <= sel_boot_rom;
     mux2x1 #(
         .n(32)
@@ -389,5 +892,67 @@ logic        wb_clint_rty_i;
     );
 
 
+    // ============================================
+    //                   Debug Unit
+    // ============================================
+		debug_top debug_top_inst
+			(
+            `ifndef VIVADO_BUILD
+				.tms_i		(tms_i),
+				.tck_i		(tck_i),
+				.trstn_i	(reset_n),
+				.tdi_i		(tdi_i),
+				.tdo_o		(tdo_o),
+            `endif
+
+				.rst_i		(~reset_n),
+				.clk_i		(clk),
+
+				.resumeack_i(onebit_sig_e'(core_resumeack)),
+				.running_i	(onebit_sig_e'(core_running)),
+				.halted_i	(onebit_sig_e'(core_halted)),
+
+				.haltreq_o	(dbg_haltreq),
+				.resumereq_o(dbg_resumereq),
+				.ndmreset_o	(dbg_ndmreset),
+
+				.ar_en_o	(dbg_ar_en),
+				.ar_wr_o	(dbg_ar_wr),
+				.ar_ad_o	(dbg_ar_ad),
+				.ar_di_i	(dbg_ar_di),
+				.ar_do_o	(dbg_ar_do),
+				.ar_done_i	(onebit_sig_e'(dbg_ar_done)),
+
+				.am_en_o	(dbg_am_en),
+				.am_wr_o	(dbg_am_wr),
+				.am_st_o	(dbg_am_st),
+				.am_ad_o	(dbg_am_ad),
+				.am_di_i	(dbg_am_di),
+				.am_do_o	(dbg_am_do),
+				.am_done_i	(onebit_sig_e'(dbg_am_done))
+			);
+
+    // ============================================
+    //                      PLIC
+    // ============================================
+
+    // Platform Level Interrupt Controller, according the riscv spec 
+    plic_top #(
+        .NUM_SOURCES_P (6),
+        .NUM_CONTEXTS_P(1)
+    ) plic_inst (
+        .wb_clk_i    (clk             ),
+        .wb_rst_i    (wb_rst          ),
+        .wb_cyc_i    (wb_m2s_plic_cyc),
+        .wb_stb_i    (wb_m2s_plic_stb),
+        .wb_adr_i    (wb_m2s_plic_adr[23:0]),
+        .wb_we_i     (wb_m2s_plic_we ),
+        .wb_sel_i    (wb_m2s_plic_sel),
+        .wb_dat_i    (wb_m2s_plic_dat),
+        .wb_dat_o    (wb_s2m_plic_dat),
+        .wb_ack_o    (wb_s2m_plic_ack),
+        .int_sources({uart_irq, spi_flash_irq, spi2_irq, gpio_irq, i2c_irq, ptc_irq}), // lsb has the small id number so high priority incase of priority clash
+        .external_irq(external_irq)
+    );
     
 endmodule : rv32i_soc

@@ -271,8 +271,10 @@ begin
 				stx_o_tmp <= 1'b0;
 				if (SIM) begin
 					tstate <= s_idle;
-					$write("%c", tf_data_out);
-					$fflush(32'h80000001);
+					`ifdef VCS_SIM
+						$write("%c", tf_data_out);
+						$fflush(32'h80000001);
+					`endif
 				end
 			end
 	s_send_byte :	begin

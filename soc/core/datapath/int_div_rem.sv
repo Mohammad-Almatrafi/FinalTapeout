@@ -200,7 +200,7 @@ module int_div_rem #(
                             stall <= 0;
                             o_p_signal <= 1;
                             ovf <= 1;
-                            result <= 'b0; // Default value
+                            result <= SMALLEST; // Default value
                         end else begin                 
                             dbz <= 0;
                             ovf <= 0;

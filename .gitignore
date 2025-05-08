@@ -9,6 +9,7 @@ C_Code/build
 C_Code/build/**
 src/build
 src/build/**
+src/tsmc/
+src/tsmc/** 
 soc/WishboneInterconnect_qamar/
 soc/WishboneInterconnect_qamar/**
-

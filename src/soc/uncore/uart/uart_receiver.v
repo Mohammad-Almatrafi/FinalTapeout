@@ -189,7 +189,10 @@
 //
 //
 
-//`include "uart_defines.v"
+`ifndef VCS
+	`include "uart_defines.v"
+`endif 
+
 
 `default_nettype wire
 

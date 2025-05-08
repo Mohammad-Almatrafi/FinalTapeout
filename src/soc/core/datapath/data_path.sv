@@ -6,9 +6,9 @@ module data_path #(
 ) (
     input logic clk,
     input logic reset_n,
+    input logic timer_irq,
+    input logic external_irq,
 
-
-    input logic [31:0] mip_in,
     input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
@@ -97,6 +97,7 @@ module data_path #(
 
 );
 
+    logic [31:0] mip_in;
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;
@@ -144,6 +145,11 @@ module data_path #(
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
+  always_comb begin
+    mip_in = 0;
+    mip_in[7] = timer_irq;
+    mip_in[11] = external_irq;
+  end
 
   program_counter PC_inst (
       .*,
@@ -586,8 +592,8 @@ int_div_rem #(
   .b(alu_op2_exe),
   .result(div_result_exe),
 
-  .en('b1),
-  .clear('b0)
+  .en(1'b1),
+  .clear(1'b0)
 );
 //--------------------------------------------------------------------------------------------------
   

@@ -1,6 +1,6 @@
 `ifndef PD_BUILD
     `ifdef VCS_SIM
-        `include "pads/tpz018nv_270a/tpz018nv.v"
+        `include "/tpz018nv_270a/tpz018nv.v"
         `include "soc/sram/tsmc_32k_rtl.v"
         `include "soc/sram/tsmc_8k_rtl.v"
         `include "soc/rom/tsmc_rom_1k_rtl.v"

@@ -1,6 +1,7 @@
 # Filelist for VCS simulation
 
 +define+tracer
++define+VCS_SIM
 
 # lib that many module accesses should be compiled first
 soc/core/datapath/lib.sv
@@ -89,6 +90,7 @@ soc/uncore/clint.sv
 # sram 
 ##sram/ts1da32kx32_100a_tc.v
 
+soc/
 
 # rv32i soc top
 soc/rv32i_soc.sv
@@ -101,3 +103,14 @@ tb/rv32i_soc_tb.sv
 
 # Optionally, include any other files you want for the simulation.
 
+soc/uncore/debug/bscan_tap.sv
+soc/uncore/debug/debug_pkg.sv
+soc/uncore/debug/debug_top.sv
+soc/uncore/debug/dm.sv
+soc/uncore/debug/dtm.sv
+soc/uncore/i2c/rtl/i2c_master_defines.v
+soc/uncore/i2c/rtl/i2c_master_bit_ctrl.v
+soc/uncore/i2c/rtl/i2c_master_byte_ctrl.v
+soc/uncore/i2c/rtl/i2c_master_top.v
+soc/uncore/ptc/ptc_defines.v
+soc/uncore/ptc/ptc_top.v

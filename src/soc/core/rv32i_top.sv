@@ -4,7 +4,8 @@ module rv32i #(
 )(
     input logic clk, 
     input logic reset_n,
-    input logic [31:0] mip_in,
+    input logic timer_irq,
+    input logic external_irq,
     
     // memory bus
     output logic [31:0] mem_addr_mem, 
