@@ -79,7 +79,7 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
 		#1; 
 		release DUT.inst_mem_inst.dmem;
 		release DUT.data_mem_inst.dmem;
-  end  // wait
+  end  // wait`
 
   initial begin
     repeat (100000) @(posedge clk);

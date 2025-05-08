@@ -56,12 +56,12 @@ module atomic_access_controller (
     localparam AMO_MAXU = 5'b11100;
 
     typedef enum logic [2:0] {
-        IDLE,
-        READ,
-        EXECUTE,
-        WRITE,
-        LR_WAIT,
-        SC_WRITE
+        IDLE,   //000
+        READ,   //001
+        EXECUTE,//010
+        WRITE,  //011
+        LR_WAIT,//100
+        SC_WRITE//101
     } state_t;
 
     state_t state, next_state;

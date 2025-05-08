@@ -418,7 +418,7 @@ assign trap = interrupt | exception;
     // data signals 
     corrected_pc,  // 32
     corrected_pc_plus_4,  // 32
-    rs1_id,  // 32
+    rs1_id,  // 5
     rs2_id,
     rd_id,
     fun3_id,
@@ -778,7 +778,7 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
    // logic load_addr_malign_mem;            //
    //----------------------------------------------//
     logic [31:0] mem_addr_req;
-    assign mem_addr_req = is_atomic_mem ? alu_op1_mem : alu_result_mem;
+    assign mem_addr_req = alu_result_mem;
 
     atomic_access_controller aac_inst (
         .clk(clk),
@@ -789,7 +789,7 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
         .mem_addr_req(mem_addr_req),  
-        .mem_wdata_req(rdata2_frw_mem),
+        .mem_wdata_req(mem_wdata),
         
         .mem_read(mem_to_reg_mem),
         .mem_write(mem_write_mem),
@@ -806,7 +806,7 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
     ); 
 
     logic [31:0] result;
-    assign result = atomic_unit_valid_rd_mem ?  atomic_unit_wdata_mem : result_mem;
+    assign result = (atomic_unit_valid_rd_mem & is_atomic_mem) ?  atomic_unit_wdata_mem : result_mem;
 
   // ============================================
   //            MEM-WB Pipeline Register
@@ -821,6 +821,8 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
     csr_out,
     rd_mem,
     result,
+    // result_mem,// or is it mem_addr_req?
+    // mem_addr_req,
     // control signals
     is_atomic_mem,
     atomic_unit_valid_rd_mem,
@@ -856,9 +858,21 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
   // ============================================
 
 //mem_rdata_mem
+logic [31:0] atomic_unit_wdata_wb;
+  n_bit_reg_wclr #(
+      .n($bits(atomic_unit_wdata_mem))
+  ) mem_wb_reg_ext (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(mem_wb_reg_clr),
+      .wen(mem_wb_reg_en),
+      .data_i(atomic_unit_wdata_mem),
+      .data_o(atomic_unit_wdata_wb)
+  );
 
   logic [31:0] mem_rdata_wb;
-  assign mem_rdata_wb = atomic_unit_wdata_mem;
+  assign mem_rdata_wb = atomic_unit_wdata_wb;
+//   assign mem_rdata_wb = (is_atomic_mem ? atomic_unit_valid_rd_mem : 1'b1) ?  atomic_unit_wdata_mem : result_mem;
 
   mux4x1 #(
       .n(32)
@@ -907,8 +921,8 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
 //      .data_o(rvfi_valid)
 //  );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0); //& mem_wb_reg_en;
-
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0)& mem_wb_reg_en;
+  
   logic [31:0] current_pc_wb;
   n_bit_reg_wclr #(
       .n(32)

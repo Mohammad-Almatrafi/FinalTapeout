@@ -32,7 +32,7 @@ always_comb begin
     if(proc_write | proc_read) begin
         proc_stall_pipl = ~wb_ack_i;
     end else proc_stall_pipl = 0; // currently there is no stall from the memory side
-     proc_ack = wb_ack_i;
+    proc_ack = wb_ack_i;
 end
 
 
