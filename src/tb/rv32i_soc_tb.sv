@@ -1,4 +1,14 @@
 module rv32i_soc_tb;
+      
+  // gpio signals
+  logic [23:0] i_gpio;
+  logic [23:0] o_gpio;
+  logic [23:0] en_gpio;
+
+  logic tck_i;
+  logic tdi_i;
+  logic tms_i;
+  logic tdo_o;
   logic clk;
   logic reset_n;
   logic o_flash_sclk;
@@ -50,6 +60,7 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
   )DUT (
       .*,
       .i_uart_rx(o_uart_tx)
+
   );
   
   // Clock generator

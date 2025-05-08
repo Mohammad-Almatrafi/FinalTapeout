@@ -200,7 +200,16 @@ module int_div_rem #(
                             stall <= 0;
                             o_p_signal <= 1;
                             ovf <= 1;
-                            result <= 'b0; // Default value
+                            result <= SMALLEST; // Default value
+                        end else if (~is_signed && temp_a == SMALLEST && temp_b == {WIDTH{1'b1}}) begin 
+                            // Special case: INT_MIN / -1 (overflow)
+//                            state <= IDLE;
+                            state <= FINALIZE;
+                            stall <= 0;
+                            o_p_signal <= 1;
+                            ovf <= 1;
+                            result <= 32'd0; // Default value
+                                                
                         end else begin                 
                             dbz <= 0;
                             ovf <= 0;
