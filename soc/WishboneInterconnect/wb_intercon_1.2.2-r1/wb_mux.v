@@ -59,8 +59,6 @@ module wb_mux
     input 		       wbm_we_i,
     input 		       wbm_cyc_i,
     input 		       wbm_stb_i,
-    input [2:0] 	       wbm_cti_i,
-    input [1:0] 	       wbm_bte_i,
     output [dw-1:0] 	       wbm_dat_o,
     output 		       wbm_ack_o,
     output 		       wbm_err_o,
@@ -72,8 +70,6 @@ module wb_mux
     output [num_slaves-1:0]    wbs_we_o,
     output [num_slaves-1:0]    wbs_cyc_o,
     output [num_slaves-1:0]    wbs_stb_o,
-    output [num_slaves*3-1:0]  wbs_cti_o,
-    output [num_slaves*2-1:0]  wbs_bte_o,
     input [num_slaves*dw-1:0]  wbs_dat_i,
     input [num_slaves-1:0]     wbs_ack_i,
     input [num_slaves-1:0]     wbs_err_i,
@@ -88,7 +84,6 @@ module wb_mux
 
    reg  			 wbm_err;
    wire [slave_sel_bits-1:0] 	 slave_sel;
-   reg  [slave_sel_bits-1:0] 	 slave_sel_ff;
    wire [num_slaves-1:0] 	 match;
 
    genvar 			 idx;
@@ -132,15 +127,10 @@ module wb_mux
 /* verilator lint_on WIDTH */
    assign wbs_stb_o = {num_slaves{wbm_stb_i}};
 
-   assign wbs_cti_o = {num_slaves{wbm_cti_i}};
-   assign wbs_bte_o = {num_slaves{wbm_bte_i}};
-
-
-   always @(posedge wb_clk_i) slave_sel_ff <= slave_sel;
-
-   assign wbm_dat_o = wbs_dat_i[slave_sel_ff*dw+:dw];
-   assign wbm_ack_o = wbs_ack_i[slave_sel_ff];
-   assign wbm_err_o = wbs_err_i[slave_sel_ff] | wbm_err;
-   assign wbm_rty_o = wbs_rty_i[slave_sel_ff];
+      
+   assign wbm_dat_o = wbs_dat_i[slave_sel*dw+:dw];
+   assign wbm_ack_o = wbs_ack_i[slave_sel];
+   assign wbm_err_o = wbs_err_i[slave_sel] | wbm_err;
+   assign wbm_rty_o = wbs_rty_i[slave_sel];
 
 endmodule
