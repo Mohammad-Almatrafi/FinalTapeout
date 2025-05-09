@@ -770,17 +770,27 @@ module rv32i_soc #(
 
     logic [31:0] imem_addr;
     
-    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `ifdef JTAG
+        assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `else
+        assign imem_addr = sel_boot_rom ? wb_m2s_dmem_adr: current_pc;
+    `endif
 
     data_mem #(
         .DEPTH(IMEM_DEPTH)
     ) inst_mem_inst (
         .clk_i       (clk            ),
         .rst_i       (wb_rst         ),
+    `ifdef JTAG
         .cyc_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_cyc : 1'b1), 
         .stb_i       ((sel_boot_rom | core_halted) ?  wb_m2s_imem_stb : 1'b1),
-        .adr_i       (imem_addr      ),
         .we_i        ((sel_boot_rom | core_halted) & wb_m2s_imem_we),
+    `else
+        .cyc_i       (wb_m2s_imem_cyc), 
+        .stb_i       (wb_m2s_imem_stb),
+        .we_i        (wb_m2s_imem_we),
+    `endif
+        .adr_i       (imem_addr      ),
         .sel_i       (wb_m2s_imem_sel),
         .dat_i       (wb_m2s_imem_dat),
         .dat_o       (wb_s2m_imem_dat),
