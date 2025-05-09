@@ -809,10 +809,11 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
   assign mem_wb_bus_i = {
     // data signals 
+    mem_rdata_mem,
     csr_out,
     rd_mem,
     result_mem,
-//    pc_jump_mem,  
+    // pc_jump_mem,  
     // control signals
     reg_write_mem,
     mem_to_reg_mem
@@ -828,6 +829,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_i(mem_wb_bus_i),
       .data_o(mem_wb_bus_o)
   );
+  logic [31:0] mem_rdata_wb;
   logic [31:0] csr_out_wb;
   // data signals 
   assign rd_wb             = mem_wb_bus_o.rd;
@@ -837,14 +839,13 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   // control signals
   assign reg_write_wb      = mem_wb_bus_o.reg_write;
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
+  assign mem_rdata_wb = mem_rdata_mem;
 
 
   // ============================================
   //                Write Back Stage 
   // ============================================
 
-  logic [31:0] mem_rdata_wb;
-  assign mem_rdata_wb = mem_rdata_mem;
 
   mux4x1 #(
       .n(32)
@@ -959,7 +960,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_o(divide_stall_wb)
   );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem); //& mem_wb_reg_en;
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem) & mem_wb_reg_en;
 
 
   //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;

@@ -28,7 +28,7 @@ module rv32i_soc #(
 ) (
     input logic clk, 
     input logic reset_n,
-        
+
     // gpio signals
     input  logic [23:0] i_gpio, 
     output logic [23:0] o_gpio,

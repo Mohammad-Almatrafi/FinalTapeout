@@ -50,13 +50,16 @@ module wishbone_controller (
     wire        core_wb_ack_i;   
 
     always_comb begin 
+        proc_stall_pipl = 1'b0;
         core_wb_adr_o = proc_addr;
         core_wb_cyc_o = proc_write | proc_read;
         core_wb_stb_o = proc_write | proc_read;
         core_wb_we_o = proc_write;
-        if(proc_write | proc_read) begin 
-            proc_stall_pipl = ~core_wb_ack_i & ~wb_err_i;
-        end else proc_stall_pipl = 0;
+        if(proc_write | proc_read) 
+            if(~core_wb_ack_i & ~wb_err_i) proc_stall_pipl = 1'b1;
+            else proc_stall_pipl = 1'b0;
+        else proc_stall_pipl = 0;
+
         proc_ack = core_wb_ack_i | wb_err_i; 
     end
 
@@ -69,6 +72,8 @@ module wishbone_controller (
         .wsel(core_wb_sel_o),
         .aligned_data(core_wb_dat_o)
     );
+
+// might use this part later 
 
     logic [1:0] proc_addr_ff;
     logic [2:0] proc_op_ff;
