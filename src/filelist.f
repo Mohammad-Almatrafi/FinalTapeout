@@ -102,7 +102,8 @@ tb/rv32i_soc_tb.sv
 
 # Optionally, include any other files you want for the simulation.
 
-soc/uncore/debug/bscan_tap.sv
+# soc/uncore/debug/bscan_tap.sv
+
 soc/uncore/debug/debug_top.sv
 soc/uncore/debug/dm.sv
 soc/uncore/debug/dtm.sv

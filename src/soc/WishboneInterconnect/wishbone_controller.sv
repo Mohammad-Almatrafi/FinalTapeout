@@ -55,14 +55,12 @@ module wishbone_controller (
         core_wb_stb_o = proc_write | proc_read;
         core_wb_we_o = proc_write;
         if(proc_write | proc_read) begin 
-            proc_stall_pipl = (~core_wb_ack_i) & ~wb_err_i;
+            proc_stall_pipl = ~core_wb_ack_i & ~wb_err_i;
         end else proc_stall_pipl = 0;
         proc_ack = core_wb_ack_i | wb_err_i; 
     end
 
 
-    // assign core_wb_sel_o = 4'b0001;
-    // assign core_wb_dat_o = proc_wdata;
     store_aligner store_alignment_unit(
         .wdata(proc_wdata),
         .store_type(store_t'(proc_op)),
@@ -72,11 +70,22 @@ module wishbone_controller (
         .aligned_data(core_wb_dat_o)
     );
 
+    logic [1:0] proc_addr_ff;
+    logic [2:0] proc_op_ff;
+    n_bit_reg #(
+        .n(5)
+    ) wishbone_cont_reg (
+        .clk(clk),
+        .reset_n(~rst),
+        .data_i({proc_addr[1:0], proc_op}),
+        .data_o({proc_addr_ff[1:0], proc_op_ff}),
+        .wen(1'b1)
+    );
 
-    // assign proc_rdata = core_wb_dat_i;
+
     load_aligner load_alignment_unit (
-        .addr(proc_addr[1:0]),
-        .fun3(proc_op),
+        .addr(proc_addr_ff[1:0]),
+        .fun3(proc_op_ff),
         .rdata(core_wb_dat_i),
         .aligned_data(proc_rdata)
     );
@@ -106,15 +115,29 @@ module wishbone_controller (
     // ============================================
     //                  Multiplexing
     // ============================================
+    `ifdef JTAG
 
-    assign wb_adr_o = core_halted ? dbg_wb_adr_o : core_wb_adr_o; 
-    assign wb_dat_o = core_halted ? dbg_wb_dat_o : core_wb_dat_o; 
-    assign wb_sel_o = core_halted ? dbg_wb_sel_o : core_wb_sel_o; 
-    assign wb_we_o  = core_halted ? dbg_wb_we_o  : core_wb_we_o ; 
-    assign wb_cyc_o = core_halted ? dbg_wb_cyc_o : core_wb_cyc_o; 
-    assign wb_stb_o = core_halted ? dbg_wb_stb_o : core_wb_stb_o; 
+        assign wb_adr_o = core_halted ? dbg_wb_adr_o : core_wb_adr_o; 
+        assign wb_dat_o = core_halted ? dbg_wb_dat_o : core_wb_dat_o; 
+        assign wb_sel_o = core_halted ? dbg_wb_sel_o : core_wb_sel_o; 
+        assign wb_we_o  = core_halted ? dbg_wb_we_o  : core_wb_we_o ; 
+        assign wb_cyc_o = core_halted ? dbg_wb_cyc_o : core_wb_cyc_o; 
+        assign wb_stb_o = core_halted ? dbg_wb_stb_o : core_wb_stb_o; 
 
-    assign core_wb_ack_i = core_halted ? 1'b0 : wb_ack_i;
-    assign core_wb_dat_i = wb_dat_i;
+        assign core_wb_ack_i = core_halted ? 1'b0 : wb_ack_i;
+        assign core_wb_dat_i = wb_dat_i;
+
+    `else
+        assign wb_adr_o = core_wb_adr_o; 
+        assign wb_dat_o = core_wb_dat_o; 
+        assign wb_sel_o = core_wb_sel_o; 
+        assign wb_we_o  = core_wb_we_o ; 
+        assign wb_cyc_o = core_wb_cyc_o; 
+        assign wb_stb_o = core_wb_stb_o; 
+
+        assign core_wb_ack_i = wb_ack_i;
+        assign core_wb_dat_i = wb_dat_i;
+
+    `endif
 
 endmodule
