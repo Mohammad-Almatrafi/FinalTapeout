@@ -778,8 +778,22 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
    // logic load_addr_malign_mem;            //
    //----------------------------------------------//
     logic [31:0] mem_addr_req;
-    assign mem_addr_req = alu_result_mem;
+    logic [31:0] mem_addr;
+    logic is_atomic_wb;
+    logic [4:0]  rs1_wb;
 
+    logic forward_rs1_wb;
+    logic [31:0] alu_op1_wb;
+
+    assign forward_rs1_wb = (rs1_wb == rs1_mem) && is_atomic_wb;
+    assign mem_addr = is_atomic_mem ? alu_op1_mem : alu_result_mem;//this might be not neccary since imm is zero when atomic will have to check it later
+      mux2x1 #(32) mem_addr_in_mux (
+      .sel(forward_rs1_wb),
+      .in0(mem_addr),
+      .in1(alu_op1_wb),
+      .out(mem_addr_req)
+  );
+//   logic atomic_valid_mem;
     atomic_access_controller aac_inst (
         .clk(clk),
         .rst(~reset_n),
@@ -802,11 +816,14 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
         .result_rd(atomic_unit_wdata_mem),
         .valid_rd(atomic_unit_valid_rd_mem),
         .load_addr_malign(load_addr_malign_mem),
-        .store_amo_addr_malign(store_amo_addr_malign_mem)
+        .store_amo_addr_malign(store_amo_addr_malign_mem),
+        .valid()
     ); 
 
     logic [31:0] result;
-    assign result = (atomic_unit_valid_rd_mem & is_atomic_mem) ?  atomic_unit_wdata_mem : result_mem;
+    logic  [31:0] tmp;
+    assign tmp = is_atomic_mem ? alu_result_exe: result_mem ;
+    assign result = (atomic_unit_valid_rd_mem & is_atomic_mem) ? atomic_unit_wdata_mem : tmp;
 
   // ============================================
   //            MEM-WB Pipeline Register
@@ -814,13 +831,17 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
     
   mem_wb_reg_t mem_wb_bus_i, mem_wb_bus_o;
   logic [31:0] alu_mem_result_wb;
-  logic is_atomic_wb;
+  logic atomic_unit_stall_wb;
   logic valid_rd_wb;
   assign mem_wb_bus_i = {
     // data signals 
+    rs1_mem,
+    alu_op1_mem,
     csr_out,
     rd_mem,
     result,
+    // atomic_valid_mem,
+    // atomic_unit_stall,
     // result_mem,// or is it mem_addr_req?
     // mem_addr_req,
     // control signals
@@ -841,33 +862,48 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
       .data_o(mem_wb_bus_o)
   );
   logic [31:0] csr_out_wb;
+//   logic atomic_valid_wb;
   // data signals 
-  assign rd_wb             = mem_wb_bus_o.rd ;
+  assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   assign csr_out_wb        = mem_wb_bus_o.csr_out;
 //  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
   // control signals
   assign valid_rd_wb = mem_wb_bus_o.valid_rd;
+//   assign atomic_valid_wb = mem_wb_bus_o.atomic_valid;
+//   assign atomic_unit_stall_wb = mem_wb_bus_o.atomic_unit_stall;
   assign is_atomic_wb = mem_wb_bus_o.is_atomic;
   assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
 
-
   // ============================================
   //                Write Back Stage 
   // ============================================
+  
+  logic mem_wb_atomic_reg_en;
+  assign mem_wb_atomic_reg_en = ~mem_wb_reg_en & is_atomic_wb;
+  n_bit_reg_wclr #(
+      .n($bits({alu_op1_mem,rs1_mem}))
+  ) mem_wb_reg_atomic (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(mem_wb_atomic_reg_en),
+      .data_i({alu_op1_mem,rs1_mem}),
+      .data_o({alu_op1_wb,rs1_wb})
+  );
 
 //mem_rdata_mem
 logic [31:0] atomic_unit_wdata_wb;
   n_bit_reg_wclr #(
-      .n($bits(atomic_unit_wdata_mem))
+      .n($bits({atomic_unit_wdata_mem,atomic_unit_stall_wb}))
   ) mem_wb_reg_ext (
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
       .wen(mem_wb_reg_en),
-      .data_i(atomic_unit_wdata_mem),
-      .data_o(atomic_unit_wdata_wb)
+      .data_i({atomic_unit_wdata_mem,atomic_unit_stall}),
+      .data_o({atomic_unit_wdata_wb,atomic_unit_stall_wb})
   );
 
   logic [31:0] mem_rdata_wb;
@@ -921,7 +957,7 @@ logic [31:0] atomic_unit_wdata_wb;
 //      .data_o(rvfi_valid)
 //  );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0)& mem_wb_reg_en;
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0)& mem_wb_reg_en & (~atomic_unit_stall_wb);
   
   logic [31:0] current_pc_wb;
   n_bit_reg_wclr #(

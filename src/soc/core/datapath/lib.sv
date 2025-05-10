@@ -289,6 +289,8 @@ package riscv_types;
   // MEM/WB Register Structure
   typedef struct packed {
     // Data signals
+    logic [4:0]  rs1;
+    logic [31:0] alu_op1;
     logic [31:0] csr_out;
     logic [4:0]  rd;
     logic [31:0] result;
@@ -296,6 +298,8 @@ package riscv_types;
     // Control signals
     logic is_atomic;
     logic valid_rd;
+    // logic atomic_valid;
+    // logic atomic_unit_stall;
     logic        reg_write;
     logic [1:0]  mem_to_reg;
   } mem_wb_reg_t;

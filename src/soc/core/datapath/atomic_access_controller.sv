@@ -26,16 +26,18 @@ module atomic_access_controller (
     output reg [31:0]  mem_wdata,
     input      [31:0]  mem_rdata,
     input              mem_ack,
-
+    
     // Output to pipeline
     output reg         stall_mem,
     output reg [31:0]  result_rd,         // Data to write back to rd
-    output reg         valid_rd,           // High when result_rd is valid
+    output reg         valid_rd,          // High when result_rd is valid
 
 
     // Memory Access exceptions 
     output logic load_addr_malign,
-    output logic store_amo_addr_malign
+    output logic store_amo_addr_malign,
+    
+    output logic valid                   // Used to indecate the current output is the correct output <set in final state in AMO&LR/SC>
 );
 
     // Not generating address mislaigned exceptions yet 
@@ -70,25 +72,38 @@ module atomic_access_controller (
     reg [31:0] computed_val, computed_val_ff;
     reg        reservation_valid;
     reg [31:0] reservation_addr;
-
+    logic [1:0] valid_;
+    assign valid = valid_[0];
     // FSM state transition and data register updates
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             reservation_valid <= 1'b0;
             read_val <= 32'b0;
+            valid_ = 2'b00;
         end else begin
             state <= next_state;
 
             if (state == LR_WAIT && mem_ack) begin
                 read_val <= mem_rdata;
+                valid_ = 2'b10;
                 reservation_valid <= 1'b1;
                 reservation_addr <= mem_addr_req;
             end else if (state == READ && mem_ack) begin
                 read_val <= mem_rdata;
-            end else if ((state == SC_WRITE && mem_ack)|| (reservation_addr==mem_addr&&mem_ack) ) begin // i added the second condition to make sure normal store will affect the validity too
+            end else if ((state == SC_WRITE && mem_ack)) begin
                 reservation_valid <= 1'b0; // Always drop reservation after SC
+                valid_ = 2'b10;
+            end else if (state == WRITE) begin 
+                valid_ = 2'b10;
+            end else if (state == IDLE) begin
+                if(valid_ == 2'b10) begin
+                    valid_ = 2'b01;
+                end else begin
+                    valid_ = 2'b00;
+                end
             end
+
         end
     end
 
@@ -103,7 +118,6 @@ module atomic_access_controller (
         result_rd  = mem_rdata;
         valid_rd   = 1'b0;
         computed_val = 'd0;
-
         case (state)
             IDLE: begin
                 if (is_atomic_mem) begin
@@ -113,7 +127,6 @@ module atomic_access_controller (
                         default: next_state = READ;
                     endcase
                     stall_mem = 1'b1;
-                    valid_rd = 1'b0;
                 end
             end
 
@@ -147,6 +160,7 @@ module atomic_access_controller (
                     next_state = IDLE;
                     stall_mem = 1'b0;
                 end
+                
             end
 
             READ: begin
