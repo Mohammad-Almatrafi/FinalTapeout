@@ -138,15 +138,15 @@ module wb_intercon
 
 
 wb_mux
-  #(.num_slaves (10),
+  #(.num_slaves (9),
 	`ifdef tracer
-	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h80040000, 32'h80000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000c00, 32'h20000400, 32'h21000000}),
-	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hff000000}))
+	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h80040000, 32'h80000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000c00, 32'h20000400}),
+	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00}))
 	      	//  .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h00000000, 32'h10000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000c00, 32'h20000400}),
 	      	//  .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00}))
 	`else 
-	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h00000000, 32'h10000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000c00, 32'h20000400, 32'h21000000}),
-	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hff000000}))
+	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h00000000, 32'h10000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000c00, 32'h20000400}),
+	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00, 32'hffffff00}))
 	`endif
  wb_mux_io
    (.wb_clk_i  (wb_clk_i),
@@ -163,14 +163,14 @@ wb_mux
     .wbm_rty_o (wb_io_rty_o),
     .wbs_adr_o ({wb_spi_flash_adr_o, wb_spi_adr_o, wb_dmem_adr_o, wb_imem_adr_o, wb_gpio_adr_o, wb_i2c_adr_o, wb_uart_adr_o, wb_clint_adr_o, wb_ptc_adr_o, wb_plic_adr_o}),
     .wbs_dat_o ({wb_spi_flash_dat_o, wb_spi_dat_o, wb_dmem_dat_o, wb_imem_dat_o, wb_gpio_dat_o, wb_i2c_dat_o, wb_uart_dat_o, wb_clint_dat_o, wb_ptc_dat_o, wb_plic_dat_o}),
-    .wbs_sel_o ({wb_spi_flash_sel_o, wb_spi_sel_o, wb_dmem_sel_o, wb_imem_sel_o, wb_gpio_sel_o, wb_i2c_sel_o, wb_uart_sel_o, wb_clint_sel_o, wb_ptc_sel_o, wb_plic_sel_o}),
-    .wbs_we_o  ({wb_spi_flash_we_o,  wb_spi_we_o,  wb_dmem_we_o,  wb_imem_we_o,  wb_gpio_we_o,  wb_i2c_we_o,  wb_uart_we_o,  wb_clint_we_o,  wb_ptc_we_o,  wb_plic_we_o}),
-    .wbs_cyc_o ({wb_spi_flash_cyc_o, wb_spi_cyc_o, wb_dmem_cyc_o, wb_imem_cyc_o, wb_gpio_cyc_o, wb_i2c_cyc_o, wb_uart_cyc_o, wb_clint_cyc_o, wb_ptc_cyc_o, wb_plic_cyc_o}),
-    .wbs_stb_o ({wb_spi_flash_stb_o, wb_spi_stb_o, wb_dmem_stb_o, wb_imem_stb_o, wb_gpio_stb_o, wb_i2c_stb_o, wb_uart_stb_o, wb_clint_stb_o, wb_ptc_stb_o, wb_plic_stb_o}),
-    .wbs_dat_i ({wb_spi_flash_dat_i, wb_spi_dat_i, wb_dmem_dat_i, wb_imem_dat_i, wb_gpio_dat_i, wb_i2c_dat_i, wb_uart_dat_i, wb_clint_dat_i, wb_ptc_dat_i, wb_plic_dat_i}),
-    .wbs_ack_i ({wb_spi_flash_ack_i, wb_spi_ack_i, wb_dmem_ack_i, wb_imem_ack_i, wb_gpio_ack_i, wb_i2c_ack_i, wb_uart_ack_i, wb_clint_ack_i, wb_ptc_ack_i, wb_plic_ack_i}),
-    .wbs_err_i ({wb_spi_flash_err_i, wb_spi_err_i, wb_dmem_err_i, wb_imem_err_i, wb_gpio_err_i, wb_i2c_err_i, wb_uart_err_i, wb_clint_err_i, wb_ptc_err_i, wb_plic_err_i}),
-    .wbs_rty_i ({wb_spi_flash_rty_i, wb_spi_rty_i, wb_dmem_rty_i, wb_imem_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_uart_rty_i, wb_clint_rty_i, wb_ptc_rty_i, wb_plic_rty_i}));
+    .wbs_sel_o ({wb_spi_flash_sel_o, wb_spi_sel_o, wb_dmem_sel_o, wb_imem_sel_o, wb_gpio_sel_o, wb_i2c_sel_o, wb_uart_sel_o, wb_clint_sel_o, wb_ptc_sel_o}),
+    .wbs_we_o  ({wb_spi_flash_we_o,  wb_spi_we_o,  wb_dmem_we_o,  wb_imem_we_o,  wb_gpio_we_o,  wb_i2c_we_o,  wb_uart_we_o,  wb_clint_we_o,  wb_ptc_we_o}),
+    .wbs_cyc_o ({wb_spi_flash_cyc_o, wb_spi_cyc_o, wb_dmem_cyc_o, wb_imem_cyc_o, wb_gpio_cyc_o, wb_i2c_cyc_o, wb_uart_cyc_o, wb_clint_cyc_o, wb_ptc_cyc_o}),
+    .wbs_stb_o ({wb_spi_flash_stb_o, wb_spi_stb_o, wb_dmem_stb_o, wb_imem_stb_o, wb_gpio_stb_o, wb_i2c_stb_o, wb_uart_stb_o, wb_clint_stb_o, wb_ptc_stb_o}),
+    .wbs_dat_i ({wb_spi_flash_dat_i, wb_spi_dat_i, wb_dmem_dat_i, wb_imem_dat_i, wb_gpio_dat_i, wb_i2c_dat_i, wb_uart_dat_i, wb_clint_dat_i, wb_ptc_dat_i}),
+    .wbs_ack_i ({wb_spi_flash_ack_i, wb_spi_ack_i, wb_dmem_ack_i, wb_imem_ack_i, wb_gpio_ack_i, wb_i2c_ack_i, wb_uart_ack_i, wb_clint_ack_i, wb_ptc_ack_i}),
+    .wbs_err_i ({wb_spi_flash_err_i, wb_spi_err_i, wb_dmem_err_i, wb_imem_err_i, wb_gpio_err_i, wb_i2c_err_i, wb_uart_err_i, wb_clint_err_i, wb_ptc_err_i}),
+    .wbs_rty_i ({wb_spi_flash_rty_i, wb_spi_rty_i, wb_dmem_rty_i, wb_imem_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_uart_rty_i, wb_clint_rty_i, wb_ptc_rty_i}));
 
     // 0x00000000 - 0x0FFFFFFF RAM (Data Memory - DMEM)
     // 0x10000000 - 0x1FFFFFFF Instruction Memory (IMEM)

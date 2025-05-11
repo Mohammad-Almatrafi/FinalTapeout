@@ -11,9 +11,8 @@ module csr_top (
     input logic [4:0] int_code,
     input logic [31:0] current_pc,
 
-    input logic [4:0] imm ,
-    input logic [31:0] RS1 ,
-    input logic [2:0] func3 ,
+    input logic [31:0] data_in,
+    input logic [1:0] csr_cmd ,
 
     output logic [31:0] mcause, // This will be to decide which address we go to (offset from mvec)
     output logic [31:0] csr_out, // This will be written to Rd
@@ -31,10 +30,9 @@ logic [31:0] CSR_intermed;// this will go out into the reg csr
 assign csr_in = csr_out;
 
 control_CSR control_CSR(
-.imm(imm),
-.RS1(RS1),
+.data_in(data_in),
 .CSR_in(csr_in),
-.func3(func3),
+.csr_cmd(csr_cmd) ,
 .CSR_out(CSR_intermed)
 );
 

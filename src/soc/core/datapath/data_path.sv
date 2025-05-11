@@ -93,7 +93,21 @@ module data_path #(
     output logic [31:0] current_pc_if,
     input logic [31:0] inst_if,
     output logic interrupt,
-    output logic mret_type
+    output logic mret_type,
+
+    output logic        ebreak_inst_mem,
+    input  logic        core_halted,
+    input  logic        dbg_ar_en,
+    input  logic        dbg_ar_wr,
+    input  logic [15:0] dbg_ar_ad,
+    input  logic [31:0] dbg_ar_do,
+    output logic [31:0] dbg_gpr_rdata,
+    output logic [31:0] dbg_csr_result,
+    output logic [31:0] cinst_pc,
+    output logic inst_valid_wb,
+    output logic no_jump,
+    input logic [31:0] dpc,
+    input logic dbg_ret
 
 );
 
@@ -146,7 +160,7 @@ module data_path #(
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
   always_comb begin: mip_assignment
-    mip_in = 0;
+    mip_in = 32'b0;
     mip_in[7] = timer_irq;
     mip_in[11] = external_irq;
   end
@@ -161,7 +175,7 @@ module data_path #(
 
   // pc adder 
   assign pc_plus_4_if1 = (current_pc_if1 & ~(32'd3)) + 4;
-  logic [31:0] next_pc_ifff;
+  logic [31:0] next_pc_mux_1_out;
   logic [31:0] jump_int_addr;
 // 
   
@@ -218,7 +232,7 @@ assign trap = interrupt | exception;
       .in1(pc_jump_mem), // .in1(jump_stall_ff? pc_jump_wb:pc_jump_mem)
       .in2(jump_int_addr),
       .in3(jump_int_addr),
-      .out(next_pc_ifff)
+      .out(next_pc_mux_1_out)
   );
 
 
@@ -240,15 +254,30 @@ assign trap = interrupt | exception;
 //
 //assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
 
+  logic [31:0] next_pc_mux_2_out;
   mux2x1 #(
       .n(32)
   ) second_pc_mux (
       .sel(mret_type),
-      .in0(next_pc_ifff),
+      .in0(next_pc_mux_1_out),
       .in1(mepc),
-      .out(next_pc_if1)
+      .out(next_pc_mux_2_out)
   );
   
+  mux2x1 #(
+      .n(32)
+  ) dbg_pc_mux (
+
+      `ifdef JTAG
+        .sel(dbg_ret),
+      `else 
+        .sel(1'b0),
+      `endif
+      .in0(next_pc_mux_2_out),
+      .in1(dpc),
+      .out(next_pc_if1)
+  );
+
   assign current_pc_if = current_pc_if1;
 
   // ============================================
@@ -368,16 +397,29 @@ assign trap = interrupt | exception;
 
   logic [31:0] reg_rdata1, reg_rdata2;
 
+    assign dbg_gpr_rdata = reg_rdata1;
+
+    logic dbg_gpr_write;
+    assign dbg_gpr_write = dbg_ar_en & dbg_ar_wr & 
+                           (dbg_ar_ad>= 32'h1000 && dbg_ar_ad <= 32'h101f);
 
   // register file (decode stage)
+
   reg_file reg_file_inst (
       .clk      (clk),
       .reset_n  (reset_n),
-      .reg_write(reg_write_wb),
-      .raddr1   (rs1_id),
+      `ifdef JTAG
+          .reg_write   (core_halted? dbg_gpr_write  : reg_write_wb),
+          .raddr1      (core_halted? dbg_ar_ad[4:0] : rs1_id),
+          .waddr       (core_halted? dbg_ar_ad[4:0] : rd_wb),
+          .wdata       (core_halted? dbg_ar_do      : reg_wdata_wb),
+      `else
+          .reg_write(reg_write_wb),
+          .raddr1   (rs1_id),
+          .waddr    (rd_wb),
+          .wdata    (reg_wdata_wb),
+      `endif
       .raddr2   (rs2_id),
-      .waddr    (rd_wb),
-      .wdata    (reg_wdata_wb),
       .rdata1   (reg_rdata1),
       .rdata2   (reg_rdata2)
   );
@@ -623,7 +665,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .alu_result_lsb(alu_result_exe[1:0]),
       .alu_op(alu_op_exe),
       .func3_exe(fun3_exe),
-      .pc(next_pc_ifff),
+      .pc(next_pc_if1),
       .reg_write(reg_write_exe),
       .mem_write(mem_write_exe),
       .*
@@ -739,20 +781,37 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign csr_en = csr_type_mem & ~mret_type & ~ecall_type;
 
   //   CSR and logic of commands for CSR
+
+
+
+  logic dbg_csr_write;
+  logic [31:0] data_in_csr;
+  assign dbg_csr_write = dbg_ar_en & dbg_ar_wr & 
+                           (dbg_ar_ad< 32'h1000);
+  assign data_in_csr = inst_mem[14] ? {27'b0,inst_mem[19:15]} : RS1; 
+
   csr_top csr_unit (
-      .imm(inst_mem[19:15]),
-      //    .func3(fun3_mem),
       .current_pc(mepc_adr),
+    `ifdef JTAG
+      .csr_en       (core_halted ? dbg_ar_en       : csr_en     ),
+      .csr_cmd      (core_halted ? 2'b00           : inst_mem[13:12]), // don't do any thing, only read csr through debug
+      .offset       (core_halted ? dbg_ar_ad[11:0] : offset     ),
+      .data_in      (core_halted ? dbg_ar_do       : data_in_csr),
+    `else
       .csr_en(csr_en),  // this is the mret type
+      .csr_cmd(inst_mem[13:12]),
       .offset(inst_mem[31:20]),
+      .data_in(data_in_csr),
+    `endif
       .ret_action(mret_type),
       .int_action(interrupt | exception),
       .exp_action(exception),
-      .func3(inst_mem[14:12]),
       .int_code(int_code),
-      // logic hw_int;
       .*
   );
+
+
+  assign dbg_csr_result = csr_out;
 
   mret_ecall_type mret_unit (
       .mret_type(mret_type),

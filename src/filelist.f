@@ -47,6 +47,7 @@ soc/core/controllers/forwarding_unit.sv
 soc/core/controllers/hazard_controller.sv
 soc/core/controllers/main_control.sv
 soc/core/controllers/pipeline_controller.sv
+soc/core/controllers/core_dbg_fsm.sv
 #------   -------
 soc/core/datapath/int_mul.sv
 
