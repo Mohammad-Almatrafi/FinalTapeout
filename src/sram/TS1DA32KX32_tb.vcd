@@ -1,0 +1,142 @@
+$date
+	Tue Jan 28 12:25:32 2025
+$end
+
+$version
+	Synopsys VCS version W-2024.09-SP1_Full64
+$end
+
+$timescale
+	10ps
+$end
+
+$comment Csum: 1 7a061e905a3598ef $end
+
+
+$scope module TS1DA32KX32_tb $end
+$var reg 1 ! CLK $end
+$var reg 1 " CEB $end
+$var reg 1 # OEB $end
+$var reg 1 $ GWEB $end
+$var reg 1 % BWEB $end
+$var reg 4 & BWB [3:0] $end
+$var reg 15 ' A [14:0] $end
+$var reg 32 ( DIN [31:0] $end
+$var wire 32 ) DOUT [31:0] $end
+$var reg 32 * rdata [31:0] $end
+$var reg 1 + debug $end
+
+$scope task mem_write $end
+$var reg 15 , addr [14:0] $end
+$var reg 4 - byte_sel [3:0] $end
+$var reg 32 . data [31:0] $end
+$upscope $end
+
+
+$scope task mem_read $end
+$var reg 15 / addr [14:0] $end
+$var reg 32 0 rdata [31:0] $end
+$upscope $end
+
+
+$scope begin unnamed$$_0 $end
+$upscope $end
+
+$upscope $end
+
+$enddefinitions $end
+
+#0
+$dumpvars
+x%
+0"
+0!
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx )
+x$
+1+
+bxxxxxxxxxxxxxxx '
+bxxxx &
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx (
+bxxxxxxxxxxxxxxx /
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 0
+bxxxxxxxxxxxxxxx ,
+bxxxx -
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx .
+bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx *
+x#
+$end
+#500
+1!
+#1000
+b000000000000000 ,
+b1110 -
+b00000000000000000000000011101111 .
+0!
+b000000000000000 '
+b00000000000000000000000011101111 (
+1$
+0%
+b1110 &
+#1500
+1!
+#2000
+0!
+1%
+b1101 -
+b00000000000000001110111100000000 .
+#2500
+1!
+#3000
+0!
+b00000000000000001110111100000000 (
+0%
+b1101 &
+#3500
+1!
+#4000
+0!
+1%
+b1011 -
+b00000000110011010000000000000000 .
+#4500
+1!
+#5000
+0!
+b00000000110011010000000000000000 (
+0%
+b1011 &
+#5500
+1!
+#6000
+0!
+1%
+b0111 -
+b10101011000000000000000000000000 .
+#6500
+1!
+#7000
+0!
+b10101011000000000000000000000000 (
+0%
+b0111 &
+#7500
+1!
+#8000
+0!
+1%
+b000000000000000 /
+#8500
+1!
+#9000
+0!
+b0000 &
+#9500
+1!
+#10000
+0!
+#10500
+1!
+#11000
+0!
+#11500
+1!

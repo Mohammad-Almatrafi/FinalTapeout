@@ -174,8 +174,17 @@ parameter logic [31:0] INSN_FEQS        ={ 7'b1010000, 10'b?, 3'b010, 5'b?, {OPC
 parameter logic [31:0] INSN_FLTS        ={ 7'b1010000, 10'b?, 3'b001, 5'b?, {OPCODE_FOP} };
 parameter logic [31:0] INSN_FLES        ={ 7'b1010000, 10'b?, 3'b000, 5'b?, {OPCODE_FOP} };
 
-//V
-
-
+//AMO (added by qamar) FIXME
+parameter logic [31:0] AMO_LR       = { 5'b00010, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_SC       = { 5'b00011, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_SWAP     = { 5'b00001, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_ADD      = { 5'b00000, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_XOR      = { 5'b00100, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_AND      = { 5'b01100, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_OR       = { 5'b01000, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_MIN      = { 5'b10000, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_MAX      = { 5'b10100, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_MINU     = { 5'b11000, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
+parameter logic [31:0] AMO_MAXU     = { 5'b11100, 2'b?, 10'b?, 3'b010, 5'b?, {OPCODE_ATOMIC} };
 
 endpackage

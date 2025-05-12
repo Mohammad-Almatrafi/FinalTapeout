@@ -238,6 +238,7 @@ package riscv_types;
     logic [31:0] imm;
     // Control signals
     logic        csr_type;
+    logic        is_atomic;
     logic        reg_write;
     logic        mem_write;
     logic [1:0]  mem_to_reg;
@@ -259,14 +260,17 @@ package riscv_types;
     logic [31:0] alu_op1;
     logic [31:0] pc_plus_4;
     logic [31:0] pc_jump;
+    logic [4:0]  rs1;
     logic [4:0]  rs2;
     logic [4:0]  rd;
     logic [2:0]  fun3;
+    logic [31:0] rdata1_frw;
     logic [31:0] rdata2_frw;
     logic [31:0] imm;
     logic [31:0] alu_result;
     // Control signals
     logic        csr_type;
+    logic        is_atomic;
     logic        reg_write;
     logic        mem_write;
     logic [1:0]  mem_to_reg;
@@ -286,12 +290,17 @@ package riscv_types;
   // MEM/WB Register Structure
   typedef struct packed {
     // Data signals
-    logic [31:0] mem_rdata;
+    logic [4:0]  rs1;
+    logic [31:0] alu_op1;
     logic [31:0] csr_out;
     logic [4:0]  rd;
     logic [31:0] result;
 //    logic [31:0] pc_jump;
     // Control signals
+    logic is_atomic;
+    logic valid_rd;
+    // logic atomic_valid;
+    // logic atomic_unit_stall;
     logic        reg_write;
     logic [1:0]  mem_to_reg;
   } mem_wb_reg_t;

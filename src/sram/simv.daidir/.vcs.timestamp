@@ -1,0 +1,149 @@
+0
+27
+-Mamsrun=
+-Masflags=
+-Mcc=gcc
+-Mcfl= -pipe -fPIC -O -I/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/include
+-Mcplusplus=g++
+-Mcrt0=
+-Mcrtn=
+-Mcsrc=
+-Mexternalobj=
+-Mldflags= -rdynamic
+-Mobjects= /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libvirsim.so /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/liberrorinf.so /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libsnpsmalloc.so /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libvfs.so
+-Mout=simv
+-Msaverestoreobj=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/vcs_save_restore_new.o
+-Msyslibs=-ldl
+-Mvcsaceobjs=
+-Mxcflags= -pipe -fPIC -I/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/include
+-Mxllcflags=
+-full64
+-gen_obj
+-o simv
+-picarchive
+-sverilog
+-timescale=1ns/10ps
+/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/bin/vcs1
+simv
+sram_tb.sv
+ts1da32kx32_100a_tc.v
+107
+which_declare=declare -f
+XDG_SESSION_ID=184
+XDG_RUNTIME_DIR=/run/user/1052
+XDG_DATA_DIRS=/home/qamar/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+XA_HOME=/mnt/NVME2/synopsys/xa
+VUI_HOME=/mnt/NVME2/synopsys/vui
+VTRAN_HOME=/mnt/NVME2/synopsys/vtran
+VSCODE_IPC_HOOK_CLI=/run/user/1052/vscode-ipc-b60d97d7-f873-400e-a9e3-2aa639290571.sock
+VSCODE_GIT_IPC_HANDLE=/run/user/1052/vscode-git-27a4308c69.sock
+VSCODE_GIT_ASKPASS_NODE=/home/qamar/.vscode-server/cli/servers/Stable-65edc4939843c90c34d61f4ce11704f09d3e5cb6/server/node
+VSCODE_GIT_ASKPASS_MAIN=/home/qamar/.vscode-server/cli/servers/Stable-65edc4939843c90c34d61f4ce11704f09d3e5cb6/server/extensions/git/dist/askpass-main.js
+VSCODE_GIT_ASKPASS_EXTRA_ARGS=
+VMR_MODE_FLAG=64
+VGEN_HOME=/mnt/NVME2/synopsys/vgen
+VERDI_HOME=/mnt/NVME2/synopsys/verdi
+VC_STATIC_HOME=/mnt/NVME2/synopsys/vc_static
+VC_ML_PLATFORM_HOME=/mnt/NVME2/synopsys/vc_ml_platform
+VC_FORMAL_HOME=/mnt/NVME2/synopsys/vc_formal
+VCS_PYTHON3=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/bin/Python3/bin/python3
+VCS_PATHMAP_PRELOAD_DONE=1
+VCS_MX_HOME_INTERNAL=1
+VCS_MODE_FLAG=64
+VCS_INTERNAL_CONVERTEDLIBS=
+VCS_HOME=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1
+VCS_EXEC_DONE=1
+VCS_DEPTH=0
+VCS_ARG_ADDED_FOR_TMP=1
+VCS_ARCH=linux64
+VCAP_HOME=/mnt/NVME2/synopsys/vcap
+UNAME=/bin/uname
+UFE_OPTIONAL_SPYGLASS_VCS_HOME=/mnt/NVME2/synopsys/ufe_optional_spyglass-vcs
+TXS_HOME=/mnt/NVME2/synopsys/txs
+TWEAKER_HOME=/mnt/NVME2/synopsys/tweaker
+TOOL_HOME=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64
+TESTMAX_HOME=/mnt/NVME2/synopsys/testmax
+TERM_PROGRAM_VERSION=1.95.1
+TERM_PROGRAM=vscode
+TCM_HOME=/mnt/NVME2/synopsys/tcm
+SYN_HOME=/mnt/NVME2/synopsys/syn
+STARRC_HOME=/mnt/NVME2/synopsys/starrc
+SSL_CERT_FILE=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+SSL_CERT_DIR=/etc/pki/tls/certs
+SSH_CONNECTION=192.168.1.44 39470 192.168.1.8 22
+SSH_CLIENT=192.168.1.44 39470 22
+SSH_ASKPASS=/usr/libexec/openssh/gnome-ssh-askpass
+SPYGLASS_HOME=/mnt/NVME2/synopsys/spyglass
+SNPS_VCS_PYTHON3=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/bin/Python3/bin/python3
+SNPS_VCS_CLANG_PATH=/mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/clang
+SNPS_INTERNAL_VCS_LINUX_OS=linux
+SNPS_CONTAINER_HOME=/mnt/NVME2/synopsys/snps_container
+SILICONSMART_HOME=/mnt/NVME2/synopsys/siliconsmart
+SELINUX_USE_CURRENT_RANGE=
+SELINUX_ROLE_REQUESTED=
+SELINUX_LEVEL_REQUESTED=
+SCRNAME=vcs
+SCRIPT_NAME=vcs
+SCL_HOME=/mnt/NVME2/synopsys/scl
+SCL_ENABLE_BRIDGE=1
+RTLA_HOME=/mnt/NVME2/synopsys/rtla
+RHSC_ELECTROTHERMAL_ANALYSIS_FUSION_HOME=/mnt/NVME2/synopsys/rhsc_electrothermal_analysis_fusion
+RHSC_ANALYSIS_FUSION_HOME=/mnt/NVME2/synopsys/rhsc_analysis_fusion
+PRIME_HOME=/mnt/NVME2/synopsys/prime
+PRIMEWAVE_HOME=/mnt/NVME2/synopsys/primewave
+PRIMEWAVERELIABILITY_HOME=/mnt/NVME2/synopsys/primewavereliability
+PRIMESIM_HOME=/mnt/NVME2/synopsys/primesim
+PRIMESIM_EMIR_HOME=/mnt/NVME2/synopsys/primesim_emir
+PRIMESIM_DR_HOME=/mnt/NVME2/synopsys/primesim_dr
+PRIMESIM_DI_HOME=/mnt/NVME2/synopsys/primesim_di
+PRIMELIB_HOME=/mnt/NVME2/synopsys/primelib
+PRIMECLOSURE_HOME=/mnt/NVME2/synopsys/primeclosure
+PPRTL_HOME=/mnt/NVME2/synopsys/pprtl
+OVA_UUM=0
+NT_HOME=/mnt/NVME2/synopsys/nt
+MW_HOME=/mnt/NVME2/synopsys/mw
+MECHANICAL_ENGINE_ANALYSIS_FUSION_HOME=/mnt/NVME2/synopsys/mechanical_engine_analysis_fusion
+LESSOPEN=||/usr/bin/lesspipe.sh %s
+LC_HOME=/mnt/NVME2/synopsys/lc
+LC_ALL=C
+LAKER_HOME=/mnt/NVME2/synopsys/laker
+IDQ_HOME=/mnt/NVME2/synopsys/idq
+IDENTIFY_HOME=/mnt/NVME2/synopsys/identify
+ICV_WORKBENCH_HOME=/mnt/NVME2/synopsys/icv_workbench
+ICVALIDATOR_HOME=/mnt/NVME2/synopsys/icvalidator
+ICC_HOME=/mnt/NVME2/synopsys/icc
+ICC2_HOME=/mnt/NVME2/synopsys/icc2/W-2024.09-SP2/
+HSPICE_HOME=/mnt/NVME2/synopsys/hspice
+HSIM_HOME=/mnt/NVME2/synopsys/hsim
+HISTCONTROL=ignoredups
+GIT_ASKPASS=/home/qamar/.vscode-server/cli/servers/Stable-65edc4939843c90c34d61f4ce11704f09d3e5cb6/server/extensions/git/dist/askpass.sh
+FUSIONCOMPILER_HOME=/mnt/NVME2/synopsys/fusioncompiler
+FPGA_HOME=/mnt/NVME2/synopsys/fpga
+FM_HOME=/mnt/NVME2/synopsys/fm
+FINESIM_HOME=/mnt/NVME2/synopsys/finesim
+EXECMAN_HOME=/mnt/NVME2/synopsys/execman
+ESP_HOME=/mnt/NVME2/synopsys/esp
+EMBEDIT_HOME=/mnt/NVME2/synopsys/embedit
+DFTVIEW_HOME=/mnt/NVME2/synopsys/dftview
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1052/bus
+CUSTOMINFRASTRUCTURE_HOME=/mnt/NVME2/synopsys/custominfrastructure
+CUSTOMCOMPILER_HOME=/mnt/NVME2/synopsys/customcompiler
+COLORTERM=truecolor
+CMLP_HOME=/mnt/NVME2/synopsys/cmlp
+CF_HOME=/mnt/NVME2/synopsys/cf
+CERTITUDE_HOME=/mnt/NVME2/synopsys/certitude
+CCK_HOME=/mnt/NVME2/synopsys/cck
+BASH_FUNC_which%%=() {  ( alias;_ eval ${which_declare} ) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot $@_}
+ALE_HOME=/mnt/NVME2/synopsys/ale
+0
+0
+2
+1738041381 ts1da32kx32_100a_tc.v
+1738063466 sram_tb.sv
+4
+1733288192 /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libvirsim.so
+1733286010 /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/liberrorinf.so
+1733286000 /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libsnpsmalloc.so
+1733285992 /mnt/NVME2/synopsys/vcs/W-2024.09-SP1/linux64/lib/libvfs.so
+1738063469 simv.daidir
+-1 partitionlib

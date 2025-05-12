@@ -38,6 +38,10 @@ module data_path #(
     //    input logic [1:0] mem_csr_to_reg_id,
     input logic csr_type_id,
     input logic m_type_exe,
+    input logic is_atomic_id,
+    
+    output logic is_atomic_mem,
+
     input alu_t alu_ctrl_exe,
     input logic pc_sel_mem,
     
@@ -65,14 +69,13 @@ module data_path #(
     // hazard handler data required from the data path
     output wire [1:0] mem_to_reg_exe,
     output wire [4:0] rd_exe,
-
-
+    output logic atomic_unit_stall,
     // signals to control the flow of the pipeline
     input logic if_id_reg_clr,
     input logic id_exe_reg_clr,
     input logic exe_mem_reg_clr,
     input logic mem_wb_reg_clr,
-
+    
     input logic if_id_reg_en,
     input logic id_exe_reg_en,
     input logic exe_mem_reg_en,
@@ -88,7 +91,7 @@ module data_path #(
     input logic [31:0] mem_rdata_mem,
     output logic mem_write_mem,
     output logic [1:0] mem_to_reg_mem,
-
+    input logic mem_ack_mem,
     // inst mem access
     output logic [31:0] current_pc_if,
     input logic [31:0] inst_if,
@@ -141,7 +144,7 @@ module data_path #(
   logic [31:0] pc_jump_exe, pc_jump_mem;
   logic [31:0] next_pc_if1;
   logic [31:0] non_mem_result_wb;
-
+    
 
   logic reg_write_exe;
   logic mem_write_exe;
@@ -154,9 +157,11 @@ module data_path #(
   logic [1:0] mem_to_reg_wb;
   logic [31:0] alu_result_exe, alu_result_mem;
   logic [31:0] result_mem;
+  logic [31:0] rdata1_frw_mem;
   logic [31:0] rdata2_frw_mem;
   logic [31:0] current_pc_if1;
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
+  logic is_atomic_exe;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
   always_comb begin: mip_assignment
@@ -463,7 +468,7 @@ assign trap = interrupt | exception;
     // data signals 
     corrected_pc,  // 32
     corrected_pc_plus_4,  // 32
-    rs1_id,  // 32
+    rs1_id,  // 5
     rs2_id,
     rd_id,
     fun3_id,
@@ -473,6 +478,7 @@ assign trap = interrupt | exception;
     imm_id,
     // control signals
     csr_type_id,
+    is_atomic_id,
     reg_write_id,
     mem_write_id,
     mem_to_reg_id,
@@ -518,11 +524,13 @@ assign trap = interrupt | exception;
   assign fun7_exe = id_exe_bus_o.fun7;
   assign reg_rdata1_exe = id_exe_bus_o.reg_rdata1;
   assign reg_rdata2_exe = id_exe_bus_o.reg_rdata2;
-  assign imm_exe = id_exe_bus_o.imm;
+//  assign imm_exe = id_exe_bus_o.imm;
+assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction is atmoic AMO/(LR/SC) then we want the imm to be zero
 
   // control signals
   //    assign mem_csr_to_reg_exe = id_exe_bus_o.mem_csr_to_reg;
   assign csr_type_exe    = id_exe_bus_o.csr_type;/////////////////////////////////////////////////////////////////////////////////////
+  assign is_atomic_exe    = id_exe_bus_o.is_atomic;
   assign reg_write_exe = id_exe_bus_o.reg_write;
   assign mem_write_exe = id_exe_bus_o.mem_write;
   assign mem_to_reg_exe = id_exe_bus_o.mem_to_reg;
@@ -682,14 +690,17 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
     alu_op1_exe,
     pc_plus_4_exe,
     pc_jump_exe,
+    rs1_exe,
     rs2_exe,
     rd_exe,
     fun3_exe,
+    rdata1_frw_exe,
     rdata2_frw_exe,
     imm_exe,
     alu_result_exe,
     // control signals
     csr_type_exe,
+    is_atomic_exe,
     reg_write_exe,
     mem_write_exe,
     mem_to_reg_exe,
@@ -717,28 +728,33 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
   );
-
+  logic [4:0] rs1_mem;
   // data signals 
   assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
   assign pc_plus_4_mem            = exe_mem_bus_o.pc_plus_4;  // 32
   assign pc_jump_mem              = exe_mem_bus_o.pc_jump;
+  assign rs1_mem                  = exe_mem_bus_o.rs1;
   assign rs2_mem                  = exe_mem_bus_o.rs2;
   assign rd_mem                   = exe_mem_bus_o.rd;
   assign fun3_mem                 = exe_mem_bus_o.fun3;
+  assign rdata1_frw_mem           = exe_mem_bus_o.rdata1_frw;
   assign rdata2_frw_mem           = exe_mem_bus_o.rdata2_frw;
   assign imm_mem                  = exe_mem_bus_o.imm;
   assign alu_result_mem           = exe_mem_bus_o.alu_result;
   // control signals
   assign reg_write_mem            = exe_mem_bus_o.reg_write;
-  assign mem_write_mem            = exe_mem_bus_o.mem_write;
-  assign mem_to_reg_mem           = exe_mem_bus_o.mem_to_reg;
+  logic mem_write_req_mem;
+  logic [1:0] mem_to_reg_req_mem;
+  assign mem_write_req_mem            = exe_mem_bus_o.mem_write;
+  assign mem_to_reg_req_mem           = exe_mem_bus_o.mem_to_reg;
   assign branch_mem               = exe_mem_bus_o.branch;
   assign jump_mem                 = exe_mem_bus_o.jump;
   assign lui_mem                  = exe_mem_bus_o.lui;
   assign zero_mem                 = exe_mem_bus_o.zero;
 
   assign csr_type_mem             = exe_mem_bus_o.csr_type;
+  assign is_atomic_mem             = exe_mem_bus_o.is_atomic;
 
   assign load_misaligned_mem      = exe_mem_bus_o.load_misaligned;
   assign store_misaligned_mem     = exe_mem_bus_o.store_misaligned;
@@ -826,16 +842,17 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .*
   );
 
-
+    logic [31:0] mem_wdata;
   // forwarding for mem_write_data
   mux2x1 #(32) mem_data_in_mux (
       .sel(forward_rd2_mem),
       .in0(rdata2_frw_mem),
       .in1(reg_wdata_wb),
-      .out(mem_wdata_mem)
+      .out(mem_wdata)
   );
-
-  assign mem_addr_mem = alu_result_mem;
+ logic [31:0] mem_addr;
+    
+//  assign mem_addr_mem = alu_result_mem;
   assign mem_op_mem   = fun3_mem;
 
 
@@ -855,25 +872,93 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .sel({lui_mem, jump_mem, alu_to_reg_mem}),
       .in0(alu_result_mem),
       .in1(actual_pc_return_mem),
+
       .in2(imm_mem),
       .out(result_mem)
   );
+    
+ // ============================================
+ //              ATOMIC ACCESS LOGIC
+ // ============================================
+    
+    logic [4:0] fun5_mem;
+    assign fun5_mem = inst_mem[31:27];
+    logic [31:0] atomic_unit_wdata_mem;
+    logic atomic_unit_valid_rd_mem;
+   //---Exceptions Currently Are Not Use---//
+   // logic store_amo_addr_malign_mem; // 
+   // logic load_addr_malign_mem;            //
+   //----------------------------------------------//
+    logic [31:0] mem_addr_req;
+    logic [31:0] mem_addr;
+    logic is_atomic_wb;
+    logic [4:0]  rs1_wb;
+
+    logic forward_rs1_wb;
+    logic [31:0] alu_op1_wb;
+
+    assign forward_rs1_wb = (rs1_wb == rs1_mem) && is_atomic_wb;
+    assign mem_addr = is_atomic_mem ? alu_op1_mem : alu_result_mem;//this might be not neccary since imm is zero when atomic will have to check it later
+      mux2x1 #(32) mem_addr_in_mux (
+      .sel(forward_rs1_wb),
+      .in0(mem_addr),
+      .in1(alu_op1_wb),
+      .out(mem_addr_req)
+  );
+//   logic atomic_valid_mem;
+    atomic_access_controller aac_inst (
+        .clk(clk),
+        .rst(~reset_n),
+        .is_atomic_mem(is_atomic_mem),
+        .amo_funct5_mem(fun5_mem),
+        .rs2_val_mem(rdata2_frw_mem),
+        .mem_read_req(mem_to_reg_req_mem),
+        .mem_write_req(mem_write_req_mem),
+        .mem_addr_req(mem_addr_req),  
+        .mem_wdata_req(mem_wdata),
+        
+        .mem_read(mem_to_reg_mem),
+        .mem_write(mem_write_mem),
+        .mem_addr(mem_addr_mem),
+        .mem_wdata(mem_wdata_mem),
+        .mem_rdata(mem_rdata_mem),
+        .mem_ack(mem_ack_mem),
+
+        .stall_mem(atomic_unit_stall),
+        .result_rd(atomic_unit_wdata_mem),
+        .valid_rd(atomic_unit_valid_rd_mem),
+        .load_addr_malign(load_addr_malign_mem),
+        .store_amo_addr_malign(store_amo_addr_malign_mem),
+        .valid()
+    ); 
+
+    logic [31:0] result;
+    logic  [31:0] tmp;
+    assign tmp = is_atomic_mem ? alu_result_exe: result_mem ;
+    assign result = (atomic_unit_valid_rd_mem & is_atomic_mem) ? atomic_unit_wdata_mem : tmp;
 
   // ============================================
   //            MEM-WB Pipeline Register
   // ============================================
-
+    
   mem_wb_reg_t mem_wb_bus_i, mem_wb_bus_o;
   logic [31:0] alu_mem_result_wb;
-
+  logic atomic_unit_stall_wb;
+  logic valid_rd_wb;
   assign mem_wb_bus_i = {
     // data signals 
-    mem_rdata_mem,
+    rs1_mem,
+    alu_op1_mem,
     csr_out,
     rd_mem,
-    result_mem,
-    // pc_jump_mem,  
+    result,
+    // atomic_valid_mem,
+    // atomic_unit_stall,
+    // result_mem,// or is it mem_addr_req?
+    // mem_addr_req,
     // control signals
+    is_atomic_mem,
+    atomic_unit_valid_rd_mem,
     reg_write_mem,
     mem_to_reg_mem
   };
@@ -890,21 +975,54 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   );
   logic [31:0] mem_rdata_wb;
   logic [31:0] csr_out_wb;
+//   logic atomic_valid_wb;
   // data signals 
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   assign csr_out_wb        = mem_wb_bus_o.csr_out;
 //  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
   // control signals
-  assign reg_write_wb      = mem_wb_bus_o.reg_write;
+  assign valid_rd_wb = mem_wb_bus_o.valid_rd;
+//   assign atomic_valid_wb = mem_wb_bus_o.atomic_valid;
+//   assign atomic_unit_stall_wb = mem_wb_bus_o.atomic_unit_stall;
+  assign is_atomic_wb = mem_wb_bus_o.is_atomic;
+  assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
   assign mem_rdata_wb = mem_rdata_mem;
-
 
   // ============================================
   //                Write Back Stage 
   // ============================================
+  
+  logic mem_wb_atomic_reg_en;
+  assign mem_wb_atomic_reg_en = ~mem_wb_reg_en & is_atomic_wb;
+  n_bit_reg_wclr #(
+      .n($bits({alu_op1_mem,rs1_mem}))
+  ) mem_wb_reg_atomic (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(1'b0),
+      .wen(mem_wb_atomic_reg_en),
+      .data_i({alu_op1_mem,rs1_mem}),
+      .data_o({alu_op1_wb,rs1_wb})
+  );
 
+//mem_rdata_mem
+logic [31:0] atomic_unit_wdata_wb;
+  n_bit_reg_wclr #(
+      .n($bits({atomic_unit_wdata_mem,atomic_unit_stall_wb}))
+  ) mem_wb_reg_ext (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(mem_wb_reg_clr),
+      .wen(mem_wb_reg_en),
+      .data_i({atomic_unit_wdata_mem,atomic_unit_stall}),
+      .data_o({atomic_unit_wdata_wb,atomic_unit_stall_wb})
+  );
+
+  logic [31:0] mem_rdata_wb;
+  assign mem_rdata_wb = atomic_unit_wdata_wb;
+//   assign mem_rdata_wb = (is_atomic_mem ? atomic_unit_valid_rd_mem : 1'b1) ?  atomic_unit_wdata_mem : result_mem;
 
   mux4x1 #(
       .n(32)
@@ -1019,8 +1137,10 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_o(divide_stall_wb)
   );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem) & mem_wb_reg_en;
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem) & mem_wb_reg_en & (~atomic_unit_stall_wb);
 
+  
+  
 
   //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;
 
@@ -1090,4 +1210,5 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
 
 endmodule
+
 
