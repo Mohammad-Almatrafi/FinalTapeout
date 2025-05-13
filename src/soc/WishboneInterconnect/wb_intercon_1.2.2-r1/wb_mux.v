@@ -84,11 +84,8 @@ module wb_mux
 
    reg  			 wbm_err;
    wire [slave_sel_bits-1:0] 	 slave_sel;
-<<<<<<< HEAD
    reg  [slave_sel_bits-1:0] 	 slave_sel_ff;
 
-=======
->>>>>>> feature/AC_fixing_atomic
    wire [num_slaves-1:0] 	 match;
 
    genvar 			 idx;

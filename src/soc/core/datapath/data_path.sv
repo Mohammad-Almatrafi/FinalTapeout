@@ -9,6 +9,8 @@ module data_path #(
     input logic timer_irq,
     input logic external_irq,
 
+1231231231
+
     input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
@@ -640,10 +642,8 @@ int_div_rem #(
   .ovf(ovf),
   .a(alu_op1_exe),
   .b(alu_op2_exe),
-  .result(div_result_exe),
+  .result(div_result_exe)
 
-  .en(1'b1),
-  .clear(1'b0)
 );
 //--------------------------------------------------------------------------------------------------
   
@@ -988,7 +988,6 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign is_atomic_wb = mem_wb_bus_o.is_atomic;
   assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
-  assign mem_rdata_wb = mem_rdata_mem;
 
   // ============================================
   //                Write Back Stage 
@@ -1137,7 +1136,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .data_o(divide_stall_wb)
   );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0 | divide_stall_mem) & mem_wb_reg_en & (~atomic_unit_stall_wb);
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & mem_wb_reg_en & (~atomic_unit_stall_wb);
 
   
   

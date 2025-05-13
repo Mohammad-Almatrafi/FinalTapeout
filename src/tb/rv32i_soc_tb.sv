@@ -82,13 +82,8 @@ logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
   initial begin
 	    initial_imem = '{default: 0};
 	    initial_dmem = '{default: 0};
-<<<<<<< HEAD
-            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
-            $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
-=======
-            $readmemh("/home/Abdullah_Alzahrani/shared_folder/team_dir_AbdullahZahrani/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
-            $readmemh("/home/Abdullah_Alzahrani/shared_folder/team_dir_AbdullahZahrani/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
->>>>>>> feature/AC_fixing_atomic
+            $readmemh("/home/Hammad_AlReshoud/hammad/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
+            $readmemh("/home/Hammad_AlReshoud/hammad/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
 		
 		force DUT.inst_mem_inst.dmem = initial_imem;
                 force DUT.data_mem_inst.dmem = initial_dmem;

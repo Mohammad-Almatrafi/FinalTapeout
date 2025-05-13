@@ -29,7 +29,7 @@ module pipeline_controller (
   assign mem_wb_reg_clr =  interrupt  ;  // never clear
 
 
-  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed | atomic_unit_hazard | atomic_unit_stall | divide_stall) | (mret_type | interrupt);
+  assign pc_reg_en = ~(stall_pipl | load_hazard | stall_compressed | atomic_unit_hazard | atomic_unit_stall | divide_stall) | (mret_type | interrupt | branch_hazard);
 
   assign if_id_reg_en = ~(stall_pipl | load_hazard | atomic_unit_hazard | atomic_unit_stall | divide_stall);
   assign id_exe_reg_en = ~(stall_pipl | atomic_unit_hazard | atomic_unit_stall |divide_stall); 
