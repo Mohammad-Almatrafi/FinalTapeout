@@ -102,19 +102,25 @@ module wishbone_controller (
     reg  [31:0] dbg_wb_adr_o;  
     reg  [31:0] dbg_wb_dat_o;  
     reg  [3:0]  dbg_wb_sel_o;   
-    reg         dbg_wb_we_o;    
+    reg         dbg_wb_we_o ;    
     reg         dbg_wb_cyc_o;   
     reg         dbg_wb_stb_o;  
+    reg         full        ;
+
+    always @(*) begin
+        if(dbg_am_do_i[1:0] == 2'b11) full = 1'b1;
+        else full = 1'b0;
+    end
 
     // to the interconnect
     assign dbg_wb_adr_o = dbg_am_ad_i;
     assign dbg_wb_dat_o = dbg_am_do_i;
-    assign dbg_wb_sel_o = 4'b1111; // FIXME (is st_i same as sel, if not fixit?)
+    assign dbg_wb_sel_o = dbg_am_st_i == 3'd1 ? (dbg_wb_adr_o[0] == 1'b1 ? 4'b1100:4'b0011):4'b1111; // (dbg_wb_adr_o[0] == 1'b1 ?  4'b1100: )// FIXME (is st_i same as sel, if not fixit?)
     assign dbg_wb_we_o  = dbg_am_wr_i;
     assign dbg_wb_cyc_o = dbg_am_en_i;
     assign dbg_wb_stb_o = dbg_am_en_i;
     // from the interconnect
-    assign dbg_am_di_o  = wb_dat_i;     // FIXME (do we need any kind of alignment in case of dbg access?)
+    assign dbg_am_di_o  = dbg_wb_adr_o[0]==1'b1 ? wb_dat_i << 5'd16 : wb_dat_i;     // FIXME (do we need any kind of alignment in case of dbg access?)
     assign dbg_am_done_o = core_halted ?  (wb_ack_i |  wb_err_i) : 1'b0;
 
     // ============================================

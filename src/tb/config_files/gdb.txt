@@ -1,0 +1,6 @@
+gdb-multiarch /home/it/RivRtos/src/tb/jtag_tests/firmware.elf
+(gdb) set architecture riscv:rv32
+(gdb) target remote localhost:3333
+(gdb) load                  # writes the ELF into memory
+(gdb) break main            # or whatever symbol you need
+(gdb) continue

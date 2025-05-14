@@ -679,7 +679,11 @@ module rv32i_soc #(
 
     logic [31:0] imem_addr;
     
-    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `ifdef JTAG
+        assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `else
+        assign imem_addr = sel_boot_rom ? wb_m2s_dmem_adr: current_pc;
+    `endif
 
     sram_32k_wrapper inst_mem_inst (
         .clk_i       (clk            ),
@@ -722,7 +726,11 @@ module rv32i_soc #(
 
     logic [31:0] imem_addr;
     
-    assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `ifdef JTAG
+        assign imem_addr = (sel_boot_rom | core_halted) ? wb_m2s_dmem_adr: current_pc;
+    `else
+        assign imem_addr = sel_boot_rom ? wb_m2s_dmem_adr: current_pc;
+    `endif
 
     sram_32k_wrapper inst_mem_inst (
         .clk_i       (clk            ),
@@ -857,7 +865,7 @@ module rv32i_soc #(
 	logic [31:0] rom_inst_ff;
 	`ifdef USE_SRAM
 	    tsmc_rom_1k #(
-		.PreloadFilename("/home/qamar/Desktop/RivRtos/src/tb/rom.hex")		
+		.PreloadFilename("PATH_TO_ROM_HEX")		
 		)tsmc_rom_inst (
 		.Q(rom_inst_ff),
 		.ADR(current_pc[9:2]),
@@ -867,7 +875,7 @@ module rv32i_soc #(
 		);
 	`elsif PD_BUILD
 	    tsmc_rom_1k #(
-		.PreloadFilename("/home/qamar/Desktop/RivRtos/src/tb/rom.hex")		
+		.PreloadFilename("PATH_TO_ROM_HEX")		
 		)tsmc_rom_inst (
 		.Q(rom_inst_ff),
 		.ADR(current_pc[9:2]),
@@ -948,27 +956,5 @@ module rv32i_soc #(
 				.am_done_i	(onebit_sig_e'(dbg_am_done))
 			);
 
-    // ============================================
-    //                      PLIC
-    // ============================================
 
-    // Platform Level Interrupt Controller, according the riscv spec 
-//    plic_top #(
-//        .NUM_SOURCES_P (6),
-//        .NUM_CONTEXTS_P(1)
-//    ) plic_inst (
-//        .wb_clk_i    (clk             ),
-//        .wb_rst_i    (wb_rst          ),
-//        .wb_cyc_i    (wb_m2s_plic_cyc),
-//        .wb_stb_i    (wb_m2s_plic_stb),
-//        .wb_adr_i    (wb_m2s_plic_adr[23:0]),
-//        .wb_we_i     (wb_m2s_plic_we ),
-//        .wb_sel_i    (wb_m2s_plic_sel),
-//        .wb_dat_i    (wb_m2s_plic_dat),
-//        .wb_dat_o    (wb_s2m_plic_dat),
-//        .wb_ack_o    (wb_s2m_plic_ack),
-//        .int_sources({uart_irq, spi_flash_irq, spi2_irq, gpio_irq, i2c_irq, ptc_irq}), // lsb has the small id number so high priority incase of priority clash
-//        .external_irq(external_irq)
-//    );
-    
 endmodule : rv32i_soc

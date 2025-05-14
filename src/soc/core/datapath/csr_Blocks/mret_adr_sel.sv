@@ -1,6 +1,7 @@
 module mret_adr_sel (
     input logic clk,
     input logic reset_n,
+    input logic if_id_reg_clr_ff,
     input logic clear_counter,
     input logic [31:0] current_pc_if1,
     input logic [31:0] current_pc_if2,
@@ -38,7 +39,7 @@ module mret_adr_sel (
     if (current_pc_mem != 0) selector = 3'b100;
     else if (current_pc_exe != 0) selector = 3'b011;
     else if (current_pc_id != 0) selector = 3'b010;
-    else if (current_pc_if2 != 0) selector = 3'b001;
+    else if (current_pc_if2 != 0 & ~if_id_reg_clr_ff) selector = 3'b001;
     else selector = 3'b000;
 
   end

@@ -15,6 +15,10 @@ module control_unit (
     input logic stall_compressed,
     input logic jump_stall_ff,
 
+    input logic core_halted,
+    input logic core_running,
+    input logic dbg_ret,
+
     // outputs from the decode controller
     output logic reg_write_id,
     output logic mem_write_id,

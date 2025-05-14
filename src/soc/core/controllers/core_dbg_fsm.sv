@@ -85,7 +85,7 @@ module core_dbg_fsm (
         else if(core_running_o & debug_step & inst_valid_wb)
             dpc <= cinst_pc;
         else if(core_running_o & ( (dbg_haltreq_i | debug_step) & ~no_jump))
-            dpc <= next_pc_if1; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
+            dpc <= cinst_pc;//next_pc_if1; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
         else if (core_running_o & dbg_haltreq_i)
             dpc <= cinst_pc;
     end

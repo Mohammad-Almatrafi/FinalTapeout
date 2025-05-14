@@ -107,7 +107,8 @@ module data_path #(
     output logic inst_valid_wb,
     output logic no_jump,
     input logic [31:0] dpc,
-    input logic dbg_ret
+    input logic dbg_ret,
+    output logic [31:0] next_pc_if1
 
 );
 
@@ -139,7 +140,6 @@ module data_path #(
       pc_jump_wb,
       corrected_pc_plus_4;
   logic [31:0] pc_jump_exe, pc_jump_mem;
-  logic [31:0] next_pc_if1;
   logic [31:0] non_mem_result_wb;
 
 
@@ -196,13 +196,6 @@ module data_path #(
 
 
 
-
-
-
-
-
-
-
 //// need to | (or) interrupt with a delayed (interrupt & load_hazard)
 
 //logic trap_loadhazard_ff;
@@ -223,7 +216,9 @@ assign trap = interrupt | exception;
 //assign first_pc_mux_trap = trap_loadhazard_ff | trap;
 
 //// if there is a stall when jump is in mem, make pc take the value from wb a cycle later
-  
+
+  assign no_jump = ~(trap | mret_type | pc_sel_mem);
+
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
@@ -318,9 +313,15 @@ assign trap = interrupt | exception;
       .data_i(if1_if2_bus_i),
       .data_o(if1_if2_bus_o)
   );
+  logic  inst_valid_if;
+  logic  inst_valid_id;
+  logic  inst_valid_exe;
+  logic  inst_valid_mem;
+  logic  inst_valid_wb;
 
   assign current_pc_if2 = if1_if2_bus_o.current_pc;
   assign pc_plus_4_if2  = if1_if2_bus_o.pc_plus_4;
+  assign inst_valid_if = 1'b1;
 
   logic [31:0] inst_if_ff;
 
@@ -355,6 +356,18 @@ assign trap = interrupt | exception;
       .wen(if_id_reg_en & ~stall_compressed),
       .data_i(if_id_bus_i),
       .data_o(if_id_bus_o)
+  );
+
+  n_bit_reg_wclr #(
+      .n(1),  // Automatically sets width
+      .CLR_VALUE(1'b0)
+  ) if_id_reg_valid (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(if_id_reg_clr | if_id_reg_clr_ff),
+      .wen(if_id_reg_en & ~stall_compressed),
+      .data_i(inst_valid_if),
+      .data_o(inst_valid_id)
   );
 
   assign current_pc_id = if_id_bus_o.current_pc;
@@ -498,6 +511,21 @@ assign trap = interrupt | exception;
       .data_i(id_exe_bus_i),
       .data_o(id_exe_bus_o)
   );
+
+  n_bit_reg_wclr #(
+      .n(1),  // Automatically sets width
+      .CLR_VALUE(1'b0)
+  ) id_exe_reg_valid (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(id_exe_reg_clr),
+      .wen(id_exe_reg_en),
+      .data_i(inst_valid_id),
+      .data_o(inst_valid_exe)
+  );
+
+
+
   logic
       invalid_inst_exe,
       invalid_inst_mem,
@@ -718,6 +746,18 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_o(exe_mem_bus_o)
   );
 
+  n_bit_reg_wclr #(
+      .n(1),  // Automatically sets width
+      .CLR_VALUE(1'b0)
+  ) exe_mem_reg_valid (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(exe_mem_reg_clr),
+      .wen(exe_mem_reg_en),
+      .data_i(inst_valid_exe),
+      .data_o(inst_valid_mem)
+  );
+
   // data signals 
   assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
@@ -789,7 +829,6 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign dbg_csr_write = dbg_ar_en & dbg_ar_wr & 
                            (dbg_ar_ad< 32'h1000);
   assign data_in_csr = inst_mem[14] ? {27'b0,inst_mem[19:15]} : RS1; 
-
   csr_top csr_unit (
       .current_pc(mepc_adr),
     `ifdef JTAG
@@ -812,10 +851,12 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
 
   assign dbg_csr_result = csr_out;
+  assign cinst_pc = mepc_adr;
 
   mret_ecall_type mret_unit (
       .mret_type(mret_type),
       .ecall_type(ecall_type),
+      .ebreak_type(ebreak_inst_mem),
       .csr_type(csr_type_mem),
       .fun12(inst_mem[31:20]),
       .fun3(inst_mem[14:12])
@@ -888,6 +929,19 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_i(mem_wb_bus_i),
       .data_o(mem_wb_bus_o)
   );
+
+  n_bit_reg_wclr #(
+      .n(1),  // Automatically sets width
+      .CLR_VALUE(1'b0)
+  ) mem_wb_reg_valid (
+      .clk(clk),
+      .reset_n(reset_n),
+      .clear(mem_wb_reg_clr),
+      .wen(mem_wb_reg_en),
+      .data_i(inst_valid_mem),
+      .data_o(inst_valid_wb)
+  );
+
   logic [31:0] mem_rdata_wb;
   logic [31:0] csr_out_wb;
   // data signals 

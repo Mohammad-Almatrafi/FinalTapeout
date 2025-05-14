@@ -61,7 +61,7 @@ module mem_8k_sram_wrap (
 
   // inst memory here
 
-  tsmc_8k(
+  tsmc_8k tsmc_ram(
       .CLK(clk_i),
       .ADR(word_adr),
       .D(dat_i),
@@ -152,7 +152,7 @@ module mem_32k_sram_wrap (
 
   // inst memory here
 
-  tsmc_32k_sq(
+  tsmc_32k_sq tsmc_ram(
       .CLK(clk_i),
       .ADR(word_adr),
       .D(dat_i),

@@ -189,7 +189,8 @@ module decompress (
       5'b01010: inst_32 = {lwsp_imm, 5'd2, 3'd2, rd, LOAD};
 
       5'b10010: begin
-        if (inst_16[12] == 1'b0) begin
+        if(inst_16[12:2] == 11'b10000000000 ) inst_32 = 32'h00100073;
+        else if (inst_16[12] == 1'b0) begin
           if (rs2 == 5'b0) begin
             // c.jr rs1 => jalr x0,rs1,0
             inst_32 = {12'b0, rs1, 3'b0, 5'b0, JALR};

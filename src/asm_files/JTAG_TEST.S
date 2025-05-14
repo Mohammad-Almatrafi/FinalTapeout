@@ -1,4 +1,4 @@
-.section .init
+.section .text
 _start:
 li x31,0x20000C00  # mtimecmp address
 li x20, 0xfff # mie value all enable

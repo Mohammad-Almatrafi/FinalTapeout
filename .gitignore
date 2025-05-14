@@ -11,5 +11,8 @@ src/build
 src/build/**
 src/tsmc/
 src/tsmc/** 
-soc/WishboneInterconnect_qamar/
-soc/WishboneInterconnect_qamar/**
+src/soc/WishboneInterconnect_qamar/
+src/soc/WishboneInterconnect_qamar/**
+src/tb_qammar/
+src/tb_qammar/**
+
