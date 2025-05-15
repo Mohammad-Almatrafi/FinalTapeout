@@ -108,7 +108,8 @@ module data_path #(
     output logic no_jump,
     input logic [31:0] dpc,
     input logic dbg_ret,
-    output logic [31:0] next_pc_if1
+    output logic [31:0] next_pc_if1,
+    output logic if_id_reg_clr_ff
 
 );
 
@@ -280,7 +281,6 @@ assign trap = interrupt | exception;
   // ============================================
 
   logic if_id_reg_en_ff;
-  logic if_id_reg_clr_ff;
   n_bit_reg #(
       .n(1)
   ) if_id_reg_en_ff_inst (

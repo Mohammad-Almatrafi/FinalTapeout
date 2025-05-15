@@ -804,8 +804,13 @@ module rv32i_soc #(
         .dat_o       (wb_s2m_imem_dat),
         .ack_o       (wb_s2m_imem_ack)
     );
+    `ifdef dump_mem
 
-    assign imem_inst = wb_s2m_imem_dat;
+        dump_mem dat_dump(inst_mem_inst.dmem[31:0]);
+
+    `endif
+
+        assign imem_inst = wb_s2m_imem_dat;
 
 `endif
 

@@ -8,6 +8,7 @@ tb/SimJTAG.sv
 +define+JTAG
 +define+JTAG_verf
 +define+dump_wave
++define+dump_mem
 
 # lib that many module accesses should be compiled first 
 soc/core/datapath/lib.sv
@@ -18,6 +19,7 @@ tb/tracer_pkg.sv
 # Core files
 # ------ datapath ------
 # compressed
+soc/dump_mem.sv
 soc/core/datapath/compressed/compressed_type.sv
 soc/core/datapath/compressed/decompress.sv
 soc/core/datapath/compressed/pc_corrector.sv

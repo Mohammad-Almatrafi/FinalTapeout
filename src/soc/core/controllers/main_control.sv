@@ -11,10 +11,11 @@ typedef enum logic [6:0] {
 } inst_type;
 
 module decode_control (
+    input logic if_id_reg_clr_ff,
     input logic [6:0] opcode,
     input logic reset_n,
     clk,
-    input clear_invalid_counter,
+    input logic stall_compressed,
     output logic reg_write,
     output logic mem_write,
     output logic [1:0] mem_csr_to_reg,
@@ -30,23 +31,7 @@ module decode_control (
     output logic invalid_inst
 
 );
-  logic [1:0] invalid_counter;
- always @(posedge clk or negedge reset_n) begin /// we split the reset | clear_invalid_counter
-  if (!reset_n) 
-  begin
-    invalid_counter <= 2'b11;
-  end 
-  else if (clear_invalid_counter) 
-  begin
-    invalid_counter <= 2'b11;
-  end 
-  else 
-  begin
-    invalid_counter <= invalid_counter >> 1;
-  end
-end
 
-  //  assign invalid_inst = ~|opcode[1:0];  // all valid instructions start with 2'b11
   parameter LOAD_STORE = 2'b00, R_TYPE = 2'b11, I_TYPE = 2'b01, B_TYPE = 2'b10;
 
   always @(opcode) begin
@@ -224,7 +209,7 @@ end
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
-        invalid_inst = ~(|invalid_counter);
+        invalid_inst = ~stall_compressed | ~if_id_reg_clr_ff; //~(|invalid_counter);
       end  // NOP
     endcase
   end

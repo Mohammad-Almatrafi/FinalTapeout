@@ -220,6 +220,7 @@ module rv32i #(
     logic [31:0] next_pc_if1;
     logic        prv_fetch_busy;
     logic        ebreak_inst_mem;
+    logic        if_id_reg_clr_ff;
 
 
     logic divide_stall; //output from datapath and input to control unit

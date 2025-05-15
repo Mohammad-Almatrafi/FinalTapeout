@@ -3,6 +3,7 @@ module control_unit (
     input logic [6:0] fun7_exe,
     input logic [2:0] fun3_exe,
     fun3_mem,
+    input logic if_id_reg_clr_ff,
     input logic zero_mem,
     input logic [1:0] alu_op_exe,
     input logic jump_mem,
@@ -98,7 +99,6 @@ module control_unit (
       .r_type(r_type_id),
       .csr_type(csr_type_id),
       .mem_csr_to_reg(mem_to_reg_id),
-      .clear_invalid_counter(pc_sel_mem | interrupt | mret_type),
       .*
   );
 

@@ -30,8 +30,8 @@
             logic        o_sda;
             logic        o_sda_oen;
 
-            parameter DMEM_DEPTH = 17000;
-            parameter IMEM_DEPTH = 35000;
+            parameter DMEM_DEPTH = 250;
+            parameter IMEM_DEPTH = 1000;
             parameter NO_OF_GPIO_PINS = 24;
             
             logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
@@ -152,6 +152,16 @@
             repeat(5000) @(posedge clk);  
             `endif
         end
+        integer lp;
+        wire [31:0]dmem_wire [IMEM_DEPTH-1:0];
+        genvar i;
+        generate
+            for (i = 0; i < IMEM_DEPTH; i++) begin : expose_mem
+                assign dmem_wire[i] = DUT.inst_mem_inst.dmem[i]; // Assign memory elements to wires
+            end
+        endgenerate
+
+
         initial begin
             `ifdef VCS_SIM    
                 `ifdef dump_wave
@@ -161,7 +171,10 @@
                     $dumpvars(1, DUT.rv32i_core_inst.u_core_dbg_fsm);
                     $dumpvars(1, DUT.rv32i_core_inst.data_path_inst);
                     $dumpvars(1, DUT.rv32i_core_inst.controller_inst);
-                    $dumpvars(1, DUT.rv32i_core_inst.data_path_inst.pre_decode_inst);
+                    `ifdef dump_mem
+                        $dumpvars(1, DUT.dat_dump);
+                    `endif
+                  
                 `endif
 
             `endif 

@@ -9,6 +9,7 @@ VCS_FLAGS     := -F ../filelist.f \
                  -CFLAGS "-std=c++11 -Itb" \
                  -debug_all -debug_pp -debug_access+all+xrw \
                  -kdb +vcs+lic+wait \
+                 -kdb +jtag_rbb_enable=1 \
                  -cm line+cond+fsm \
                  -o simv
 
