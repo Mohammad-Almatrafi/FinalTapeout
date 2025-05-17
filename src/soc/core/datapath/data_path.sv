@@ -1,5 +1,6 @@
 import riscv_types::*;
 
+
 module data_path #(
     parameter DMEM_DEPTH = 1024,
     parameter IMEM_DEPTH = 1024
@@ -9,7 +10,6 @@ module data_path #(
     input logic timer_irq,
     input logic external_irq,
 
-1231231231
 
     input logic invalid_inst,
     // outputs to controller
@@ -164,7 +164,9 @@ module data_path #(
   logic [31:0] current_pc_if1;
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
   logic is_atomic_exe;
-
+  logic [31:0]mem_wdata_frw_mem;
+  
+  logic [31:0] rdata1_frw_exe, rdata2_frw_exe;
   //    logic [31:0]inst_exe,inst_id,inst_mem;
   always_comb begin: mip_assignment
     mip_in = 32'b0;
@@ -551,26 +553,52 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
   // ============================================
   //                Execute Stage 
   // ============================================
+    // logic added to handle core case in the forwarding 
+    logic [31:0] rdata1_frw_exe_tmp, rdata2_frw_exe_tmp;
+    logic [31:0] rdata1_frw_exe_tmp_ff, rdata2_frw_exe_tmp_ff;
+    logic        exe_mem_reg_en_ff;
+    logic        exe_mem_reg_en_drop;
+    logic        exe_mem_reg_en_rise;
+    always_ff @(posedge clk) begin
+        exe_mem_reg_en_ff <= exe_mem_reg_en;
+    end
+    assign exe_mem_reg_en_drop =  exe_mem_reg_en_ff & ~exe_mem_reg_en;
+    assign exe_mem_reg_en_rise = ~exe_mem_reg_en_ff &  exe_mem_reg_en;
+
+    always_ff @(posedge clk) begin
+        if(exe_mem_reg_en_drop) begin
+            rdata1_frw_exe_tmp_ff <= rdata1_frw_exe_tmp;
+            rdata2_frw_exe_tmp_ff <= rdata2_frw_exe_tmp;
+        end
+    end
+    assign rdata1_frw_exe = (exe_mem_reg_en_rise & ~|forward_rd1_exe) ? rdata1_frw_exe_tmp_ff : rdata1_frw_exe_tmp;
+    assign rdata2_frw_exe = (exe_mem_reg_en_rise & ~|forward_rd2_exe) ? rdata2_frw_exe_tmp_ff : rdata2_frw_exe_tmp;
 
 
+
+
+
+
+
+ logic [31:0] atomic_unit_wdata_mem;
   // forwarding multiplexers
-  wire [31:0] rdata1_frw_exe, rdata2_frw_exe;
+// wire [31:0] rdata1_frw_exe, rdata2_frw_exe;
   // Forwarding mux for rd1
   mux3x1 #(32) forwarding_mux_a (
       .sel(forward_rd1_exe),
       .in0(reg_rdata1_exe),
-      .in1(result_mem),
+      .in1(is_atomic_mem? atomic_unit_wdata_mem: result_mem),
       .in2(reg_wdata_wb),
-      .out(rdata1_frw_exe)
+      .out(rdata1_frw_exe_tmp)
   );
 
   // Forwarding mux for rd2
   mux3x1 #(32) forwarding_mux_b (
       .sel(forward_rd2_exe),
       .in0(reg_rdata2_exe),
-      .in1(result_mem),
+      .in1(is_atomic_mem? atomic_unit_wdata_mem: result_mem),
       .in2(reg_wdata_wb),
-      .out(rdata2_frw_exe)
+      .out(rdata2_frw_exe_tmp)
   );
 
 
@@ -714,9 +742,12 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
     load_misaligned,
     inst_addr_misaligned,
     current_pc_exe,
-    sel_half_full_exe
+    sel_half_full_exe,
+    forward_rd1_exe,
+    reg_rdata1_exe
   };
 
+logic [1:0] forward_rd1_mem;
 
   n_bit_reg_wclr #(
       .n($bits(exe_mem_reg_t))
@@ -730,6 +761,9 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   );
   logic [4:0] rs1_mem;
   // data signals 
+ // assign alu_op1_mem              = (forward_rd1_mem[1]  &  is_atomic_mem)? rdata1_frw_mem : exe_mem_bus_o.alu_op1;
+
+  assign reg_rdata1_mem           = exe_mem_bus_o.reg_rdata1;
   assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
   assign pc_plus_4_mem            = exe_mem_bus_o.pc_plus_4;  // 32
@@ -763,6 +797,8 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign current_pc_mem           = exe_mem_bus_o.current_pc;
   assign sel_half_full_mem        = exe_mem_bus_o.sel_half_full;
 
+  assign forward_rd1_mem = exe_mem_bus_o.forward_rd1;
+
   // ============================================
   //                Memory Stage
   // ============================================
@@ -776,6 +812,35 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
   assign RS1 = alu_op1_mem;
 
+  
+      // generating memory access signals (write/read) 
+    // logic added to handle core case in the forwarding 
+    logic [31:0] mem_wdata_frw_mem_tmp;
+    logic [31:0] mem_wdata_frw_mem_tmp_ff;
+
+    logic        mem_wb_reg_en_ff;
+    logic        mem_wb_reg_en_drop;
+    logic        mem_wb_reg_en_rise;
+    always_ff @(posedge clk) begin
+        mem_wb_reg_en_ff <= mem_wb_reg_en;
+    end
+    assign mem_wb_reg_en_drop =  mem_wb_reg_en_ff & ~mem_wb_reg_en;
+    assign mem_wb_reg_en_rise = ~mem_wb_reg_en_ff &  mem_wb_reg_en;
+
+    always_ff @(posedge clk) begin
+        if(mem_wb_reg_en_drop) begin
+            mem_wdata_frw_mem_tmp_ff <= mem_wdata_frw_mem_tmp;
+        end
+    end
+    assign mem_wdata_frw_mem = mem_wb_reg_en_rise ? mem_wdata_frw_mem_tmp_ff : mem_wdata_frw_mem_tmp;
+  
+  
+  
+  
+  
+  
+  
+  
   // generating memory access signals (write/read) 
   int_control interrupt_controller (
       .mtvec(mtvec),
@@ -848,7 +913,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .sel(forward_rd2_mem),
       .in0(rdata2_frw_mem),
       .in1(reg_wdata_wb),
-      .out(mem_wdata)
+      .out(mem_wdata_frw_mem_tmp)
   );
  logic [31:0] mem_addr;
     
@@ -883,7 +948,6 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
     
     logic [4:0] fun5_mem;
     assign fun5_mem = inst_mem[31:27];
-    logic [31:0] atomic_unit_wdata_mem;
     logic atomic_unit_valid_rd_mem;
    //---Exceptions Currently Are Not Use---//
    // logic store_amo_addr_malign_mem; // 
@@ -896,26 +960,27 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
     logic forward_rs1_wb;
     logic [31:0] alu_op1_wb;
+    assign mem_addr_req = is_atomic_mem ? reg_rdata1_mem : alu_result_mem;
+//     assign forward_rs1_wb = (rs1_wb == rs1_mem) && is_atomic_wb;
+//     assign mem_addr = is_atomic_mem ? alu_op1_mem : alu_result_mem;//this might be not neccary since imm is zero when atomic will have to check it later
+//       mux2x1 #(32) mem_addr_in_mux (
+//       .sel(forward_rs1_wb),
+//       .in0(mem_addr),
+//       .in1(alu_op1_wb),
+//       .out(mem_addr_req)
+//   );
 
-    assign forward_rs1_wb = (rs1_wb == rs1_mem) && is_atomic_wb;
-    assign mem_addr = is_atomic_mem ? alu_op1_mem : alu_result_mem;//this might be not neccary since imm is zero when atomic will have to check it later
-      mux2x1 #(32) mem_addr_in_mux (
-      .sel(forward_rs1_wb),
-      .in0(mem_addr),
-      .in1(alu_op1_wb),
-      .out(mem_addr_req)
-  );
 //   logic atomic_valid_mem;
     atomic_access_controller aac_inst (
         .clk(clk),
         .rst(~reset_n),
         .is_atomic_mem(is_atomic_mem),
         .amo_funct5_mem(fun5_mem),
-        .rs2_val_mem(rdata2_frw_mem),
+        .rs2_val_mem(mem_wdata_frw_mem),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
         .mem_addr_req(mem_addr_req),  
-        .mem_wdata_req(mem_wdata),
+        .mem_wdata_req(mem_wdata_frw_mem),
         
         .mem_read(mem_to_reg_mem),
         .mem_write(mem_write_mem),
@@ -1136,7 +1201,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .data_o(divide_stall_wb)
   );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & mem_wb_reg_en & (~atomic_unit_stall_wb);
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & mem_wb_reg_en;
 
   
   

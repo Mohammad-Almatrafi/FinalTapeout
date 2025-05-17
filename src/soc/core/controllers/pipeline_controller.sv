@@ -34,5 +34,5 @@ module pipeline_controller (
   assign if_id_reg_en = ~(stall_pipl | load_hazard | atomic_unit_hazard | atomic_unit_stall | divide_stall);
   assign id_exe_reg_en = ~(stall_pipl | atomic_unit_hazard | atomic_unit_stall |divide_stall); 
   assign exe_mem_reg_en = ~(stall_pipl | atomic_unit_stall | divide_stall);
-  assign mem_wb_reg_en = ~(stall_pipl | atomic_unit_stall | divide_stall);
+  assign mem_wb_reg_en = ~(stall_pipl);
 endmodule
