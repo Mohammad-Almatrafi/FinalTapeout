@@ -8,9 +8,6 @@ module data_path #(
     input logic reset_n,
     input logic timer_irq,
     input logic external_irq,
-
-1231231231
-
     input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
@@ -115,6 +112,29 @@ module data_path #(
     input logic dbg_ret
 
 );
+  logic atomic_unit_valid_rd_mem;
+  logic atomic_valid_mem;
+  logic is_amo;
+  logic wb_exe_forward;
+  
+  logic if_id_reg_en_hold;
+  logic id_exe_reg_en_hold;
+  logic exe_mem_reg_en_hold;
+  logic exe_mem_reg_clr_hold;
+  logic mem_wb_reg_en_hold;
+
+  assign wb_exe_forward = forward_rd1_id | forward_rd2_id | forward_rd1_exe[1] | forward_rd2_exe[1] | forward_rd2_mem;
+
+  assign exe_mem_reg_clr_hold = exe_mem_reg_clr & ~(is_atomic_mem & (~atomic_valid_mem | is_amo));
+  
+
+  
+  assign if_id_reg_en_hold = if_id_reg_en;
+  assign id_exe_reg_en_hold = id_exe_reg_en | atomic_unit_valid_rd_mem;
+  assign exe_mem_reg_en_hold = exe_mem_reg_en & (is_atomic_mem & atomic_valid_mem) | id_exe_reg_en | mem_wb_reg_en_hold;
+  assign mem_wb_reg_en_hold = mem_wb_reg_en & ~wb_exe_forward & (~(is_atomic_mem)) | exe_mem_reg_en;
+
+
 
     logic [31:0] mip_in;
   // logic interrupt;
@@ -174,7 +194,7 @@ module data_path #(
 
   program_counter PC_inst (
       .*,
-      .en(pc_reg_en)
+      .en(pc_reg_en_hold)
   );
 
 
@@ -297,7 +317,7 @@ assign trap = interrupt | exception;
       .n(1)
   ) if_id_reg_en_ff_inst (
       .*,
-      .data_i(if_id_reg_en & ~stall_compressed),
+      .data_i(if_id_reg_en_hold & ~stall_compressed ),
       .data_o(if_id_reg_en_ff),
       .wen(1'b1)
   );
@@ -321,7 +341,7 @@ assign trap = interrupt | exception;
       .clk(clk),
       .reset_n(reset_n),
       .clear(if_id_reg_clr),
-      .wen(if_id_reg_en & ~stall_compressed),
+      .wen(if_id_reg_en_hold & ~stall_compressed),
       .data_i(if1_if2_bus_i),
       .data_o(if1_if2_bus_o)
   );
@@ -359,7 +379,7 @@ assign trap = interrupt | exception;
       .clk(clk),
       .reset_n(reset_n),
       .clear(if_id_reg_clr | if_id_reg_clr_ff),
-      .wen(if_id_reg_en & ~stall_compressed),
+      .wen((if_id_reg_en_hold)& ~stall_compressed),
       .data_i(if_id_bus_i),
       .data_o(if_id_bus_o)
   );
@@ -384,7 +404,7 @@ assign trap = interrupt | exception;
       .stall_compressed(stall_compressed),
       .corrected_pc(corrected_pc),
       .clear_state(if_id_reg_clr),
-      .ff_en(if_id_reg_en),
+      .ff_en(if_id_reg_en_hold),
       .sel_half_full(sel_half_full_id)
   );
 
@@ -502,7 +522,7 @@ assign trap = interrupt | exception;
       .clk(clk),
       .reset_n(reset_n),
       .clear(id_exe_reg_clr),
-      .wen(id_exe_reg_en),
+      .wen(id_exe_reg_en_hold),
       .data_i(id_exe_bus_i),
       .data_o(id_exe_bus_o)
   );
@@ -552,14 +572,15 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
   //                Execute Stage 
   // ============================================
 
-
+logic [31:0] atomic_unit_wdata_mem;
+    
   // forwarding multiplexers
   wire [31:0] rdata1_frw_exe, rdata2_frw_exe;
   // Forwarding mux for rd1
   mux3x1 #(32) forwarding_mux_a (
       .sel(forward_rd1_exe),
       .in0(reg_rdata1_exe),
-      .in1(result_mem),
+      .in1(is_atomic_mem ? atomic_unit_wdata_mem : result_mem), //forward from mem atomic
       .in2(reg_wdata_wb),
       .out(rdata1_frw_exe)
   );
@@ -568,7 +589,7 @@ assign imm_exe = is_atomic_exe ? 32'b0 : id_exe_bus_o.imm;//if the instruction i
   mux3x1 #(32) forwarding_mux_b (
       .sel(forward_rd2_exe),
       .in0(reg_rdata2_exe),
-      .in1(result_mem),
+      .in1(is_atomic_mem ? atomic_unit_wdata_mem : result_mem),
       .in2(reg_wdata_wb),
       .out(rdata2_frw_exe)
   );
@@ -714,23 +735,35 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
     load_misaligned,
     inst_addr_misaligned,
     current_pc_exe,
-    sel_half_full_exe
+    sel_half_full_exe,
+    forward_rd1_exe
   };
+  logic [4:0] fun5_mem;
+ assign fun5_mem = inst_mem[31:27];
+  logic is_amo;
+  assign is_amo = is_atomic_mem & fun5_mem[1];
+//   logic atomic_valid_mem;
+  logic mem_exe_forward;
+  assign mem_exe_forward = forward_rd1_exe[0] | forward_rd2_exe[0];
 
 
   n_bit_reg_wclr #(
-      .n($bits(exe_mem_reg_t))
+      .n($bits(exe_mem_bus_i))
   ) exe_mem_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(exe_mem_reg_clr),
-      .wen(exe_mem_reg_en),
+      .clear(exe_mem_reg_clr_hold),
+      .wen(exe_mem_reg_en_hold),
       .data_i(exe_mem_bus_i),
       .data_o(exe_mem_bus_o)
   );
   logic [4:0] rs1_mem;
+  logic [1:0] forward_rd1_mem;
+  logic is_atomic_wb;
+
   // data signals 
-  assign alu_op1_mem              = exe_mem_bus_o.alu_op1;
+  assign forward_rd1_mem = exe_mem_bus_o.forward_rd1;
+  assign alu_op1_mem              = forward_rd1_mem[1] ? rdata1_frw_mem : exe_mem_bus_o.alu_op1;
   assign inst_mem                 = exe_mem_bus_o.inst;  // 32
   assign pc_plus_4_mem            = exe_mem_bus_o.pc_plus_4;  // 32
   assign pc_jump_mem              = exe_mem_bus_o.pc_jump;
@@ -881,17 +914,14 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
  //              ATOMIC ACCESS LOGIC
  // ============================================
     
-    logic [4:0] fun5_mem;
-    assign fun5_mem = inst_mem[31:27];
-    logic [31:0] atomic_unit_wdata_mem;
-    logic atomic_unit_valid_rd_mem;
+    
+    // logic atomic_unit_valid_rd_mem;
    //---Exceptions Currently Are Not Use---//
    // logic store_amo_addr_malign_mem; // 
    // logic load_addr_malign_mem;            //
    //----------------------------------------------//
     logic [31:0] mem_addr_req;
     logic [31:0] mem_addr;
-    logic is_atomic_wb;
     logic [4:0]  rs1_wb;
 
     logic forward_rs1_wb;
@@ -905,13 +935,12 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .in1(alu_op1_wb),
       .out(mem_addr_req)
   );
-//   logic atomic_valid_mem;
     atomic_access_controller aac_inst (
         .clk(clk),
         .rst(~reset_n),
         .is_atomic_mem(is_atomic_mem),
         .amo_funct5_mem(fun5_mem),
-        .rs2_val_mem(rdata2_frw_mem),
+        .rs2_val_mem(mem_wdata),
         .mem_read_req(mem_to_reg_req_mem),
         .mem_write_req(mem_write_req_mem),
         .mem_addr_req(mem_addr_req),  
@@ -929,7 +958,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
         .valid_rd(atomic_unit_valid_rd_mem),
         .load_addr_malign(load_addr_malign_mem),
         .store_amo_addr_malign(store_amo_addr_malign_mem),
-        .valid()
+        .valid(atomic_valid_mem)
     ); 
 
     logic [31:0] result;
@@ -940,10 +969,12 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   // ============================================
   //            MEM-WB Pipeline Register
   // ============================================
-    
+//   logic wb_exe_forward;
+//   logic mem_wb_reg_en_hold;
   mem_wb_reg_t mem_wb_bus_i, mem_wb_bus_o;
   logic [31:0] alu_mem_result_wb;
   logic atomic_unit_stall_wb;
+//   logic atomic_unit_valid_rd_wb;
   logic valid_rd_wb;
   assign mem_wb_bus_i = {
     // data signals 
@@ -968,14 +999,14 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   ) mem_wb_reg (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .clear(1'b0),
+      .wen(mem_wb_reg_en_hold),
       .data_i(mem_wb_bus_i),
       .data_o(mem_wb_bus_o)
   );
   logic [31:0] mem_rdata_wb;
   logic [31:0] csr_out_wb;
-//   logic atomic_valid_wb;
+  logic atomic_valid_wb;
   // data signals 
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
@@ -983,9 +1014,8 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 //  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
   // control signals
   assign valid_rd_wb = mem_wb_bus_o.valid_rd;
-//   assign atomic_valid_wb = mem_wb_bus_o.atomic_valid;
 //   assign atomic_unit_stall_wb = mem_wb_bus_o.atomic_unit_stall;
-  assign is_atomic_wb = mem_wb_bus_o.is_atomic;
+//   assign is_atomic_wb = mem_wb_bus_o.is_atomic;
   assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
 
@@ -1000,8 +1030,8 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   ) mem_wb_reg_atomic (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(1'b0),
-      .wen(mem_wb_atomic_reg_en),
+      .clear(mem_wb_reg_clr),
+      .wen(mem_wb_reg_en_hold),
       .data_i({alu_op1_mem,rs1_mem}),
       .data_o({alu_op1_wb,rs1_wb})
   );
@@ -1009,14 +1039,14 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 //mem_rdata_mem
 logic [31:0] atomic_unit_wdata_wb;
   n_bit_reg_wclr #(
-      .n($bits({atomic_unit_wdata_mem,atomic_unit_stall_wb}))
+      .n($bits({atomic_unit_wdata_mem,atomic_unit_stall_wb,is_atomic_mem}))
   ) mem_wb_reg_ext (
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
-      .data_i({atomic_unit_wdata_mem,atomic_unit_stall}),
-      .data_o({atomic_unit_wdata_wb,atomic_unit_stall_wb})
+      .wen(mem_wb_reg_en_hold),
+      .data_i({atomic_unit_wdata_mem,atomic_unit_stall,is_atomic_mem}),
+      .data_o({atomic_unit_wdata_wb,atomic_unit_stall_wb,is_atomic_wb})
   );
 
   logic [31:0] mem_rdata_wb;
@@ -1078,7 +1108,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .wen(mem_wb_reg_en_hold),
       .data_i(current_pc_mem),
       .data_o(current_pc_wb)
   );
@@ -1089,7 +1119,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .wen(mem_wb_reg_en_hold),
       .data_i(pc_sel_mem),
       .data_o(pc_sel_wb)
   );
@@ -1106,7 +1136,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .wen(mem_wb_reg_en_hold),
       .data_i(inst_mem),
       .data_o(inst_wb)
   );
@@ -1136,9 +1166,11 @@ logic [31:0] atomic_unit_wdata_wb;
       .data_o(divide_stall_wb)
   );
 
-  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & mem_wb_reg_en & (~atomic_unit_stall_wb);
-
   
+//   assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & ~is_atomic_wb & (~atomic_unit_stall_wb);//is_atomic_wb
+  assign rvfi_valid = ~(rvfi_insn[6:0] == 7'b0) & mem_wb_reg_en_hold & (~atomic_unit_stall_wb) & ~(current_pc_mem == current_pc_wb);
+
+
   
 
   //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;
@@ -1150,8 +1182,8 @@ logic [31:0] atomic_unit_wdata_wb;
   ) rs_reg_exe_mem (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(exe_mem_reg_clr),
-      .wen(exe_mem_reg_en),
+      .clear(exe_mem_reg_clr_hold),
+      .wen(exe_mem_reg_en_hold),
       .data_i({rs1_exe, rs2_exe}),
       .data_o({rvfi_rs1_addr_mem, rvfi_rs2_addr_mem})
   );
@@ -1161,7 +1193,7 @@ logic [31:0] atomic_unit_wdata_wb;
   ) rs_reg_mem_wb ( .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .wen(mem_wb_reg_en_hold),
       .data_i({rvfi_rs1_addr_mem, rvfi_rs2_addr_mem}),
       .data_o({rvfi_rs1_addr, rvfi_rs2_addr})
   );
@@ -1171,8 +1203,8 @@ logic [31:0] atomic_unit_wdata_wb;
   ) rsd_reg_exe_mem (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(exe_mem_reg_clr),
-      .wen(exe_mem_reg_en),
+      .clear(exe_mem_reg_clr_hold),
+      .wen(exe_mem_reg_en_hold),
       .data_i(rdata1_frw_exe),
       .data_o(rvfi_rs1_rdata_mem)
   );
@@ -1183,7 +1215,7 @@ logic [31:0] atomic_unit_wdata_wb;
       .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
-      .wen(mem_wb_reg_en),
+      .wen(mem_wb_reg_en_hold),
       .data_i({rvfi_rs1_rdata_mem, rdata2_frw_mem}),
       .data_o({rvfi_rs1_rdata, rvfi_rs2_rdata})
   );

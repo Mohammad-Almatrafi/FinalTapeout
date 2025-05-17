@@ -285,6 +285,7 @@ package riscv_types;
     logic        inst_addr_misaligned;
     logic [31:0] current_pc;
     logic        sel_half_full;
+    logic [1:0]  forward_rd1;
   } exe_mem_reg_t;
 
   // MEM/WB Register Structure

@@ -26,6 +26,4 @@ module forwarding_unit (
   assign forward_rd2_exe[1] = reg_write_wb  & (rs2_exe == rd_wb ) & (rd_wb!=0 ) & ~forward_rd2_exe[0];
   //  Forwarding to mem stage
   assign forward_rd2_mem = reg_write_wb & (rs2_mem == rd_wb) & (rd_wb != 0);
-
-
 endmodule
