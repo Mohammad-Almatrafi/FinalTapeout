@@ -960,7 +960,7 @@ logic [1:0] forward_rd1_mem;
 
     logic forward_rs1_wb;
     logic [31:0] alu_op1_wb;
-    assign mem_addr_req = is_atomic_mem ? reg_rdata1_mem : alu_result_mem;
+    assign mem_addr_req = is_atomic_mem ? rdata1_frw_mem : alu_result_mem;
 //     assign forward_rs1_wb = (rs1_wb == rs1_mem) && is_atomic_wb;
 //     assign mem_addr = is_atomic_mem ? alu_op1_mem : alu_result_mem;//this might be not neccary since imm is zero when atomic will have to check it later
 //       mux2x1 #(32) mem_addr_in_mux (
