@@ -83,14 +83,14 @@ module core_dbg_fsm (
             dpc <= 0;
         else if(dbg_ar_en & dbg_ar_wr & (dbg_ar_ad == 16'h07b1)) 
             dpc <= dbg_ar_do;
-        else if(core_running_o_ff & ebreak_inst_mem & dcsr[15])
+        else if (core_running_o & dbg_haltreq_i)
             dpc <= cinst_pc;
         else if(core_running_o_ff & (debug_step | dbg_haltreq_i) & inst_valid_wb)
             dpc <= cinst_pc;
         else if(core_running_o & (debug_step | dbg_haltreq_i) & (trap) )
             // dpc <= cinst_pc;
             dpc <= pc_if_jump; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
-        else if (core_running_o & dbg_haltreq_i)
+        else if(core_running_o_ff & ebreak_inst_mem & dcsr[15])
             dpc <= cinst_pc;
     end
 

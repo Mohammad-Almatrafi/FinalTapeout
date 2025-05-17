@@ -288,6 +288,7 @@ module rv32i #(
             case(dbg_ar_ad)
                 16'h07b0: dbg_ar_di = dcsr;
                 16'h07b1: dbg_ar_di = dpc;
+                16'h0301: dbg_ar_di = {2'b1,4'b0,13'b0,1'b1,9'b0,1'b1,1'b0,1'b1};
                 default:  dbg_ar_di = dbg_csr_result;
             endcase
         else if(dbg_ar_ad >= 32'h1000 && dbg_ar_ad <= 32'h101f)

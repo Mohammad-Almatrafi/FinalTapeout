@@ -368,7 +368,7 @@ assign trap = interrupt | exception;
   ) if_id_reg_valid (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(if_id_reg_clr & ~stall_compressed),
+      .clear(if_id_reg_clr  | if_id_reg_clr),
       .wen(if_id_reg_en),
       .data_i(inst_valid_if),
       .data_o(inst_valid_id)

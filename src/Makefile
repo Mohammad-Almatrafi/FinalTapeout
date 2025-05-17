@@ -75,8 +75,8 @@ run_gdb:
 	$(GDB) $(GDB_ELF) -ex "target remote localhost:1324"
 
 kill:
-	killall -9 openocd
-	killall -9 simv
+	-killall -9 openocd
+	-killall -9 simv
 
 
 FPGA_gdb:
