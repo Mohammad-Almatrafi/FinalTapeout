@@ -93,6 +93,7 @@ input logic invalid_inst,
     input logic [31:0] inst_if,
     output logic interrupt,
     output logic mret_type,
+    output logic trap,
 
     output logic        ebreak_inst_mem,
     input  logic        core_halted,
@@ -102,7 +103,7 @@ input logic invalid_inst,
     input  logic [31:0] dbg_ar_do,
     output logic [31:0] dbg_gpr_rdata,
     output logic [31:0] dbg_csr_result,
-    output logic dont_trap,
+    input logic dont_trap,
     output logic [31:0] cinst_pc,
     output logic inst_valid_wb,
     output logic no_jump,
@@ -112,8 +113,9 @@ input logic invalid_inst,
     output logic if_id_reg_clr_ff
 
 );
-
-    logic [31:0] mip_in;
+    
+  logic [31:0] next_pc_if1;
+  logic [31:0] mip_in;
   // logic interrupt;
   logic [31:0] mip;
   //    logic [1:0]  mem_csr_to_reg_exe, mem_csr_to_reg_mem;

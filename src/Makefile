@@ -17,12 +17,12 @@ OPENOCD       := openocd
 OPENOCD_CFG   := tb/config_files/remote_bitbang.cfg
 
 BUILD_DIR     := build
-GDB           := riscv64-unknown-linux-gnu-gdb
+GDB           := riscv32-unknown-elf-gdb
 GDB_ELF       := $(BUILD_DIR)/JTAG_TEST.elf
 
-OBJDUMP = riscv64-unknown-linux-gnu-objdump
-CC      = riscv64-unknown-linux-gnu-gcc 
-OBJCOPY = riscv64-unknown-linux-gnu-objcopy
+OBJDUMP = riscv32-unknown-elf-objdump
+CC      = riscv32-unknown-elf-gcc 
+OBJCOPY = riscv32-unknown-elf-objcopy
 ASM_DIR = asm_files
 
 

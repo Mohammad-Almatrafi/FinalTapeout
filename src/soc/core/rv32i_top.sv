@@ -44,6 +44,7 @@ module rv32i #(
 );
 
     logic dont_trap;
+    logic trap;
     // controller to the data path 
     logic reg_write_id; 
     logic mem_write_id;

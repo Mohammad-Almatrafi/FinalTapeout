@@ -29,6 +29,7 @@ module core_dbg_fsm (
     input  logic [31:0] dbg_ar_do
 );
 
+    logic core_running_o_ff;
     logic [31:0] dpc, dcsr;
     dcause_e debug_cause;
     logic debug_step;
@@ -82,9 +83,9 @@ module core_dbg_fsm (
             dpc <= 0;
         else if(dbg_ar_en & dbg_ar_wr & (dbg_ar_ad == 16'h07b1)) 
             dpc <= dbg_ar_do;
-        else if(core_running_o & ebreak_inst_mem & dcsr[15])
+        else if(core_running_o_ff & ebreak_inst_mem & dcsr[15])
             dpc <= cinst_pc;
-        else if(core_running_o & (debug_step | dbg_haltreq_i) & inst_valid_wb)
+        else if(core_running_o_ff & (debug_step | dbg_haltreq_i) & inst_valid_wb)
             dpc <= cinst_pc;
         else if(core_running_o & (debug_step | dbg_haltreq_i) & (trap) )
             // dpc <= cinst_pc;
@@ -96,7 +97,6 @@ module core_dbg_fsm (
     assign dcsr_o = {4'd4, 12'd0, dcsr[15], 1'b0, dcsr[13:9], debug_cause, 1'b0, dcsr[4], 1'b0, dcsr[2], 2'd3};
     assign dpc_o  = dpc;
 
-    logic core_running_o_ff;
     always @(posedge clk_i, posedge reset_i ) begin
         if(reset_i)
             core_running_o_ff <= core_running_o;
