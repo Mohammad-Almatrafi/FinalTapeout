@@ -33,7 +33,6 @@ module rv32i #(
 
     input  logic dbg_haltreq,
     input  logic dbg_resumereq,
-    input  logic dbg_ndmreset,
 
     input  logic        dbg_ar_en,
     input  logic        dbg_ar_wr,
@@ -43,6 +42,8 @@ module rv32i #(
     input  logic [31:0] dbg_ar_do
 
 );
+
+    logic dont_trap;
     // controller to the data path 
     logic reg_write_id; 
     logic mem_write_id;
@@ -125,6 +126,7 @@ module rv32i #(
 
     logic no_jump;
     logic dbg_ret;
+    logic [31:0] pc_if_jump;
 
 
     assign current_pc = current_pc_if;
@@ -236,10 +238,11 @@ module rv32i #(
         .IMEM_DEPTH(IMEM_DEPTH)
     ) data_path_inst (
         .*,
+        .pc_if_jump(pc_if_jump),
         .divide_stall(divide_stall),
         .divide_instruction(divide_instruction)
     );
-control_unit controller_inst(
+    control_unit controller_inst(
         .*,
         .divide_stall(divide_stall),
         .divide_instruction(divide_instruction)
@@ -261,12 +264,12 @@ control_unit controller_inst(
         .core_resumeack_o  (core_resumeack),
         .core_running_o    (core_running),
         .core_halted_o     (core_halted),
-        .current_pc_id     (current_pc_id),
+        .dont_trap         (dont_trap),
         .cinst_pc          (cinst_pc),
-        .next_pc_if1       (next_pc_if1),
-        //.fetch_busy_i      (prv_fetch_busy),
+        .pc_if_jump       (pc_if_jump),
         .dbg_ret           (dbg_ret),
-        .no_jump           (no_jump),
+        .trap              (trap),
+        .trap_ret          (mret_type),
         .inst_valid_wb     (inst_valid_wb),
 
         .dcsr_o            (dcsr),
@@ -292,4 +295,4 @@ control_unit controller_inst(
     end
     assign dbg_ar_done = dbg_ar_en;
 
-endmodule 
+endmodule

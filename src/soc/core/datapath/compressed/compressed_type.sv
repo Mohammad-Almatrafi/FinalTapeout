@@ -30,10 +30,6 @@ module compressed_type (
   assign f1f2 = prev_info_inst & second_bits_on & ~all_zero;
 
 
-//  always_ff @(posedge clk, negedge reset_n) begin : prev_state
-//    if (~reset_n | clear_state) prev_info_inst <= 1'b0;
-//    else if(en) prev_info_inst <= pc[1] ? second_bits_on : (hf | f1f2);
-//  end
   
   n_bit_reg_wclr #(
     .n(1),

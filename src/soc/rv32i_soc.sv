@@ -1,7 +1,6 @@
 
 import common_pkg::*;
 import debug_pkg::*;
-`default_nettype none
 
 `ifndef PD_BUILD
 	`ifdef USE_SRAM
@@ -179,6 +178,7 @@ module rv32i_soc #(
         .DMEM_DEPTH(DMEM_DEPTH),
         .IMEM_DEPTH(IMEM_DEPTH)
     ) rv32i_core_inst (
+        .reset_n(reset_n & ~dbg_ndmreset),
         .*
     );
 
@@ -190,7 +190,7 @@ module rv32i_soc #(
     wire   wb_clk;
     wire   wb_rst;
     assign wb_clk = clk;
-    assign wb_rst = ~reset_n;
+    assign wb_rst = ~reset_n  | dbg_ndmreset;
 
     // IO
     wire [31:0] wb_m2s_io_adr;
@@ -900,7 +900,7 @@ module rv32i_soc #(
 		.n(32)
 	    ) rom_inst_reg (
 		.clk(clk),
-		.reset_n(reset_n),
+		.reset_n(reset_n & ~dbg_ndmreset),
 		.data_i(rom_inst),
 		.data_o(rom_inst_ff),
 		.wen(if_id_reg_en)

@@ -4,7 +4,6 @@ module rv32i_soc_fpag_top (
     input logic CPU_RESETN,
 
     // FPGA core signals
-
     input  logic UART_TXD_IN,
     output logic UART_RXD_OUT,
 
@@ -17,26 +16,13 @@ module rv32i_soc_fpag_top (
     CG,
     DP,
     output wire [7:0] AN,
-    //    output logic        o_flash_cs_n,
-    //    output logic        o_flash_mosi,
-    //    input  logic        i_flash_miso,
 
-
-    //    input logic [15:0] SW,
     output logic [15:0] LED
-    //output logic [0:0] LED
 );
-  parameter DMEM_DEPTH = 128;
-  parameter IMEM_DEPTH = 128;
+  parameter integer DMEM_DEPTH = 128;
+  parameter integer IMEM_DEPTH = 128;
+  parameter integer NO_OF_GPIO_PINS = 24;
 
-  //  assign UART_TXD_IN = LED[0];
-//   assign LED[15:1] = soc_inst.rv32i_core_inst.data_path_inst.csr_unit.csr_reg.csr_mem[3];
-//   assign LED[15:1] = soc_inst.rv32i_core_inst.data_path_inst.mstatus[15:1];
-  assign LED[0] = soc_inst.mip_in[7];
-// assign LED[1] = soc_inst.rv32i_core_inst.data_path_inst.MIE
-assign LED[1] = soc_inst.rv32i_core_inst.data_path_inst.csr_unit.csr_reg.MIE;
-//   assign 
-  //    assign LED[7:0] = soc_inst.UART.wb_dat8_o;
   logic o_flash_sclk;
   STARTUPE2 STARTUPE2 (
       .CFGCLK   (),
@@ -82,21 +68,86 @@ assign LED[1] = soc_inst.rv32i_core_inst.data_path_inst.csr_unit.csr_reg.MIE;
       .reset_n(CPU_RESETN)
   );
 
+  // GPIO - Leds and Switches
+  wire [NO_OF_GPIO_PINS - 1:0] en_gpio;
+  wire [NO_OF_GPIO_PINS - 1:0] i_gpio;
+  wire [NO_OF_GPIO_PINS - 1:0] o_gpio;
+  wire [NO_OF_GPIO_PINS - 1:0] io_data;
+  wire [NO_OF_GPIO_PINS - 1:0] oen_gpio;
+
+  assign oen_gpio = 24'h00FFFF;
+
+`ifndef VIVADO_BUILD
+  bit tck_i;
+  bit tdi_i;
+  bit tms_i = 1;
+  bit tdo_o;
+`endif
+
+//  assign i_gpio = {SW[7:0],16'dz};
+  assign LED[15:11]    = o_gpio[4:0];
+  // assign LED[10:0]     = 10'b0;
+
+
+  logic jump_trigger, jump_ff;
+  logic ebreak_trigger, ebreak_ff;
+  logic inst_valid_trigger, valid_ff;
+
+  logic [10:8] led_;
+
+  always @(posedge clk) begin
+    // jump_ff   <= ~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump;
+    ebreak_ff <= soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
+    valid_ff  <= soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
+    if (ebreak_trigger) led_[8] = ~led_[8];
+    if (jump_trigger) led_[9] = ~led_[9];
+    if (inst_valid_trigger) led_[10] = ~led_[10];
+
+  end
+
+  assign ebreak_trigger     = ebreak_ff ^ soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
+  assign jump_trigger       = 1'b0; //  jump_ff ^ (~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump);
+  assign inst_valid_trigger = valid_ff ^ soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
+
+
+
+  assign LED[0]             = soc_inst.core_halted;
+  assign LED[1]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_step;
+  assign LED[4:2]           = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_cause;
+  // assign LED[5]             = ~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump;
+  assign LED[5]             = 1'b0;
+  assign LED[6]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
+  assign LED[7]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
+  assign LED[10:8]          = led_[10:8];
+
   rv32i_soc #(
       .DMEM_DEPTH(DMEM_DEPTH),
-      .IMEM_DEPTH(IMEM_DEPTH)
+      .IMEM_DEPTH(IMEM_DEPTH),
+      .NO_OF_GPIO_PINS(NO_OF_GPIO_PINS)
   ) soc_inst (
       .*,
       .reset_n  (CPU_RESETN),
       .i_uart_rx(UART_TXD_IN),
-      .o_uart_tx(UART_RXD_OUT),
-      .io_data  ({32'h00000000})
+      .o_uart_tx(UART_RXD_OUT)
+//      ,
+//      .io_data  ({32'h00000000})
   );
-  logic [31:0] disp, disp2;
-  assign disp  = soc_inst.CLINT.mtime[31:0];
-  //assign disp  = soc_inst.rv32i_core_inst.data_path_inst.current_pc_if1;
-  //assign disp = soc_inst.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file[1][31:0];
-  assign disp2 = soc_inst.inst_mem_inst.dmem[0][31:0];
+
+  wire [3:0] digits[0:7];
+  wire [31:0] display_reg;
+
+
+  assign display_reg = soc_inst.rv32i_core_inst.dpc;
+
+//  assign digits[0]   = display_reg[3 : 0];
+//  assign digits[1]   = display_reg[7 : 4];
+//  assign digits[2]   = display_reg[11:8];
+//  assign digits[3]   = display_reg[15:12];
+//  assign digits[4]   = display_reg[19:16];
+//  assign digits[5]   = display_reg[23:20];
+//  assign digits[6]   = display_reg[27:24];
+//  assign digits[7]   = display_reg[31:28];
+
   sev_seg_top sev_Seg_top (
       .CPU_RESETN(CPU_RESETN),
       .CLK100MHZ(clk),
@@ -109,15 +160,8 @@ assign LED[1] = soc_inst.rv32i_core_inst.data_path_inst.csr_unit.csr_reg.MIE;
       .CG(CG),
       .DP(DP),
       .AN(AN),
-      .t(disp)
+      .t(display_reg)
   );
-  //ila_0 ila_core (
-  //	.clk(clk), // input wire clk
-
-
-  //	.probe0(UART_TXD_IN), // input wire [0:0]  probe0  
-  //	.probe1(UART_RXD_OUT) // input wire [0:0]  probe1
-  //);
 
 endmodule : rv32i_soc_fpag_top
 

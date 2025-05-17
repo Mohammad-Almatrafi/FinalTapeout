@@ -100,8 +100,7 @@ module csr_reg (
 
     end
   
-    default:begin
-    end
+    default:;
     endcase
     csr_mem`MIP_ADDR <= mip_in;
     end

@@ -8,8 +8,7 @@ module data_path #(
     input logic reset_n,
     input logic timer_irq,
     input logic external_irq,
-
-    input logic invalid_inst,
+input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
     output logic [6:0] fun7_exe,
@@ -103,12 +102,13 @@ module data_path #(
     input  logic [31:0] dbg_ar_do,
     output logic [31:0] dbg_gpr_rdata,
     output logic [31:0] dbg_csr_result,
+    output logic dont_trap,
     output logic [31:0] cinst_pc,
     output logic inst_valid_wb,
     output logic no_jump,
     input logic [31:0] dpc,
     input logic dbg_ret,
-    output logic [31:0] next_pc_if1,
+    output logic [31:0] pc_if_jump,
     output logic if_id_reg_clr_ff
 
 );
@@ -160,11 +160,12 @@ module data_path #(
   logic [31:0] current_pc_if2, pc_plus_4_if2, inst_if2;
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
-  always_comb begin: mip_assignment
-    mip_in = 32'b0;
-    mip_in[7] = timer_irq;
-    mip_in[11] = external_irq;
-  end
+
+    assign mip_in[6:0] = 7'd0;
+    assign mip_in[7] = 1'b0; // timer_irq;
+    assign mip_in[10:8] = 3'd0;
+    assign mip_in[11] = external_irq;
+    assign mip_in[31:12] = 20'd0;
 
   program_counter PC_inst (
       .*,
@@ -302,6 +303,7 @@ assign trap = interrupt | exception;
   if1_if2_reg_t if1_if2_bus_i, if1_if2_bus_o;
 
   assign if1_if2_bus_i = {current_pc_if1, pc_plus_4_if1};
+  assign pc_if_jump = next_pc_mux_2_out;
 
   n_bit_reg_wclr #(
       .n($bits(if1_if2_reg_t))  // Automatically sets width
@@ -364,11 +366,21 @@ assign trap = interrupt | exception;
   ) if_id_reg_valid (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(if_id_reg_clr | if_id_reg_clr_ff),
-      .wen(if_id_reg_en & ~stall_compressed),
+      .clear(if_id_reg_clr & ~stall_compressed),
+      .wen(if_id_reg_en),
       .data_i(inst_valid_if),
       .data_o(inst_valid_id)
   );
+
+  // watchout what is happening here (could solve the jump problem)
+
+      always @(*) begin 
+        if(inst_valid_mem)                          cinst_pc = current_pc_mem;
+        else if(inst_valid_exe)                     cinst_pc = current_pc_exe;
+        else if(inst_valid_id)                      cinst_pc = current_pc_id;
+        else if(inst_valid_if & ~if_id_reg_clr_ff) cinst_pc = current_pc_if2;
+        else                                        cinst_pc = current_pc_if1;
+    end
 
   assign current_pc_id = if_id_bus_o.current_pc;
   assign pc_plus_4_id  = if_id_bus_o.pc_plus_4;
@@ -797,11 +809,13 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   logic hw_int;
   logic [4:0] int_code;
   logic [31:0] RS1;
+  logic dont_trap;
 
   assign RS1 = alu_op1_mem;
 
   // generating memory access signals (write/read) 
   int_control interrupt_controller (
+      .dont_trap(dont_trap),
       .mtvec(mtvec),
       .mcause(mcause),
       .MIE(MIE),
@@ -832,8 +846,8 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   csr_top csr_unit (
       .current_pc(mepc_adr),
     `ifdef JTAG
-      .csr_en       (core_halted ? dbg_ar_en       : csr_en     ),
-      .csr_cmd      (core_halted ? 2'b00           : inst_mem[13:12]), // don't do any thing, only read csr through debug
+      .csr_en       (core_halted ? dbg_csr_write   : csr_en     ),
+      .csr_cmd      (core_halted ? 2'b01           : inst_mem[13:12]), // don't do any thing, only read csr through debug
       .offset       (core_halted ? dbg_ar_ad[11:0] : offset     ),
       .data_in      (core_halted ? dbg_ar_do       : data_in_csr),
     `else
@@ -851,7 +865,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
 
   assign dbg_csr_result = csr_out;
-  assign cinst_pc = mepc_adr;
+  // assign cinst_pc = mepc_adr;
 
   mret_ecall_type mret_unit (
       .mret_type(mret_type),

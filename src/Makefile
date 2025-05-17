@@ -17,11 +17,12 @@ OPENOCD       := openocd
 OPENOCD_CFG   := tb/config_files/remote_bitbang.cfg
 
 BUILD_DIR     := build
-GDB           := riscv32-unknown-elf-gdb
+GDB           := riscv64-unknown-linux-gnu-gdb
 GDB_ELF       := $(BUILD_DIR)/JTAG_TEST.elf
 
-CC      = riscv32-unknown-elf-gcc
-OBJCOPY = riscv32-unknown-elf-objcopy
+OBJDUMP = riscv64-unknown-linux-gnu-objdump
+CC      = riscv64-unknown-linux-gnu-gcc 
+OBJCOPY = riscv64-unknown-linux-gnu-objcopy
 ASM_DIR = asm_files
 
 
@@ -74,8 +75,31 @@ run_gdb:
 	$(GDB) $(GDB_ELF) -ex "target remote localhost:1324"
 
 kill:
-	killall -9 simv
 	killall -9 openocd
+	killall -9 simv
+
+
+FPGA_gdb:
+	$(GDB) $(GDB_ELF) -ex "target remote localhost:3333"
+
+FPGA_openocd:
+	@echo ">>> Launching OpenOCD…"
+	-pkill hw_server  
+	sudo modprobe -r ftdi_sio usbserial
+	openocd \
+	  -s ~/.platformio/packages/tool-openocd-riscv-chipsalliance \
+	  -s ~/.platformio/packages/framework-wd-riscv-sdk/board/nexys_a7_eh1 \
+	  -s /usr/share/openocd/scripts \
+	  -f ~/FTO/FinalTapeout/src/tb/config_files/debug.cfg \
+	  -c "ftdi tdo_sample_edge rising" \
+	  -c "adapter speed 1000" \
+	  -c "riscv set_mem_access abstract" \
+	  -c "riscv set_command_timeout_sec 20" \
+	  -c "init" \
+	  -c "reset halt" \
+	  -c "wait_halt 500"
+
+
 .PHONY: gen_fst
 gen_fst: $(BUILD_DIR)/waveform.vcd
 	vcd2fst -v $(BUILD_DIR)/waveform.vcd -f $(BUILD_DIR)/waveform.fst
@@ -88,16 +112,16 @@ $(BUILD_DIR)/$(TARGET).elf: $(SRC) $(BUILD_DIR)
 	$(CC) $(CFLAGS) -T $(LDSCRIPT) -o $@ $(SRC)
 
 # Generate the assembly file for reference 
-$(BUILD_DIR)/$(TARGET).dis: $(BUILD_DIR)/$(TARGET).elf
-	riscv32-unknown-elf-objdump -d $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).dis
+$(BUILD_DIR)/$(TARGET).dis: $(BUILD_DIR) $(BUILD_DIR)/$(TARGET).elf
+	$(OBJDUMP) -d $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).dis
 
 # Extract .text section for instruction memory
-$(BUILD_DIR)/inst.hex: $(BUILD_DIR)/$(TARGET).elf
+$(BUILD_DIR)/inst.hex: $(BUILD_DIR) $(BUILD_DIR)/$(TARGET).elf
 	$(OBJCOPY) -O verilog -j .text $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/inst.hex
 	tb/scripts/convert_hex $(BUILD_DIR)/inst.hex $(BUILD_DIR)/inst.hex
 
 # Extract .data, .rodata, .bss (merged) for data memory
-$(BUILD_DIR)/data.hex: $(BUILD_DIR)/$(TARGET).elf
+$(BUILD_DIR)/data.hex: $(BUILD_DIR) $(BUILD_DIR)/$(TARGET).elf
 	$(OBJCOPY) -O verilog -j .data -j .rodata -j .bss $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/data.hex
 	tb/scripts/convert_hex $(BUILD_DIR)/data.hex $(BUILD_DIR)/data.hex
 .PHONY: all_Test clean_Test clean

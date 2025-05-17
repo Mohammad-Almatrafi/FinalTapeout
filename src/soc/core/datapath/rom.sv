@@ -5,7 +5,7 @@ module rom (
 
    logic [31:0] rom [0:127];
 
-    initial  $readmemh("test.hex",rom);
+    initial  $readmemh("test.mem",rom);
 
 //        assign rom[0]    = 32'h1FC00113;
 //        assign rom[1]    = 32'h00000413;

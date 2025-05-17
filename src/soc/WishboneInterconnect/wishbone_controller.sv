@@ -65,12 +65,12 @@ module wishbone_controller (
 
 
     store_aligner store_alignment_unit(
-        .wdata(proc_wdata),
-        .store_type(store_t'(proc_op)),
-        .addr(proc_addr[1:0]),
-        .mem_write(proc_write),
-        .wsel(core_wb_sel_o),
-        .aligned_data(core_wb_dat_o)
+        .wdata(core_halted ? dbg_am_do_i : proc_wdata),
+        .store_type(store_t'(core_halted ? dbg_am_st_i[1:0] : proc_op)),
+        .addr(wb_adr_o[1:0]),
+        .mem_write(proc_write | dbg_am_wr_i),
+        .wsel(wb_sel_o),
+        .aligned_data(wb_dat_o)
     );
 
 // might use this part later 
@@ -89,9 +89,9 @@ module wishbone_controller (
 
 
     load_aligner load_alignment_unit (
-        .addr(proc_addr_ff[1:0]),
-        .fun3(proc_op_ff),
-        .rdata(core_wb_dat_i),
+        .addr(core_halted ? wb_adr_o[1:0] : proc_addr_ff[1:0]),
+        .fun3(core_halted ? dbg_am_st_i[2:0] : proc_op_ff),
+        .rdata(wb_dat_i),
         .aligned_data(proc_rdata)
     );
 
@@ -110,8 +110,8 @@ module wishbone_controller (
     // to the interconnect
     assign dbg_wb_adr_o = dbg_am_ad_i;
     // assign dbg_wb_dat_o = dbg_am_do_i;
-    assign dbg_wb_dat_o = dbg_am_st_i == 3'd1 ? (dbg_wb_adr_o[1] == 1'b1 ? {dbg_am_do_i,16'b0}:dbg_am_do_i):dbg_am_do_i;
-    assign dbg_wb_sel_o = dbg_am_st_i == 3'd1 ? (dbg_wb_adr_o[1] == 1'b1 ? 4'b1100:4'b0011):4'b1111; // (dbg_wb_adr_o[0] == 1'b1 ?  4'b1100: )// FIXME (is st_i same as sel, if not fixit?)
+    // assign dbg_wb_dat_o = dbg_am_st_i == 3'd1 ? (dbg_wb_adr_o[1] == 1'b1 ? {dbg_am_do_i,16'b0}:dbg_am_do_i):dbg_am_do_i;
+    // assign dbg_wb_sel_o = dbg_am_st_i == 3'd1 ? (dbg_wb_adr_o[1] == 1'b1 ? 4'b1100:4'b0011):4'b1111; // (dbg_wb_adr_o[0] == 1'b1 ?  4'b1100: )// FIXME (is st_i same as sel, if not fixit?)
     assign dbg_wb_we_o  = dbg_am_wr_i;
     assign dbg_wb_cyc_o = dbg_am_en_i;
     assign dbg_wb_stb_o = dbg_am_en_i;
@@ -125,8 +125,8 @@ module wishbone_controller (
     `ifdef JTAG
 
         assign wb_adr_o = core_halted ? dbg_wb_adr_o : core_wb_adr_o; 
-        assign wb_dat_o = core_halted ? dbg_wb_dat_o : core_wb_dat_o; 
-        assign wb_sel_o = core_halted ? dbg_wb_sel_o : core_wb_sel_o; 
+        // assign wb_dat_o = core_halted ? dbg_wb_dat_o : core_wb_dat_o; 
+        // assign wb_sel_o = core_halted ? dbg_wb_sel_o : core_wb_sel_o; 
         assign wb_we_o  = core_halted ? dbg_wb_we_o  : core_wb_we_o ; 
         assign wb_cyc_o = core_halted ? dbg_wb_cyc_o : core_wb_cyc_o; 
         assign wb_stb_o = core_halted ? dbg_wb_stb_o : core_wb_stb_o; 

@@ -7,6 +7,7 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
     input logic [31:0] mip,
     input logic [31:0] mip_in,
     input logic pc_reg_en,
+    input logic dont_trap,
 
     input logic [31:0] mcause,
     input logic invalid_inst_mem,
@@ -21,8 +22,8 @@ module int_control (// This block gives whether we have interrupt or not, pc_add
 );
 
   logic [31:0] victored;
-  assign interrupt = pc_reg_en & ((|(mip & mie)) & MIE);
-  assign exception = invalid_inst_mem | store_misaligned_mem | load_misaligned_mem | inst_addr_misaligned_mem | ecall_type;
+  assign interrupt = ~dont_trap & pc_reg_en & ((|(mip & mie)) & MIE) ;
+  assign exception = ~dont_trap & (invalid_inst_mem | store_misaligned_mem | load_misaligned_mem | inst_addr_misaligned_mem | ecall_type);
   assign pc_addr = mtvec[0] ? victored : mtvec;
   assign victored = { mtvec[31:2] + {25'b0000_0000_0000_0000_0000_0000, int_code}, 2'b0}; // just make sure it works
   always_comb begin

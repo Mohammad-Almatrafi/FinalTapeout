@@ -5,17 +5,19 @@ module core_dbg_fsm (
     input logic ebreak_inst_mem,
     input logic dbg_resumereq_i, 
     input logic dbg_haltreq_i,
-    input logic no_jump,
+    input logic trap,
+    input logic trap_ret,
     input logic inst_valid_wb,
 
     output logic core_resumeack_o,
     output logic core_running_o,
     output logic core_halted_o,
     output logic dbg_ret,
+    output logic dont_trap,
 
-    input logic [31:0] current_pc_id,
+
     input logic [31:0] cinst_pc,
-    input logic [31:0] next_pc_if1,
+    input logic [31:0] pc_if_jump,
      
     output logic [31:0] dcsr_o, 
     output logic [31:0] dpc_o,
@@ -43,8 +45,8 @@ module core_dbg_fsm (
     always_comb
     begin
         case(pstate)
-            RUNNING: nstate = (dbg_haltreq_i || (ebreak_inst_mem && dcsr[15]) || (debug_step && (~no_jump | inst_valid_wb)))? HALTED : RUNNING;
-            HALTED:	nstate = dbg_resumereq_i? RESUME : HALTED;
+            RUNNING: nstate = ((ebreak_inst_mem && dcsr[15]) || ((debug_step | dbg_haltreq_i) && (trap  | inst_valid_wb)))? HALTED : RUNNING;
+            HALTED: nstate = dbg_resumereq_i? RESUME : HALTED;
             RESUME: nstate = dbg_resumereq_i? RESUME : RUNNING;
             default: nstate = RUNNING;
         endcase
@@ -82,10 +84,11 @@ module core_dbg_fsm (
             dpc <= dbg_ar_do;
         else if(core_running_o & ebreak_inst_mem & dcsr[15])
             dpc <= cinst_pc;
-        else if(core_running_o & debug_step & inst_valid_wb)
+        else if(core_running_o & (debug_step | dbg_haltreq_i) & inst_valid_wb)
             dpc <= cinst_pc;
-        else if(core_running_o & ( (dbg_haltreq_i | debug_step) & ~no_jump))
-            dpc <= cinst_pc;//next_pc_if1; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
+        else if(core_running_o & (debug_step | dbg_haltreq_i) & (trap) )
+            // dpc <= cinst_pc;
+            dpc <= pc_if_jump; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
         else if (core_running_o & dbg_haltreq_i)
             dpc <= cinst_pc;
     end
@@ -96,10 +99,14 @@ module core_dbg_fsm (
     logic core_running_o_ff;
     always @(posedge clk_i, posedge reset_i ) begin
         if(reset_i)
-            core_running_o_ff <= 'b0;
+            core_running_o_ff <= core_running_o;
         else 
             core_running_o_ff <= core_running_o;
     end
-    assign dbg_ret = ~core_running_o_ff & core_running_o;
+
+    assign dbg_ret = ~core_running_o_ff & core_running_o & ~reset_i;
+
+    assign dont_trap =  core_running_o & (((debug_step | dbg_haltreq_i) & inst_valid_wb) | (ebreak_inst_mem & dcsr[15]));
+
 
 endmodule : core_dbg_fsm
