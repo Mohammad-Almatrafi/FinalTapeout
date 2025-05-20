@@ -84,8 +84,8 @@ module rv32i_soc_fpag_top (
   bit tdo_o;
 `endif
 
-//  assign i_gpio = {SW[7:0],16'dz};
-  assign LED[15:11]    = o_gpio[4:0];
+  //  assign i_gpio = {SW[7:0],16'dz};
+  assign LED[15:11] = o_gpio[4:0];
   // assign LED[10:0]     = 10'b0;
 
 
@@ -105,20 +105,20 @@ module rv32i_soc_fpag_top (
 
   end
 
-  assign ebreak_trigger     = ebreak_ff ^ soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
-  assign jump_trigger       = 1'b0; //  jump_ff ^ (~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump);
+  assign ebreak_trigger = ebreak_ff ^ soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
+  assign jump_trigger = 1'b0;  //  jump_ff ^ (~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump);
   assign inst_valid_trigger = valid_ff ^ soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
 
 
 
-  assign LED[0]             = soc_inst.core_halted;
-  assign LED[1]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_step;
-  assign LED[4:2]           = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_cause;
+  assign LED[0] = soc_inst.core_halted;
+  assign LED[1] = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_step;
+  assign LED[4:2] = soc_inst.rv32i_core_inst.u_core_dbg_fsm.debug_cause;
   // assign LED[5]             = ~soc_inst.rv32i_core_inst.u_core_dbg_fsm.no_jump;
-  assign LED[5]             = 1'b0;
-  assign LED[6]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
-  assign LED[7]             = soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
-  assign LED[10:8]          = led_[10:8];
+  assign LED[5] = 1'b0;
+  assign LED[6] = soc_inst.rv32i_core_inst.u_core_dbg_fsm.inst_valid_wb;
+  assign LED[7] = soc_inst.rv32i_core_inst.u_core_dbg_fsm.ebreak_inst_mem;
+  assign LED[10:8] = led_[10:8];
 
   rv32i_soc #(
       .DMEM_DEPTH(DMEM_DEPTH),
@@ -129,8 +129,8 @@ module rv32i_soc_fpag_top (
       .reset_n  (CPU_RESETN),
       .i_uart_rx(UART_TXD_IN),
       .o_uart_tx(UART_RXD_OUT)
-//      ,
-//      .io_data  ({32'h00000000})
+      //      ,
+      //      .io_data  ({32'h00000000})
   );
 
   wire [3:0] digits[0:7];
@@ -139,14 +139,14 @@ module rv32i_soc_fpag_top (
 
   assign display_reg = soc_inst.rv32i_core_inst.dpc;
 
-//  assign digits[0]   = display_reg[3 : 0];
-//  assign digits[1]   = display_reg[7 : 4];
-//  assign digits[2]   = display_reg[11:8];
-//  assign digits[3]   = display_reg[15:12];
-//  assign digits[4]   = display_reg[19:16];
-//  assign digits[5]   = display_reg[23:20];
-//  assign digits[6]   = display_reg[27:24];
-//  assign digits[7]   = display_reg[31:28];
+  //  assign digits[0]   = display_reg[3 : 0];
+  //  assign digits[1]   = display_reg[7 : 4];
+  //  assign digits[2]   = display_reg[11:8];
+  //  assign digits[3]   = display_reg[15:12];
+  //  assign digits[4]   = display_reg[19:16];
+  //  assign digits[5]   = display_reg[23:20];
+  //  assign digits[6]   = display_reg[27:24];
+  //  assign digits[7]   = display_reg[31:28];
 
   sev_seg_top sev_Seg_top (
       .CPU_RESETN(CPU_RESETN),
@@ -162,6 +162,23 @@ module rv32i_soc_fpag_top (
       .AN(AN),
       .t(display_reg)
   );
+
+  // ila_0 ila_inst (
+  //     .clk(clk),  // input wire clk
+  //
+  //     .probe0(soc_inst.rv32i_core_inst.u_core_dbg_fsm.dpc_o),  // input wire [31:0]  probe0  
+  //     .probe1(soc_inst.rv32i_core_inst.data_path_inst.current_pc_if1),  // input wire [31:0]  probe1 
+  //     .probe2(soc_inst.rv32i_core_inst.data_path_inst.current_pc_if2),  // input wire [31:0]  probe2 
+  //     .probe3(soc_inst.rv32i_core_inst.data_path_inst.current_pc_id),  // input wire [31:0]  probe3 
+  //     .probe4(soc_inst.rv32i_core_inst.data_path_inst.current_pc_exe),  // input wire [31:0]  probe4 
+  //     .probe5(soc_inst.rv32i_core_inst.data_path_inst.current_pc_mem),  // input wire [31:0]  probe5 
+  //     .probe6(soc_inst.rv32i_core_inst.data_path_inst.inst_valid_id),  // input wire [31:0]  probe6 
+  //     .probe7(soc_inst.rv32i_core_inst.data_path_inst.inst_valid_exe),  // input wire [0:0]  probe7 
+  //     .probe8(soc_inst.rv32i_core_inst.data_path_inst.inst_valid_mem),  // input wire [0:0]  probe8 
+  //     .probe9(soc_inst.rv32i_core_inst.data_path_inst.inst_valid_wb)   // input wire [0:0]  probe9
+  // );
+  //
+
 
 endmodule : rv32i_soc_fpag_top
 

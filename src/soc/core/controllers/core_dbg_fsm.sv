@@ -68,7 +68,9 @@ module core_dbg_fsm (
         else if(core_running_o && debug_step)
             debug_cause <= DBG_STEP;
     end
+
     assign debug_step = (dcsr[2]);
+
     always_ff@(posedge clk_i or posedge reset_i)
     begin
             if(reset_i)
@@ -83,15 +85,12 @@ module core_dbg_fsm (
             dpc <= 0;
         else if(dbg_ar_en & dbg_ar_wr & (dbg_ar_ad == 16'h07b1)) 
             dpc <= dbg_ar_do;
-        else if(core_running_o_ff & ebreak_inst_mem & dcsr[15])
+        else if(core_running_o & ebreak_inst_mem & dcsr[15])
             dpc <= cinst_pc;
-        else if(core_running_o_ff & (debug_step | dbg_haltreq_i) & inst_valid_wb)
+        else if(core_running_o & (debug_step | dbg_haltreq_i) & inst_valid_wb)
             dpc <= cinst_pc;
-        else if(core_running_o & (debug_step | dbg_haltreq_i) & (trap) )
-            // dpc <= cinst_pc;
-            dpc <= pc_if_jump; // TODO the earliest valid insturction won't always be in wb, *bcz of flush*
-        else if (core_running_o & dbg_haltreq_i)
-            dpc <= cinst_pc;
+        else if(core_running_o & (debug_step | dbg_haltreq_i) & (trap))
+            dpc <= pc_if_jump;
     end
 
     assign dcsr_o = {4'd4, 12'd0, dcsr[15], 1'b0, dcsr[13:9], debug_cause, 1'b0, dcsr[4], 1'b0, dcsr[2], 2'd3};
@@ -99,8 +98,8 @@ module core_dbg_fsm (
 
     always @(posedge clk_i, posedge reset_i ) begin
         if(reset_i)
-            core_running_o_ff <= core_running_o;
-        else 
+            core_running_o_ff <= 1'b0;
+        else
             core_running_o_ff <= core_running_o;
     end
 

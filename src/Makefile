@@ -1,3 +1,4 @@
+server = 1
 # ───────────────
 # Toolchain Vars
 # ───────────────
@@ -17,12 +18,19 @@ OPENOCD       := openocd
 OPENOCD_CFG   := tb/config_files/remote_bitbang.cfg
 
 BUILD_DIR     := build
-GDB           := riscv32-unknown-elf-gdb
+ifeq ($(server),1)
+	GDB = riscv32-unknown-elf-gdb
+	OBJDUMP = riscv32-unknown-elf-objdump
+	CC      = riscv32-unknown-elf-gcc 
+	OBJCOPY = riscv32-unknown-elf-objcopy
+else 
+	GDB := riscv64-unknown-linux-gnu-gdb
+	OBJDUMP = riscv64-unknown-linux-gnu-objdump
+	CC      = riscv64-unknown-linux-gnu-gcc 
+	OBJCOPY = riscv64-unknown-linux-gnu-objcopy
+endif
 GDB_ELF       := $(BUILD_DIR)/JTAG_TEST.elf
 
-OBJDUMP = riscv32-unknown-elf-objdump
-CC      = riscv32-unknown-elf-gcc 
-OBJCOPY = riscv32-unknown-elf-objcopy
 ASM_DIR = asm_files
 
 
@@ -75,8 +83,8 @@ run_gdb:
 	$(GDB) $(GDB_ELF) -ex "target remote localhost:1324"
 
 kill:
-	killall -9 openocd
-	killall -9 simv
+	-killall -9 openocd
+	-killall -9 simv
 
 
 FPGA_gdb:

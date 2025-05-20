@@ -8,7 +8,7 @@ module data_path #(
     input logic reset_n,
     input logic timer_irq,
     input logic external_irq,
-input logic invalid_inst,
+    input logic invalid_inst,
     // outputs to controller
     output logic [6:0] opcode_id,
     output logic [6:0] fun7_exe,
@@ -39,8 +39,8 @@ input logic invalid_inst,
     input logic m_type_exe,
     input alu_t alu_ctrl_exe,
     input logic pc_sel_mem,
-    
-    input divide_instruction,
+
+    input  divide_instruction,
     output divide_stall,
 
     // forwarding unit stuff
@@ -103,17 +103,17 @@ input logic invalid_inst,
     input  logic [31:0] dbg_ar_do,
     output logic [31:0] dbg_gpr_rdata,
     output logic [31:0] dbg_csr_result,
-    input logic dont_trap,
+    input  logic        dont_trap,
     output logic [31:0] cinst_pc,
-    output logic inst_valid_wb,
-    output logic no_jump,
-    input logic [31:0] dpc,
-    input logic dbg_ret,
+    output logic        inst_valid_wb,
+    output logic        no_jump,
+    input  logic [31:0] dpc,
+    input  logic        dbg_ret,
     output logic [31:0] pc_if_jump,
-    output logic if_id_reg_clr_ff
+    output logic        if_id_reg_clr_ff
 
 );
-    
+
   logic [31:0] next_pc_if1;
   logic [31:0] mip_in;
   // logic interrupt;
@@ -163,11 +163,11 @@ input logic invalid_inst,
 
   //    logic [31:0]inst_exe,inst_id,inst_mem;
 
-    assign mip_in[6:0] = 7'd0;
-    assign mip_in[7] = 1'b0; // timer_irq;
-    assign mip_in[10:8] = 3'd0;
-    assign mip_in[11] = external_irq;
-    assign mip_in[31:12] = 20'd0;
+  assign mip_in[6:0] = 7'd0;
+  assign mip_in[7] = 1'b0;  // timer_irq;
+  assign mip_in[10:8] = 3'd0;
+  assign mip_in[11] = external_irq;
+  assign mip_in[31:12] = 20'd0;
 
   program_counter PC_inst (
       .*,
@@ -181,54 +181,54 @@ input logic invalid_inst,
   assign pc_plus_4_if1 = (current_pc_if1 & ~(32'd3)) + 4;
   logic [31:0] next_pc_mux_1_out;
   logic [31:0] jump_int_addr;
-// 
-  
-//  logic jump_stall_ff;
-//  logic jump_stall;
-//  assign jump_stall= pc_sel_mem & (load_hazard | stall_compressed);
-//  
-//    n_bit_reg #(
-//        .n(1)
-//    ) jump_and_stall_ff (
-//        .*,
-//        .data_i(jump_stall),
-//        .data_o(jump_stall_ff),
-//        .wen(1'b1)
-//    );
-//  
-//  assign first_pc_mux_jump = jump_stall_ff | pc_sel_mem;
+  // 
+
+  //  logic jump_stall_ff;
+  //  logic jump_stall;
+  //  assign jump_stall= pc_sel_mem & (load_hazard | stall_compressed);
+  //  
+  //    n_bit_reg #(
+  //        .n(1)
+  //    ) jump_and_stall_ff (
+  //        .*,
+  //        .data_i(jump_stall),
+  //        .data_o(jump_stall_ff),
+  //        .wen(1'b1)
+  //    );
+  //  
+  //  assign first_pc_mux_jump = jump_stall_ff | pc_sel_mem;
 
 
 
-//// need to | (or) interrupt with a delayed (interrupt & load_hazard)
+  //// need to | (or) interrupt with a delayed (interrupt & load_hazard)
 
-//logic trap_loadhazard_ff;
-//logic trap_loadhazard;
-logic trap;
-assign trap = interrupt | exception;
-//
-//assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
-//  n_bit_reg #(
-//      .n(1)
-//  ) trap_lh_ff (
-//      .*,
-//      .data_i(trap_loadhazard),
-//      .data_o(trap_loadhazard_ff),
-//      .wen(1'b1)
-//  );
-//
-//assign first_pc_mux_trap = trap_loadhazard_ff | trap;
+  //logic trap_loadhazard_ff;
+  //logic trap_loadhazard;
+  logic trap;
+  assign trap = interrupt | exception;
+  //
+  //assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
+  //  n_bit_reg #(
+  //      .n(1)
+  //  ) trap_lh_ff (
+  //      .*,
+  //      .data_i(trap_loadhazard),
+  //      .data_o(trap_loadhazard_ff),
+  //      .wen(1'b1)
+  //  );
+  //
+  //assign first_pc_mux_trap = trap_loadhazard_ff | trap;
 
-//// if there is a stall when jump is in mem, make pc take the value from wb a cycle later
+  //// if there is a stall when jump is in mem, make pc take the value from wb a cycle later
 
   assign no_jump = ~(trap | mret_type | pc_sel_mem);
 
   mux4x1 #(
       .n(32)
   ) first_pc_mux (
-      .sel({trap , pc_sel_mem}),
+      .sel({trap, pc_sel_mem}),
       .in0(pc_plus_4_if1),
-      .in1(pc_jump_mem), // .in1(jump_stall_ff? pc_jump_wb:pc_jump_mem)
+      .in1(pc_jump_mem),  // .in1(jump_stall_ff? pc_jump_wb:pc_jump_mem)
       .in2(jump_int_addr),
       .in3(jump_int_addr),
       .out(next_pc_mux_1_out)
@@ -236,22 +236,22 @@ assign trap = interrupt | exception;
 
 
 
-//// need to | (or) mret_type with a delayed mret_type and load hazard
-//
-//logic mret_loadhazard_ff;
-//logic mret_loadhazard;
-//assign mret_loadhazard = mret_type & (load_hazard | stall_compressed);
-//
-//  n_bit_reg #(
-//      .n(1)
-//  ) mret_lh_ff (
-//      .*,
-//      .data_i(mret_loadhazard),
-//      .data_o(mret_loadhazard_ff),
-//      .wen(1'b1)
-//  );
-//
-//assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
+  //// need to | (or) mret_type with a delayed mret_type and load hazard
+  //
+  //logic mret_loadhazard_ff;
+  //logic mret_loadhazard;
+  //assign mret_loadhazard = mret_type & (load_hazard | stall_compressed);
+  //
+  //  n_bit_reg #(
+  //      .n(1)
+  //  ) mret_lh_ff (
+  //      .*,
+  //      .data_i(mret_loadhazard),
+  //      .data_o(mret_loadhazard_ff),
+  //      .wen(1'b1)
+  //  );
+  //
+  //assign second_pc_mux_mret = mret_type | mret_loadhazard_ff;
 
   logic [31:0] next_pc_mux_2_out;
   mux2x1 #(
@@ -262,16 +262,16 @@ assign trap = interrupt | exception;
       .in1(mepc),
       .out(next_pc_mux_2_out)
   );
-  
+
   mux2x1 #(
       .n(32)
   ) dbg_pc_mux (
 
-      `ifdef JTAG
-        .sel(dbg_ret),
-      `else 
-        .sel(1'b0),
-      `endif
+`ifdef JTAG
+      .sel(dbg_ret),
+`else
+      .sel(1'b0),
+`endif
       .in0(next_pc_mux_2_out),
       .in1(dpc),
       .out(next_pc_if1)
@@ -317,15 +317,18 @@ assign trap = interrupt | exception;
       .data_i(if1_if2_bus_i),
       .data_o(if1_if2_bus_o)
   );
-  logic  inst_valid_if;
-  logic  inst_valid_id;
-  logic  inst_valid_exe;
-  logic  inst_valid_mem;
-  logic  inst_valid_wb;
+  logic inst_valid_if;
+  logic inst_valid_id;
+  logic inst_valid_exe;
+  logic inst_valid_mem;
+  logic inst_valid_wb;
 
   assign current_pc_if2 = if1_if2_bus_o.current_pc;
   assign pc_plus_4_if2  = if1_if2_bus_o.pc_plus_4;
-  assign inst_valid_if = 1'b1;
+
+  always @*
+    if ((|inst_if2) & (|current_pc_if2)) inst_valid_if = 1'b1;
+    else inst_valid_if = 1'b0;
 
   logic [31:0] inst_if_ff;
 
@@ -368,7 +371,7 @@ assign trap = interrupt | exception;
   ) if_id_reg_valid (
       .clk(clk),
       .reset_n(reset_n),
-      .clear(if_id_reg_clr & ~stall_compressed),
+      .clear(if_id_reg_clr | if_id_reg_clr),
       .wen(if_id_reg_en),
       .data_i(inst_valid_if),
       .data_o(inst_valid_id)
@@ -376,13 +379,13 @@ assign trap = interrupt | exception;
 
   // watchout what is happening here (could solve the jump problem)
 
-      always @(*) begin 
-        if(inst_valid_mem)                          cinst_pc = current_pc_mem;
-        else if(inst_valid_exe)                     cinst_pc = current_pc_exe;
-        else if(inst_valid_id)                      cinst_pc = current_pc_id;
-        else if(inst_valid_if & ~if_id_reg_clr_ff) cinst_pc = current_pc_if2;
-        else                                        cinst_pc = current_pc_if1;
-    end
+  always @(*) begin
+    if (inst_valid_mem) cinst_pc = current_pc_mem;
+    else if (inst_valid_exe) cinst_pc = current_pc_exe;
+    else if (inst_valid_id) cinst_pc = corrected_pc;
+    else if (inst_valid_if & ~if_id_reg_clr_ff) cinst_pc = current_pc_if2;
+    else cinst_pc = current_pc_if1;
+  end
 
   assign current_pc_id = if_id_bus_o.current_pc;
   assign pc_plus_4_id  = if_id_bus_o.pc_plus_4;
@@ -424,28 +427,27 @@ assign trap = interrupt | exception;
 
   logic [31:0] reg_rdata1, reg_rdata2;
 
-    assign dbg_gpr_rdata = reg_rdata1;
+  assign dbg_gpr_rdata = reg_rdata1;
 
-    logic dbg_gpr_write;
-    assign dbg_gpr_write = dbg_ar_en & dbg_ar_wr & 
-                           (dbg_ar_ad>= 32'h1000 && dbg_ar_ad <= 32'h101f);
+  logic dbg_gpr_write;
+  assign dbg_gpr_write = dbg_ar_en & dbg_ar_wr & (dbg_ar_ad >= 32'h1000 && dbg_ar_ad <= 32'h101f);
 
   // register file (decode stage)
 
   reg_file reg_file_inst (
       .clk      (clk),
       .reset_n  (reset_n),
-      `ifdef JTAG
-          .reg_write   (core_halted? dbg_gpr_write  : reg_write_wb),
-          .raddr1      (core_halted? dbg_ar_ad[4:0] : rs1_id),
-          .waddr       (core_halted? dbg_ar_ad[4:0] : rd_wb),
-          .wdata       (core_halted? dbg_ar_do      : reg_wdata_wb),
-      `else
-          .reg_write(reg_write_wb),
-          .raddr1   (rs1_id),
-          .waddr    (rd_wb),
-          .wdata    (reg_wdata_wb),
-      `endif
+`ifdef JTAG
+      .reg_write(core_halted ? dbg_gpr_write : reg_write_wb),
+      .raddr1   (core_halted ? dbg_ar_ad[4:0] : rs1_id),
+      .waddr    (core_halted ? dbg_ar_ad[4:0] : rd_wb),
+      .wdata    (core_halted ? dbg_ar_do : reg_wdata_wb),
+`else
+      .reg_write(reg_write_wb),
+      .raddr1   (rs1_id),
+      .waddr    (rd_wb),
+      .wdata    (reg_wdata_wb),
+`endif
       .raddr2   (rs2_id),
       .rdata1   (reg_rdata1),
       .rdata2   (reg_rdata2)
@@ -645,53 +647,53 @@ assign trap = interrupt | exception;
       .out(alu_op2_exe)
   );
   //--------------------------------------------------------------------------------------------------
-logic i_p_signal;
+  logic i_p_signal;
 
-logic internal_div_stall;
-logic stall_div;
-logic dbz;
-logic ovf;
-logic [31:0] div_result_exe;
+  logic internal_div_stall;
+  logic stall_div;
+  logic dbz;
+  logic ovf;
+  logic [31:0] div_result_exe;
 
-logic en;
-logic clear;
-logic o_p_signal;
+  logic en;
+  logic clear;
+  logic o_p_signal;
 
-assign divide_stall = ((internal_div_stall | divide_instruction) & ~o_p_signal);
-// Instantiate the division module
-int_div_rem #(
-  .WIDTH(32)
-) div_inst (
-  .clk(clk),
-  .rst(~reset_n),
-  .i_p_signal( (divide_instruction & ~o_p_signal) ),
-  .o_p_signal(o_p_signal),
-  .alu_ctrl(alu_ctrl_exe),
+  assign divide_stall = ((internal_div_stall | divide_instruction) & ~o_p_signal);
+  // Instantiate the division module
+  int_div_rem #(
+      .WIDTH(32)
+  ) div_inst (
+      .clk(clk),
+      .rst(~reset_n),
+      .i_p_signal((divide_instruction & ~o_p_signal)),
+      .o_p_signal(o_p_signal),
+      .alu_ctrl(alu_ctrl_exe),
 
-  .stall(internal_div_stall),
+      .stall(internal_div_stall),
 
-  .dbz(dbz),
-  .ovf(ovf),
-  .a(alu_op1_exe),
-  .b(alu_op2_exe),
-  .result(div_result_exe),
+      .dbz(dbz),
+      .ovf(ovf),
+      .a(alu_op1_exe),
+      .b(alu_op2_exe),
+      .result(div_result_exe),
 
-  .en(1'b1),
-  .clear(1'b0)
-);
-//--------------------------------------------------------------------------------------------------
-  
-    logic [31:0] mul_result_exe;
-    int_mul mul (
-        .rs1(alu_op1_exe),
-        .rs2(alu_op2_exe),
-        .alu_ctrl(alu_t'(alu_ctrl_exe)),
-        .result(mul_result_exe)
+      .en(1'b1),
+      .clear(1'b0)
   );
-logic [31:0] m_alu_result;
-assign m_alu_result = o_p_signal ? div_result_exe : mul_result_exe;  
-logic [31:0] alu_result_tmp;
-assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
+  //--------------------------------------------------------------------------------------------------
+
+  logic [31:0] mul_result_exe;
+  int_mul mul (
+      .rs1(alu_op1_exe),
+      .rs2(alu_op2_exe),
+      .alu_ctrl(alu_t'(alu_ctrl_exe)),
+      .result(mul_result_exe)
+  );
+  logic [31:0] m_alu_result;
+  assign m_alu_result = o_p_signal ? div_result_exe : mul_result_exe;
+  logic [31:0] alu_result_tmp;
+  assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   // instantiating the ALU here (exe_stage)
   alu alu_inst (
       .alu_ctrl(alu_t'(alu_ctrl_exe)),
@@ -833,7 +835,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   logic [31:0] jump_mret;
   logic [31:0] mepc_adr;
   logic ecall_type;
-  logic  csr_en;
+  logic csr_en;
   assign csr_en = csr_type_mem & ~mret_type & ~ecall_type;
 
   //   CSR and logic of commands for CSR
@@ -842,22 +844,21 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
   logic dbg_csr_write;
   logic [31:0] data_in_csr;
-  assign dbg_csr_write = dbg_ar_en & dbg_ar_wr & 
-                           (dbg_ar_ad< 32'h1000);
-  assign data_in_csr = inst_mem[14] ? {27'b0,inst_mem[19:15]} : RS1; 
+  assign dbg_csr_write = dbg_ar_en & dbg_ar_wr & (dbg_ar_ad < 32'h1000);
+  assign data_in_csr   = inst_mem[14] ? {27'b0, inst_mem[19:15]} : RS1;
   csr_top csr_unit (
       .current_pc(mepc_adr),
-    `ifdef JTAG
-      .csr_en       (core_halted ? dbg_csr_write   : csr_en     ),
+`ifdef JTAG
+      .csr_en(core_halted ? dbg_csr_write : csr_en),
       .csr_cmd      (core_halted ? 2'b01           : inst_mem[13:12]), // don't do any thing, only read csr through debug
-      .offset       (core_halted ? dbg_ar_ad[11:0] : offset     ),
-      .data_in      (core_halted ? dbg_ar_do       : data_in_csr),
-    `else
+      .offset(core_halted ? dbg_ar_ad[11:0] : offset),
+      .data_in(core_halted ? dbg_ar_do : data_in_csr),
+`else
       .csr_en(csr_en),  // this is the mret type
       .csr_cmd(inst_mem[13:12]),
       .offset(inst_mem[31:20]),
       .data_in(data_in_csr),
-    `endif
+`endif
       .ret_action(mret_type),
       .int_action(interrupt | exception),
       .exp_action(exception),
@@ -964,11 +965,11 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign rd_wb             = mem_wb_bus_o.rd;
   assign non_mem_result_wb = mem_wb_bus_o.result;
   assign csr_out_wb        = mem_wb_bus_o.csr_out;
-//  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
+  //  assign pc_jump_wb        = mem_wb_bus_o.pc_jump;
   // control signals
   assign reg_write_wb      = mem_wb_bus_o.reg_write;
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
-  assign mem_rdata_wb = mem_rdata_mem;
+  assign mem_rdata_wb      = mem_rdata_mem;
 
 
   // ============================================
@@ -1012,16 +1013,16 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   logic [31:0] rvfi_mem_rdata;
   logic [31:0] inst_wb;
 
-//  n_bit_reg_wclr #(
-//      .n(1)
-//  ) valid_reg_mem_wb (
-//      .clk(clk),
-//      .reset_n(reset_n),
-//      .clear(mem_wb_reg_clr),
-//      .wen(mem_wb_reg_en),
-//      .data_i(~invalid_inst_mem),
-//      .data_o(rvfi_valid)
-//  );
+  //  n_bit_reg_wclr #(
+  //      .n(1)
+  //  ) valid_reg_mem_wb (
+  //      .clk(clk),
+  //      .reset_n(reset_n),
+  //      .clear(mem_wb_reg_clr),
+  //      .wen(mem_wb_reg_en),
+  //      .data_i(~invalid_inst_mem),
+  //      .data_o(rvfi_valid)
+  //  );
 
 
   logic [31:0] current_pc_wb;
@@ -1053,7 +1054,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
   assign rvfi_pc_wdata = pc_sel_wb ? current_pc_if1 : current_pc_mem;
   assign rvfi_pc_rdata = current_pc_wb;
 
-    n_bit_reg_wclr #(
+  n_bit_reg_wclr #(
       .n(32)
   ) insn_reg_mem_wb (
       .clk(clk),
@@ -1094,7 +1095,7 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
   //assign rvfi_insn = mem_wb_reg_en ? inst_wb : 32'h00000013;
 
-  assign rvfi_insn = inst_wb;
+  assign rvfi_insn  = inst_wb;
 
   n_bit_reg_wclr #(
       .n(10)
@@ -1109,7 +1110,8 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
 
   n_bit_reg_wclr #(
       .n(10)
-  ) rs_reg_mem_wb ( .clk(clk),
+  ) rs_reg_mem_wb (
+      .clk(clk),
       .reset_n(reset_n),
       .clear(mem_wb_reg_clr),
       .wen(mem_wb_reg_en),
@@ -1139,20 +1141,20 @@ assign alu_result_exe = m_type_exe ? m_alu_result : alu_result_tmp;
       .data_o({rvfi_rs1_rdata, rvfi_rs2_rdata})
   );
 
-//rvfi_mem_addrn_bit_reg_wclr #(
-//    .n(64)
-//) memd_reg_mem_wb (
-//    .clk(clk),
-//    .reset_n(reset_n),
-//    .clear(mem_wb_reg_clr),
-//    .wen(mem_wb_reg_en),
-//    .data_i({mem_addr_mem, mem_wdata_mem}),
-//    .data_o({, })
-//);
-  assign rvfi_mem_addr = 32'b0;
+  //rvfi_mem_addrn_bit_reg_wclr #(
+  //    .n(64)
+  //) memd_reg_mem_wb (
+  //    .clk(clk),
+  //    .reset_n(reset_n),
+  //    .clear(mem_wb_reg_clr),
+  //    .wen(mem_wb_reg_en),
+  //    .data_i({mem_addr_mem, mem_wdata_mem}),
+  //    .data_o({, })
+  //);
+  assign rvfi_mem_addr  = 32'b0;
   assign rvfi_mem_wdata = 32'b0;
-  assign rvfi_rd_addr  = rd_wb;
-  assign rvfi_rd_wdata = reg_wdata_wb;
+  assign rvfi_rd_addr   = rd_wb;
+  assign rvfi_rd_wdata  = reg_wdata_wb;
   // assign rvfi_mem_rdata = reg_wdata_wb;
   assign rvfi_mem_rdata = 32'b0;
 
