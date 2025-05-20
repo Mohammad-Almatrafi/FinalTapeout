@@ -14,7 +14,9 @@ module control_unit (
     reset_n,
     input logic hw_jump_clr,
     input logic stall_compressed,
+    
     input logic jump_stall_ff,
+    input logic atomic_unit_stall,
 
     input logic core_halted,
     input logic core_running,
@@ -32,6 +34,7 @@ module control_unit (
     output logic jal_id,
     output logic [1:0] alu_op_id,
     output logic invalid_inst,
+    output logic is_atomic_id,
     //    output logic [1:0] mem_csr_to_reg_id,
     output logic csr_type_id,
     output logic m_type_exe,
@@ -60,7 +63,12 @@ module control_unit (
     output wire [1:0] forward_rd1_exe,
     output wire [1:0] forward_rd2_exe,
     output wire forward_rd2_mem,
-
+    
+    //new signals needed for handling atomic hazard
+    
+    input wire is_atomic_mem,
+    
+    output wire atomic_unit_hazard,
 
     // hazard handler data required from the data path
     input wire [1:0] mem_to_reg_exe,
@@ -98,6 +106,7 @@ module control_unit (
       .jal(jal_id),
       .r_type(r_type_id),
       .csr_type(csr_type_id),
+      .is_atomic(is_atomic_id),
       .mem_csr_to_reg(mem_to_reg_id),
       .*
   );
@@ -131,7 +140,7 @@ module control_unit (
 
   wire  branch_hazard;
   logic mem_read_exe;
-  assign mem_read_exe = mem_to_reg_exe;
+  assign mem_read_exe = mem_to_reg_exe[0];
 
   hazard_handler hazard_handler_inst (.*);
 

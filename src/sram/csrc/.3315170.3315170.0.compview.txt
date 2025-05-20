@@ -1,0 +1,9 @@
+{"vcs1":{"timestamp_begin":1738063325.378012439, "rt":0.29, "ut":0.15, "st":0.10}}
+{"vcselab":{"timestamp_begin":1738063325.744219066, "rt":0.26, "ut":0.16, "st":0.09}}
+{"link":{"timestamp_begin":1738063326.064917385, "rt":0.14, "ut":0.07, "st":0.08}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1738063325.116231719}
+{"VCS_COMP_START_TIME": 1738063325.116231719}
+{"VCS_COMP_END_TIME": 1738063326.279348897}
+{"VCS_USER_OPTIONS": "-full64 -sverilog -timescale=1ns/10ps sram_tb.sv ts1da32kx32_100a_tc.v -o simv"}
+{"vcs1": {"peak_mem": 309656}}
+{"vcselab": {"peak_mem": 158248}}

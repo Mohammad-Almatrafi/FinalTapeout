@@ -15,11 +15,14 @@ module int_div_rem #(
     output     logic ovf,    // overflow
     input reg [WIDTH-1:0] a,   // dividend (numerator)
     input reg [WIDTH-1:0] b,   // divisor (denominator)
-    output     logic [WIDTH-1:0] result,  // result value (quotient or remainder based on func3)
-    input logic en,
-    input logic clear
+    output     logic [WIDTH-1:0] result  // result value (quotient or remainder based on func3)
     );
-    
+  
+logic en,clear;
+
+assign en = 1'b1;
+assign clear = 1'b0;
+
     // func3 operation codes
 //    localparam DIV  = 3'b100;  // signed division
 //    localparam DIVU = 3'b101;  // unsigned division
@@ -108,6 +111,13 @@ module int_div_rem #(
                     o_p_signal<=0;
                     // Initialize calculation registers with full width
                     {acc, quotient} <= {{WIDTH{1'b0}}, a_abs, 1'b0};
+
+                    stall <= 1;
+                    is_signed <= temp_is_signed;
+                    is_remainder <= temp_is_remainder;
+                            // Determine input signs (only relevant for signed operations)
+                    a_signed <= temp_is_signed && temp_a[WIDTH-1];
+                    b_signed <= temp_is_signed && temp_b[WIDTH-1];
 //                    {acc, quotient} <= {{2*WIDTH{1'b0}}, a_abs, 1'b0};
 //                    {acc, quotient} <= {{WIDTH{1'b0}}, a_abs};
                     // rd that Div_unit uses during calcuation
@@ -200,7 +210,7 @@ module int_div_rem #(
                             stall <= 0;
                             o_p_signal <= 1;
                             ovf <= 1;
-                            result <= SMALLEST; // Default value
+                            result <= (SMALLEST); // Default value
                         end else if (~is_signed && temp_a == SMALLEST && temp_b == {WIDTH{1'b1}}) begin 
                             // Special case: INT_MIN / -1 (overflow)
 //                            state <= IDLE;
@@ -208,7 +218,7 @@ module int_div_rem #(
                             stall <= 0;
                             o_p_signal <= 1;
                             ovf <= 1;
-                            result <= 32'd0; // Default value
+                            result <= SMALLEST; // Default value
                                                 
                         end else begin                 
                             dbz <= 0;
@@ -217,12 +227,7 @@ module int_div_rem #(
                             // rd that Div_unit uses during calcuation
 //                            temp_rd_div_unit_use <= i_pipeline_control.rd;
                             
-                            stall <= 1;
-                            is_signed <= temp_is_signed;
-                            is_remainder <= temp_is_remainder;
-                            // Determine input signs (only relevant for signed operations)
-                            a_signed <= temp_is_signed && temp_a[WIDTH-1];
-                            b_signed <= temp_is_signed && temp_b[WIDTH-1];
+
                             
                             temp_a_ff <= temp_a;
                             temp_b_ff <= temp_b;
