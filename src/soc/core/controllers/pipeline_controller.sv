@@ -8,15 +8,12 @@ module pipeline_controller (
     input logic stall_compressed,
     input logic jump_stall_ff,
     input logic divide_stall,
-<<<<<<< HEAD
 
     input logic core_halted,
     input logic core_running,
     input logic dbg_ret,
-=======
     input logic atomic_unit_stall,
     input logic atomic_unit_hazard,
->>>>>>> origin/feature/imac_real_atomic_fixing
     
     output logic if_id_reg_clr,
     output logic id_exe_reg_clr,

@@ -1125,7 +1125,7 @@ logic [1:0] forward_rd1_mem;
   assign is_atomic_wb = mem_wb_bus_o.is_atomic;
   assign reg_write_wb      = is_atomic_wb ? valid_rd_wb : mem_wb_bus_o.reg_write;//not good idea to add logic here but it is okay everything is sh*ty anyways
   assign mem_to_reg_wb     = mem_wb_bus_o.mem_to_reg;
-  assign mem_rdata_wb      = mem_rdata_mem;
+  // assign mem_rdata_wb      = mem_rdata_mem;
 
 
   // ============================================
