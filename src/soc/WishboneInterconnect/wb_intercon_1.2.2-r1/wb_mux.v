@@ -132,9 +132,9 @@ module wb_mux
       
    always @(posedge wb_clk_i) slave_sel_ff <= slave_sel;
 
-   assign wbm_dat_o = wbs_dat_i[slave_sel_ff*dw+:dw];
-   assign wbm_ack_o = wbs_ack_i[slave_sel_ff];
-   assign wbm_err_o = wbs_err_i[slave_sel_ff] | wbm_err;
-   assign wbm_rty_o = wbs_rty_i[slave_sel_ff];
+   assign wbm_dat_o = wbs_dat_i[slave_sel*dw+:dw];
+   assign wbm_ack_o = wbs_ack_i[slave_sel];
+   assign wbm_err_o = wbs_err_i[slave_sel] | wbm_err;
+   assign wbm_rty_o = wbs_rty_i[slave_sel];
 
 endmodule
