@@ -143,7 +143,6 @@ module uart_tfifo (clk,
 	push, // push strobe, active high
 	pop,   // pop strobe, active high
 // status signals
-	overrun,
 	count,
 	fifo_reset,
 	reset_status
@@ -165,7 +164,6 @@ input				fifo_reset;
 input       reset_status;
 
 output	[fifo_width-1:0]	data_out;
-output				overrun;
 output	[fifo_counter_w-1:0]	count;
 
 wire	[fifo_width-1:0]	data_out;
@@ -179,7 +177,9 @@ reg				overrun;
 wire [fifo_pointer_w-1:0] top_plus_1 = top + 4'd1;
 
 raminfr #(fifo_pointer_w,fifo_width,fifo_depth) tfifo  
-        (.clk(clk), 
+        ( 
+			.clk(clk), 
+			.reset_n(~wb_rst_i),
 			.we(push), 
 			.a(top), 
 			.dpra(bottom), 
@@ -219,7 +219,6 @@ begin
 				bottom   <= bottom + 4'd1;
 				top       <= top_plus_1;
 		        end
-    default: ;
 		endcase
 	end
 end   // always

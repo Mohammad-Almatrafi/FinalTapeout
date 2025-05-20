@@ -191,7 +191,9 @@ reg				overrun;
 wire [fifo_pointer_w-1:0] top_plus_1 = top + 4'h1;
 
 raminfr #(fifo_pointer_w,8,fifo_depth) rfifo  
-        (.clk(clk), 
+        (   
+			.clk(clk), 
+			.reset_n(~wb_rst_i),
 			.we(push), 
 			.a(top), 
 			.dpra(bottom), 
@@ -265,7 +267,6 @@ begin
 				top       <= top_plus_1;
 				fifo[top] <= data_in[2:0];
 		        end
-    default: ;
 		endcase
 	end
 end   // always

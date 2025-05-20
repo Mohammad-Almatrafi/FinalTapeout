@@ -143,7 +143,7 @@ module uart_top	(
 	wb_clk_i, 
 	
 	// Wishbone signals
-	wb_rst_i, wb_adr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_sel_i,
+	wb_rst_i, wb_adr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o,
 	int_o, // interrupt request
 
 	// UART	signals
@@ -173,7 +173,6 @@ output [7:0] 	 wb_dat_o;
 input 								 wb_we_i;
 input 								 wb_stb_i;
 input 								 wb_cyc_i;
-input [3:0]							 wb_sel_i;
 output 								 wb_ack_o;
 output 								 int_o;
 
@@ -203,8 +202,6 @@ wire [7:0] 	 wb_dat_o;
 
 wire [7:0] 							 wb_dat8_i; // 8-bit internal data input
 wire [7:0] 							 wb_dat8_o; // 8-bit internal data output
-wire [31:0] 						 wb_dat32_o; // debug interface 32-bit output
-wire [3:0] 							 wb_sel_i;  // WISHBONE select signal
 wire [2:0] 	 wb_adr_int;
 wire 									 we_o;	// Write enable for registers
 wire		          	     re_o;	// Read enable for registers
@@ -219,9 +216,7 @@ uart_wb		wb_interface(
 	.wb_dat_i(wb_dat_i),
 	.wb_dat_o(wb_dat_o),
 	.wb_dat8_i(wb_dat8_i),
-	.wb_dat8_o(wb_dat8_o),
-	 .wb_dat32_o(32'b0),								 
-	 .wb_sel_i(4'b0),
+	.wb_dat8_o(wb_dat8_o),								 
 		.wb_we_i(	wb_we_i		),
 		.wb_stb_i(	wb_stb_i	),
 		.wb_cyc_i(	wb_cyc_i	),

@@ -131,10 +131,10 @@
 // default value will
 // be used.
 //
-`define PTC_RPTC_CNTR	2'h0	// Address 0x0
-`define PTC_RPTC_HRC	2'h1	// Address 0x4
-`define PTC_RPTC_LRC	2'h2	// Address 0x8
-`define PTC_RPTC_CTRL	2'h3	// Address 0xc
+`define PTC_RPTC_CNTR	3'h0	// Address 0x0
+`define PTC_RPTC_HRC	3'h1	// Address 0x4
+`define PTC_RPTC_LRC	3'h2	// Address 0x8
+`define PTC_RPTC_CTRL	3'h3	// Address 0xc
 
 //
 // Default values for unimplemented PTC registers

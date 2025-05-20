@@ -227,7 +227,7 @@ module i2c_master_byte_ctrl (
 	      ld       <=  1'b0;
 	      cmd_ack  <=  1'b0;
 
-	      case (c_state) // synopsys full_case parallel_case
+	      case (c_state) // sinopsys full_case parallel_case
 	        ST_IDLE:
 	          if (go)
 	            begin
@@ -273,7 +273,7 @@ module i2c_master_byte_ctrl (
 	            end
 
 	        ST_WRITE:
-	          if (core_ack)
+	          if (core_ack) begin 
 	            if (cnt_done)
 	              begin
 	                  c_state  <=  ST_ACK;
@@ -285,7 +285,7 @@ module i2c_master_byte_ctrl (
 	                  core_cmd <=  `I2C_CMD_WRITE; // write next bit
 	                  shift    <=  1'b1;
 	              end
-
+			  end
 	        ST_READ:
 	          if (core_ack)
 	            begin

@@ -15,8 +15,8 @@
             logic o_flash_cs_n;
             logic o_flash_mosi;
             logic i_flash_miso;
-            logic o_uart_tx;
-            logic i_uart_rx;
+            logic o_uart1_tx;
+            logic i_uart1_rx;
             logic pwm_pad_o;
             logic tck_i;
             logic tms_i;
@@ -245,7 +245,7 @@
         .DMEM_DEPTH(DMEM_DEPTH)
       )DUT (
           .*,
-          .i_uart_rx(o_uart_tx)
+          .i_uart1_rx(o_uart1_tx)
 
       );
       
@@ -274,8 +274,8 @@
       initial begin
             initial_imem = '{default: 0};
             initial_dmem = '{default: 0};
-                $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
-                $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
+                $readmemh("/home/Abdullah_Alzahrani/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
+                $readmemh("/home/Abdullah_Alzahrani/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
             
             force DUT.inst_mem_inst.dmem = initial_imem;
             force DUT.data_mem_inst.dmem = initial_dmem;

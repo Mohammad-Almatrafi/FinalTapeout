@@ -70,8 +70,8 @@ module ptc_top(
 	wb_clk_i, wb_rst_i, wb_cyc_i, wb_adr_i, wb_dat_i, wb_sel_i, wb_we_i, wb_stb_i,
 	wb_dat_o, wb_ack_o, wb_err_o, wb_inta_o,
 
-	// External PTC Interface
-	gate_clk_pad_i, capt_pad_i, pwm_pad_o, oen_padoen_o
+	// External PTC Interfce
+	gate_clk_pad_i, pwm_pad_o, oen_padoen_o
 );
 
 parameter dw = 32;
@@ -99,7 +99,6 @@ output wire		wb_inta_o;	// Interrupt request output
 // External PTC Interface
 //
 input wire	gate_clk_pad_i;	// EClk/Gate input
-input wire	capt_pad_i;	// Capture input
 output 		pwm_pad_o;	// PWM output
 output wire	oen_padoen_o;	// PWM output driver enable
 
@@ -158,7 +157,7 @@ wire			hrc_clk;	// RPTC_HRC clock
 wire			lrc_clk;	// RPTC_LRC clock
 wire			eclk_gate;	// ptc_ecgt xored by RPTC_CTRL[NEC]
 wire			gate;		// Gate function of ptc_ecgt
-wire			pwm_rst;	// Reset of a PWM output
+// wire			pwm_rst;	// Reset of a PWM output
 reg	[dw-1:0]	wb_dat_o;	// Data out
 reg			pwm_pad_o;	// PWM output
 reg			int_ptc;		// Interrupt reg
@@ -190,7 +189,9 @@ assign wb_err_o = 1'b0;
 // Counter clock is selected by RPTC_CTRL[ECLK]. When it is set,
 // external clock is used.
 //
-assign cntr_clk = rptc_ctrl[`PTC_RPTC_CTRL_ECLK] ? eclk_gate : wb_clk_i;
+
+// assign cntr_clk = rptc_ctrl[`PTC_RPTC_CTRL_ECLK] ? eclk_gate : wb_clk_i;
+assign cntr_clk =  wb_clk_i;
 
 //
 // Counter reset
@@ -201,13 +202,18 @@ assign cntr_rst = wb_rst_i;
 // HRC clock is selected by RPTC_CTRL[CAPTE]. When it is set,
 // ptc_capt is used as a clock.
 //
-assign hrc_clk = rptc_ctrl[`PTC_RPTC_CTRL_CAPTE] ? capt_pad_i : wb_clk_i;
+
+// assign hrc_clk = rptc_ctrl[`PTC_RPTC_CTRL_CAPTE] ? capt_pad_i : wb_clk_i;
+assign hrc_clk = wb_clk_i;
 
 //
 // LRC clock is selected by RPTC_CTRL[CAPTE]. When it is set,
 // inverted ptc_capt is used as a clock.
 //
-assign lrc_clk = rptc_ctrl[`PTC_RPTC_CTRL_CAPTE] ? ~capt_pad_i : wb_clk_i;
+
+// assign lrc_clk = rptc_ctrl[`PTC_RPTC_CTRL_CAPTE] ? ~capt_pad_i : wb_clk_i;
+assign lrc_clk = wb_clk_i;
+
 
 //
 // PWM output driver enable is inverted RPTC_CTRL[OE]
@@ -309,7 +315,7 @@ assign rptc_cntr = `DEF_RPTC_CNTR;
 // Read PTC registers
 //
 always @(wb_adr_i or rptc_hrc or rptc_lrc or rptc_ctrl or rptc_cntr)
-	case (wb_adr_i[`PTC_OFS_BITS])	// synopsys full_case parallel_case
+	case (wb_adr_i[`PTC_OFS_BITS])	// sinopsys full_case parallel_case
 `ifdef PTC_READREGS
 		`PTC_RPTC_HRC: wb_dat_o[dw-1:0] = {{dw-cw{1'b0}}, rptc_hrc};
 		`PTC_RPTC_LRC: wb_dat_o[dw-1:0] = {{dw-cw{1'b0}}, rptc_lrc};
@@ -343,16 +349,18 @@ assign stop = lrc_match & rptc_ctrl[`PTC_RPTC_CTRL_SINGLE];
 //
 // PWM reset when lrc_match or system reset
 //
-assign pwm_rst = lrc_match | wb_rst_i;
+// assign pwm_rst = lrc_match | wb_rst_i;
 
 //
 // PWM output
 //
-always @(posedge wb_clk_i)	// posedge pwm_rst or posedge hrc_match !!! Damjan
-	if (pwm_rst)
+always @(posedge wb_clk_i, posedge wb_rst_i)	// posedge pwm_rst or posedge hrc_match !!! Damjan
+	if(wb_rst_i) pwm_pad_o <= 'b0;
+	else begin if (lrc_match)
 		pwm_pad_o <=  1'b0;
 	else if (hrc_match)
 		pwm_pad_o <=  1'b1;
+	end
 
 //
 // Generate an interrupt request

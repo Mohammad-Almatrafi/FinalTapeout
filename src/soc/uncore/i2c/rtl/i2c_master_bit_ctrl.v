@@ -183,8 +183,10 @@ module i2c_master_bit_ctrl (
 
     // whenever the slave is not ready it can delay the cycle by pulling SCL low
     // delay scl_oen
-    always @(posedge clk)
-      dscl_oen <=  scl_oen;
+    always @(posedge clk or negedge nReset)
+        if(~nReset)
+            dscl_oen <= 'b0;
+        else  dscl_oen <=  scl_oen;
 
     // slave_wait is asserted when master wants to drive SCL high, but the slave pulls it low
     // slave_wait remains asserted until the slave releases SCL
@@ -247,7 +249,7 @@ module i2c_master_bit_ctrl (
     always @(posedge clk or negedge nReset)
       if      (!nReset     ) filter_cnt <= 14'h0;
       else if (rst || !ena ) filter_cnt <= 14'h0;
-      else if (~|filter_cnt) filter_cnt <= clk_cnt >> 2; //16x I2C bus frequency
+      else if (~|filter_cnt) filter_cnt <= clk_cnt[15:2]; //16x I2C bus frequency
       else                   filter_cnt <= filter_cnt -1;
 
 
@@ -348,8 +350,11 @@ module i2c_master_bit_ctrl (
 
 
     // generate dout signal (store SDA on rising edge of SCL)
-    always @(posedge clk)
-      if (sSCL & ~dSCL) dout <=  sSDA;
+    always @(posedge clk, negedge nReset) begin 
+        if(~nReset)
+            dout <= 'b0;
+        else if (sSCL & ~dSCL) dout <=  sSDA;
+    end
 
 
     // generate statemachine
@@ -396,11 +401,11 @@ module i2c_master_bit_ctrl (
           cmd_ack   <=  1'b0; // default no command acknowledge + assert cmd_ack only 1clk cycle
 
           if (clk_en)
-              case (c_state) // synopsys full_case parallel_case
+              case (c_state) // sinopsys full_case parallel_case
                     // idle state
                     idle:
                     begin
-                        case (cmd) // synopsys full_case parallel_case
+                        case (cmd) // sinopsys full_case parallel_case
                              `I2C_CMD_START: c_state <=  start_a;
                              `I2C_CMD_STOP:  c_state <=  stop_a;
                              `I2C_CMD_WRITE: c_state <=  wr_a;

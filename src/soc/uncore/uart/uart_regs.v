@@ -354,7 +354,6 @@ wire 					rf_push_pulse;
 wire [`UART_FIFO_COUNTER_W-1:0] 	rf_count;
 wire [`UART_FIFO_COUNTER_W-1:0] 	tf_count;
 wire [2:0] 								tstate;
-wire [3:0] 								rstate;
 wire [9:0] 								counter_t;
 
 wire                      thre_set_en; // THRE status is delayed one character time when a character is written to fifo.
@@ -385,7 +384,7 @@ assign stx_pad_o = loopback ? 1'b1 : serial_out;
 
 // Receiver Instance
 uart_receiver receiver(clk, wb_rst_i, lcr, rf_pop, serial_in, enable, 
-	counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rstate, rf_push_pulse);
+	counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rf_push_pulse);
 
 
 // Asynchronous reading here because the outputs are sampled in uart_wb.v file 
@@ -479,7 +478,7 @@ always @(posedge clk or posedge wb_rst_i)
 `endif
 	end
 	else
-	if (wb_we_i && wb_addr_i==`UART_REG_IE)
+	if (wb_we_i && wb_addr_i==`UART_REG_IE) begin 
 		if (dlab)
 		begin
 			dl[`UART_DL2] <=
@@ -491,6 +490,7 @@ always @(posedge clk or posedge wb_rst_i)
 		end
 		else
 			ier <= wb_dat_i[3:0]; // ier uses only 4 lsb
+	end
 
 
 // FIFO Control Register and rx_reset, tx_reset signals

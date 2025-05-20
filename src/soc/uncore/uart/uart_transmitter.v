@@ -178,7 +178,6 @@ reg 											bit_out;
 wire [`UART_FIFO_WIDTH-1:0] 			tf_data_in;
 wire [`UART_FIFO_WIDTH-1:0] 			tf_data_out;
 wire 											tf_push;
-wire 											tf_overrun;
 wire [`UART_FIFO_COUNTER_W-1:0] 		tf_count;
 
 assign 										tf_data_in = wb_dat_i;
@@ -190,7 +189,6 @@ uart_tfifo fifo_tx(	// error bit signal is not used in transmitter FIFO
 	.data_out(	tf_data_out	),
 	.push(		tf_push		),
 	.pop(		tf_pop		),
-	.overrun(	tf_overrun	),
 	.count(		tf_count	),
 	.fifo_reset(	tx_reset	),
 	.reset_status(lsr_mask)
@@ -219,7 +217,7 @@ begin
 	bit_counter <= 3'b0;
   end
   else
-  if (enable | SIM)
+  if (enable)
   begin
 	case (tstate)
 	s_idle	 :	if (~|tf_count) // if tf_count==0
@@ -269,13 +267,6 @@ begin
 				else
 					counter <= counter - 5'd1;
 				stx_o_tmp <= 1'b0;
-				if (SIM) begin
-					tstate <= s_idle;
-					`ifdef VCS_SIM
-						$write("%c", tf_data_out);
-						$fflush(32'h80000001);
-					`endif
-				end
 			end
 	s_send_byte :	begin
 				if (~|counter)

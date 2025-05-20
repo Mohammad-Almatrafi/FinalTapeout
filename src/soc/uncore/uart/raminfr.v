@@ -81,13 +81,14 @@
 
 //Following is the Verilog code for a dual-port RAM with asynchronous read. 
 module raminfr   
-        (clk, we, a, dpra, di, dpo); 
+        (clk, reset_n, we, a, dpra, di, dpo); 
 
 parameter addr_width = 4;
 parameter data_width = 8;
 parameter depth = 16;
 
-input clk;   
+input wire clk;   
+input wire reset_n;
 input we;   
 input  [addr_width-1:0] a;   
 input  [addr_width-1:0] dpra;   
@@ -101,8 +102,12 @@ wire  [data_width-1:0] di;
 wire  [addr_width-1:0] a;   
 wire  [addr_width-1:0] dpra;   
  
-  always @(posedge clk) begin   
-    if (we)   
+  always @(posedge clk, negedge reset_n) begin   
+    if(~reset_n) begin 
+      for(integer i =0; i<depth; i = i+1) begin 
+        ram[i] <= 'b0;
+      end
+    end else if (we)   
       ram[a] <= di;   
   end   
 //  assign spo = ram[a];   

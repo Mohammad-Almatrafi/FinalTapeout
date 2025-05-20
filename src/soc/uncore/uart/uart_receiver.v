@@ -197,7 +197,7 @@
 `default_nettype wire
 
 module uart_receiver (clk, wb_rst_i, lcr, rf_pop, srx_pad_i, enable, 
-	counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rstate, rf_push_pulse);
+	counter_t, rf_count, rf_data_out, rf_error_bit, rf_overrun, rx_reset, lsr_mask, rf_push_pulse);
 
 input				clk;
 input				wb_rst_i;
@@ -213,7 +213,6 @@ output	[`UART_FIFO_COUNTER_W-1:0]	rf_count;
 output	[`UART_FIFO_REC_WIDTH-1:0]	rf_data_out;
 output				rf_overrun;
 output				rf_error_bit;
-output [3:0] 		rstate;
 output 				rf_push_pulse;
 
 reg	[3:0]	rstate;
@@ -301,11 +300,12 @@ begin
 		end
 	sr_rec_start :	begin
   			rf_push 			  <= 1'b0;
-				if (rcounter16_eq_7)    // check the pulse
+				if (rcounter16_eq_7) begin   // check the pulse
 					if (srx_pad_i==1'b1)   // no start bit
 						rstate <= sr_idle;
-					else            // start bit detected
+				    else            // start bit detected
 						rstate <= sr_rec_prepare;
+				end
 				rcounter16 <= rcounter16_minus_1;
 			end
 	sr_rec_prepare:begin
@@ -321,9 +321,10 @@ begin
 					rcounter16	<= 4'b1110;
 					rshift		<= 0;
 				end
-				else
+				else begin 
 					rstate <= sr_rec_prepare;
-				rcounter16 <= rcounter16_minus_1;
+				    rcounter16 <= rcounter16_minus_1; // TODO: spyglass
+				end
 			end
 	sr_rec_bit :	begin
 				if (rcounter16_eq_0)

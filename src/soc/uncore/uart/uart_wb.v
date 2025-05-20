@@ -138,7 +138,7 @@
  
 module uart_wb (clk, wb_rst_i, 
 	wb_we_i, wb_stb_i, wb_cyc_i, wb_ack_o, wb_adr_i,
-	wb_adr_int, wb_dat_i, wb_dat_o, wb_dat8_i, wb_dat8_o, wb_dat32_o, wb_sel_i,
+	wb_adr_int, wb_dat_i, wb_dat_o, wb_dat8_i, wb_dat8_o,
 	we_o, re_o // Write and read enable output for the core
 );
 
@@ -149,7 +149,6 @@ input 		  wb_rst_i;
 input 		  wb_we_i;
 input 		  wb_stb_i;
 input 		  wb_cyc_i;
-input [3:0]   wb_sel_i;
 input [2:0] 	wb_adr_i; //WISHBONE address line
 
 input [7:0]  wb_dat_i; //input WISHBONE bus 
@@ -161,7 +160,6 @@ reg [7:0] 	 wb_dat_is;
 output [2:0]	wb_adr_int; // internal signal for address bus
 input [7:0]   wb_dat8_o; // internal 8 bit output to be put into wb_dat_o
 output [7:0]  wb_dat8_i;
-input [31:0]  wb_dat32_o; // 32 bit data output (for debug interface)
 output 		  wb_ack_o;
 output 		  we_o;
 output 		  re_o;
@@ -175,7 +173,6 @@ reg [2:0]	wb_adr_is;
 reg 								wb_we_is;
 reg 								wb_cyc_is;
 reg 								wb_stb_is;
-wire [3:0]   wb_sel_i;
 reg 			 wre ;// timing control signal for write or read enable
 
 // wb_ack_o FSM

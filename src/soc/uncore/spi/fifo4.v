@@ -73,7 +73,6 @@ reg     [dw:1]  mem[0:3];
 reg     [1:0]   wp;
 reg     [1:0]   rp;
 wire    [1:0]   wp_p1;
-wire    [1:0]   wp_p2;
 wire    [1:0]   rp_p1;
 wire            full, empty;
 reg             gb;
@@ -91,8 +90,6 @@ always @(posedge clk or negedge rst)
     if(we)      wp <= wp_p1;
 
 assign wp_p1 = wp + 2'h1;
-assign wp_p2 = wp + 2'h2;
-
 always @(posedge clk or negedge rst)
     if(!rst)    rp <= 2'h0;
     else
@@ -106,15 +103,20 @@ assign rp_p1 = rp + 2'h1;
 assign  dout = mem[ rp ];
 
 // Fifo Input
-always @(posedge clk)
-    if(we)    mem[ wp ] <=  din;
+always @(posedge clk, negedge rst)
+    if(!rst) begin 
+        for(integer i = 0; i<4; i = i+1)
+            mem[i] <= 'b0;
+    end
+    else if(we)    mem[ wp ] <=  din;
 
 // Status
 assign empty = (wp == rp) & !gb;
 assign full  = (wp == rp) &  gb;
 
 // Guard Bit ...
-always @(posedge clk)
+
+always @(posedge clk, negedge rst)
     if(!rst)               gb <= 1'b0;
     else
     if(clr)                gb <= 1'b0;

@@ -153,22 +153,26 @@ module i2c_master_top(
 	wire wb_wacc = wb_we_i & wb_ack_o;
 
 	// generate acknowledge output signal
-	always @(posedge wb_clk_i)
-	  wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o; // because timing is always honored
+	always @(posedge wb_clk_i or negedge rst_i)
+	if(~rst_i) wb_ack_o <= 'b0; 
+	else wb_ack_o <=  wb_cyc_i & wb_stb_i & ~wb_ack_o; // because timing is always honored
 
 	// assign DAT_O
-	always @(posedge wb_clk_i)
-	begin
-	  case (wb_adr_i) // synopsys parallel_case
-	    3'b000: wb_dat_o <=  prer[ 7:0];
-	    3'b001: wb_dat_o <=  prer[15:8];
-	    3'b010: wb_dat_o <=  ctr;
-	    3'b011: wb_dat_o <=  rxr; // write is transmit register (txr)
-	    3'b100: wb_dat_o <=  sr;  // write is command register (cr)
-	    3'b101: wb_dat_o <=  txr;
-	    3'b110: wb_dat_o <=  cr;
-	    3'b111: wb_dat_o <=  0;   // reserved
-	  endcase
+	always @(posedge wb_clk_i or negedge rst_i)
+	begin 
+		if(~rst_i) wb_dat_o <= 'b0;
+		else begin
+		case (wb_adr_i) // sinopsys parallel_case
+			3'b000: wb_dat_o <=  prer[ 7:0];
+			3'b001: wb_dat_o <=  prer[15:8];
+			3'b010: wb_dat_o <=  ctr;
+			3'b011: wb_dat_o <=  rxr; // write is transmit register (txr)
+			3'b100: wb_dat_o <=  sr;  // write is command register (cr)
+			3'b101: wb_dat_o <=  txr;
+			3'b110: wb_dat_o <=  cr;
+			3'b111: wb_dat_o <=  0;   // reserved
+		endcase
+		end
 	end
 
 	// generate registers
@@ -187,12 +191,11 @@ module i2c_master_top(
 	    end
 	  else
 	    if (wb_wacc)
-	      case (wb_adr_i) // synopsys parallel_case
+	      case (wb_adr_i) // sinopsys parallel_case
 	         3'b000 : prer [ 7:0] <=  wb_dat_i;
 	         3'b001 : prer [15:8] <=  wb_dat_i;
 	         3'b010 : ctr         <=  wb_dat_i;
 	         3'b011 : txr         <=  wb_dat_i;
-	         default: ;
 	      endcase
 
 	// generate command register (special case)
