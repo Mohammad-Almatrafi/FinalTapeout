@@ -237,7 +237,7 @@ module decode_control (
         jal = 0;
         r_type = 0;
         csr_type = 1'b0;
-        invalid_inst = ~stall_compressed | ~if_id_reg_clr_ff; //~(|invalid_counter);
+        invalid_inst = 1'b0&(~stall_compressed | ~if_id_reg_clr_ff); //~(|invalid_counter);
         is_atomic = 1'b0;
       end  // NOP
     endcase

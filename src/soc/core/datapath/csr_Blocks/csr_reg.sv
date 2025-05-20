@@ -50,7 +50,7 @@ module csr_reg (
       12'h340: actual_offset = 3'd2;
       12'h305: actual_offset = 3'd1;
       12'h342: actual_offset = 3'd0;
-      default: actual_offset = 0;
+      default: actual_offset = 3'd7;
     endcase
   end
 
@@ -62,10 +62,10 @@ module csr_reg (
   assign mcause = csr_mem`MCAUSE_ADDR;
 
 
-  assign csr_out = csr_mem[actual_offset];
+  assign csr_out = actual_offset == 3'd7 ? 32'd0: csr_mem[actual_offset];
   always @(posedge clk, negedge reset_n) begin
 
-    if (~reset_n) csr_mem <= '{default: 'b0};
+    if (~reset_n) csr_mem = '{default: 'b0};
     else begin
 
     case({int_action,ret_action,csr_en})

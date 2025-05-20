@@ -255,12 +255,18 @@
 
       // signal geneartion here
       initial begin
+        tck_i = 0;
+        tdi_i = 0;
+        tms_i = 0;
         reset_n = 0;
         repeat (2) @(negedge clk);
         reset_n = 1;  // dropping reset after two clk cycles
       end
 
 
+`ifdef dump_mem
+    dump_mem dat_dum(DUT.rv32i_core_inst.data_path_inst.reg_file_inst.reg_file);
+`endif
 
 
 
@@ -272,7 +278,7 @@
                 $readmemh("/home/Mohammed_Almatrafi/FTO/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
             
             force DUT.inst_mem_inst.dmem = initial_imem;
-                    force DUT.data_mem_inst.dmem = initial_dmem;
+            force DUT.data_mem_inst.dmem = initial_dmem;
             #1; 
             release DUT.inst_mem_inst.dmem;
             release DUT.data_mem_inst.dmem;
@@ -295,6 +301,9 @@
         `ifdef dump_wave
             $dumpfile("waveform.vcd");
             $dumpvars(0, DUT);
+`ifdef dump_mem
+            $dumpvars(0, dat_dum);
+`endif
         `endif
         //   $dumpvars(0, DUT.data_mem_inst);
         //   $dumpvars(0, DUT.inst_mem_inst);

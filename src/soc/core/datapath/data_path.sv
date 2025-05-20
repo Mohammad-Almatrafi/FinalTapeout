@@ -545,7 +545,7 @@ module data_path #(
       .reset_n(reset_n),
       .clear(id_exe_reg_clr),
       .wen(id_exe_reg_en),
-      .data_i(inst_valid_id),
+      .data_i(inst_valid_id & ~(current_pc_id[1] & (&inst_id_pre[17:16]) )),
       .data_o(inst_valid_exe)
   );
 
@@ -861,7 +861,6 @@ logic [1:0] forward_rd1_mem;
   // ============================================
 
   // logic [31:0] mip_in;
-  logic [11:0] offset;
   logic ret_action;
   logic hw_int;
   logic [4:0] int_code;
@@ -933,7 +932,7 @@ logic [1:0] forward_rd1_mem;
 `ifdef JTAG
       .csr_en(core_halted ? dbg_csr_write : csr_en),
       .csr_cmd      (core_halted ? 2'b01           : inst_mem[13:12]), // don't do any thing, only read csr through debug
-      .offset(core_halted ? dbg_ar_ad[11:0] : offset),
+      .offset(core_halted ? dbg_ar_ad[11:0] : inst_mem[31:20]),
       .data_in(core_halted ? dbg_ar_do : data_in_csr),
 `else
       .csr_en(csr_en),  // this is the mret type

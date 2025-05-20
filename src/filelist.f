@@ -3,12 +3,12 @@ tb/SimJTAG.sv
 
 # -timescale=1ns/10ps
 
-# +define+tracer
++define+tracer
 +define+VCS_SIM
 +define+JTAG
-+define+JTAG_verf
+# +define+JTAG_verf
 +define+dump_wave
-+define+dump_mem
+#+define+dump_mem
 
 # lib that many module accesses should be compiled first 
 soc/core/datapath/lib.sv

@@ -98,7 +98,7 @@ module core_dbg_fsm (
 
     always @(posedge clk_i, posedge reset_i ) begin
         if(reset_i)
-            core_running_o_ff <= 1'b0;
+            core_running_o_ff <= 1'b1;
         else
             core_running_o_ff <= core_running_o;
     end
