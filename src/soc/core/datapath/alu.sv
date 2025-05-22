@@ -26,7 +26,7 @@ module alu (
             SLT: alu_result = $signed(op1) < $signed(op2);
             SLL: alu_result = op1 << op2[4:0];
             SRL: alu_result = op1 >> op2[4:0];
-            SRA: alu_result = $signed(op1) >>> op2[4:0];
+            SRA: alu_result = $unsigned($signed(op1) >>> $unsigned(op2[4:0]));
             XOR: alu_result = op1 ^ op2;
             AND: alu_result = op1 & op2;
             OR: alu_result  = op1 | op2;

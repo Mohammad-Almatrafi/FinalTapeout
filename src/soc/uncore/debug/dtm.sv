@@ -60,7 +60,7 @@ begin : tap_fsm_next_logic
     PAUSE_IR        : nstate = tms_i? EXIT2_IR:PAUSE_IR;
     EXIT2_IR        : nstate = tms_i? UPDATE_IR:SHIFT_IR;
     UPDATE_IR       : nstate = tms_i? SELECT_DR_SCAN:RUN_TEST_IDLE;
-    default         : nstate = TEST_LOGIC_RESET;
+    // default         : nstate = TEST_LOGIC_RESET;
   endcase
 end : tap_fsm_next_logic
 //output logic

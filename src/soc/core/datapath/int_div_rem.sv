@@ -80,7 +80,7 @@ assign clear = 1'b0;
 //end
     
     // Calculation state machine
-    enum {IDLE, INIT, CALC, FINALIZE} state;
+    enum [1:0] {IDLE, INIT, CALC, FINALIZE} state;
     
     always_ff @(posedge clk) begin
         o_p_signal<=0;
@@ -125,7 +125,7 @@ assign clear = 1'b0;
                 end // End "INIT" case
                 
                 CALC: begin
-                    if (i == ITER-1) begin  // do this in last cycle of "CALC" state
+                    if ($unsigned(i) == $unsigned(ITER-1)) begin  // do this in last cycle of "CALC" state
                         state <= FINALIZE;
                         stall<=1;
                         o_p_signal<=0;

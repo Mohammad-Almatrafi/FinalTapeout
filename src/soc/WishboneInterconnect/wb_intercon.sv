@@ -141,7 +141,7 @@ module wb_intercon
 
 
 wb_mux
-  #(.num_slaves (9), // 10 with the clint 
+  #(.num_slaves (10), // 10 with the clint 
 	`ifdef tracer
 	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h80040000, 32'h80000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000080, 32'h20000c00, 32'h20000400}),
 	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff80, 32'hffffff80, 32'hffffff00, 32'hffffff00}))

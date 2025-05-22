@@ -24,6 +24,7 @@ module data_path #(
     output logic stall_compressed,
     output logic jump_stall_ff,
 
+
     // control signals from the controller 
     input logic reg_write_id,
     input logic mem_write_id,
@@ -39,7 +40,10 @@ module data_path #(
     input logic csr_type_id,
     input logic m_type_exe,
     input logic is_atomic_id,
-    
+    input logic atomic_unit_hazard,
+    input logic core_running,
+
+
     output logic is_atomic_mem,
 
     input alu_t alu_ctrl_exe,
@@ -47,6 +51,7 @@ module data_path #(
 
     input  divide_instruction,
     output divide_stall,
+
 
     // forwarding unit stuff
     output wire [4:0] rs1_id,
@@ -64,7 +69,6 @@ module data_path #(
     input wire [1:0] forward_rd1_exe,
     input wire [1:0] forward_rd2_exe,
     input wire forward_rd2_mem,
-
 
     // hazard handler data required from the data path
     output wire [1:0] mem_to_reg_exe,
@@ -172,7 +176,7 @@ module data_path #(
   //    logic [31:0]inst_exe,inst_id,inst_mem;
 
   assign mip_in[6:0] = 7'd0;
-  assign mip_in[7] = 1'b0;  // timer_irq;
+  assign mip_in[7] = timer_irq;  // timer_irq;
   assign mip_in[10:8] = 3'd0;
   assign mip_in[11] = external_irq;
   assign mip_in[31:12] = 20'd0;
@@ -212,7 +216,6 @@ module data_path #(
 
   //logic trap_loadhazard_ff;
   //logic trap_loadhazard;
-  logic trap;
   assign trap = interrupt | exception;
   //
   //assign trap_loadhazard =  trap & (load_hazard|stall_compressed);
@@ -329,7 +332,6 @@ module data_path #(
   logic inst_valid_id;
   logic inst_valid_exe;
   logic inst_valid_mem;
-  logic inst_valid_wb;
 
   assign current_pc_if2 = if1_if2_bus_o.current_pc;
   assign pc_plus_4_if2  = if1_if2_bus_o.pc_plus_4;
@@ -559,6 +561,7 @@ module data_path #(
       inst_addr_misaligned_mem;
   logic sel_half_full_exe;
   logic sel_half_full_mem;
+  logic alu_src_exe;
 
   // data signals 
   assign inst_exe = id_exe_bus_o.inst;
@@ -865,7 +868,6 @@ logic [1:0] forward_rd1_mem;
   logic hw_int;
   logic [4:0] int_code;
   logic [31:0] RS1;
-  logic dont_trap;
 
   assign RS1 = alu_op1_mem;
 
@@ -892,12 +894,14 @@ logic [1:0] forward_rd1_mem;
     assign mem_wdata_frw_mem = mem_wb_reg_en_rise ? mem_wdata_frw_mem_tmp_ff : mem_wdata_frw_mem_tmp;
   
   
+
   
   
   
-  
-  
-  
+  logic delaying_interrupt;
+  assign delaying_interrupt =   core_running &~(stall_pipl | load_hazard | stall_compressed | atomic_unit_hazard | atomic_unit_stall | divide_stall);
+
+
   // generating memory access signals (write/read) 
   int_control interrupt_controller (
       .dont_trap(dont_trap),
@@ -973,7 +977,6 @@ logic [1:0] forward_rd1_mem;
       .in1(reg_wdata_wb),
       .out(mem_wdata_frw_mem_tmp)
   );
- logic [31:0] mem_addr;
     
 //  assign mem_addr_mem = alu_result_mem;
   assign mem_op_mem   = fun3_mem;
@@ -1008,8 +1011,8 @@ logic [1:0] forward_rd1_mem;
     assign fun5_mem = inst_mem[31:27];
     logic atomic_unit_valid_rd_mem;
    //---Exceptions Currently Are Not Use---//
-   // logic store_amo_addr_malign_mem; // 
-   // logic load_addr_malign_mem;            //
+    logic store_amo_addr_malign_mem; // 
+    logic load_addr_malign_mem;            //
    //----------------------------------------------//
     logic [31:0] mem_addr_req;
     logic [31:0] mem_addr;
@@ -1157,7 +1160,6 @@ logic [31:0] atomic_unit_wdata_wb;
       .data_o({atomic_unit_wdata_wb,atomic_unit_stall_wb})
   );
 
-  logic [31:0] mem_rdata_wb;
   assign mem_rdata_wb = atomic_unit_wdata_wb;
 //   assign mem_rdata_wb = (is_atomic_mem ? atomic_unit_valid_rd_mem : 1'b1) ?  atomic_unit_wdata_mem : result_mem;
 

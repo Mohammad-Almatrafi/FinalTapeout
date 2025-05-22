@@ -34,8 +34,10 @@ module gpio_top #(
 );
 
 // Derived signals
-logic wb_acc   = wb_stb_i & wb_cyc_i;
-logic gpio_write = wb_acc & wb_we_i;
+logic wb_acc;
+assign wb_acc   = wb_stb_i & wb_cyc_i;
+logic gpio_write;
+assign gpio_write = wb_acc & wb_we_i;
 
 // Register sets
 logic [NO_OF_GPIO_PINS-1:0] rgpio_in;

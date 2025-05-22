@@ -65,7 +65,7 @@ module csr_reg (
   assign csr_out = actual_offset == 3'd7 ? 32'd0: csr_mem[actual_offset];
   always @(posedge clk, negedge reset_n) begin
 
-    if (~reset_n) csr_mem = '{default: 'b0};
+    if (~reset_n) csr_mem <= '{default: 'b0};
     else begin
 
     case({int_action,ret_action,csr_en})
