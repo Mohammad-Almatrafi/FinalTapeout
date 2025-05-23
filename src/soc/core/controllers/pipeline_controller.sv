@@ -40,5 +40,7 @@ module pipeline_controller (
   assign mem_wb_reg_en = core_running &~(stall_pipl | atomic_unit_stall | divide_stall);
   assign pc_reg_en = core_running &~(stall_pipl | load_hazard | stall_compressed | atomic_unit_hazard | atomic_unit_stall | divide_stall) | (mret_type | interrupt | branch_hazard);
 
+
+
 endmodule
 

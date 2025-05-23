@@ -1,18 +1,31 @@
 # Filelist for VCS simulation
-tb/SimJTAG.sv
 
-# -timescale=1ns/10ps
 
++define+PD_BUILD
++define+PD
++define+USE_SRAM
+#################################For verification comment above and uncomment below(1)
 +define+tracer
 +define+VCS_SIM
 +define+JTAG
-# +define+JTAG_verf
++define+JTAG_verf
 +define+dump_wave
-+define+dump_mem
+ #+define+dump_mem
+tb/SimJTAG.sv
+ # -timescale=1ns/10ps
 
-# lib that many module accesses should be compiled first 
+# lib that many module accesses should be compiled 
+soc/sram_wrappers.sv
 soc/core/datapath/lib.sv
 soc/uncore/debug/debug_pkg.sv
+
+tsmc/srams/tsmc_32k_sq/Typical/tsmc_32k_sq_rtl.v
+tsmc/srams/tsmc_8k/Typical/tsmc_8k_rtl.v
+tsmc/srams/tsmc_rom_1k/Typical/tsmc_rom_1k_rtl.v
+tsmc/pads/tpz018nv.v
+
+
+################################also uncomment below for verification
 tb/pkg.sv
 tb/tracer_pkg.sv
 
@@ -25,6 +38,10 @@ soc/core/datapath/compressed/decompress.sv
 soc/core/datapath/compressed/pc_corrector.sv
 soc/core/datapath/compressed/pre_decode.sv
 soc/core/datapath/compressed/stall_compressed.sv
+
+tsmc/*
+
+soc/io_mux.sv
 
 # csr_Blocks
 soc/core/datapath/csr_Blocks/control_CSR.sv
@@ -113,10 +130,13 @@ soc/uncore/ptc/ptc_top.v
 
 # rv32i soc top
 soc/rv32i_soc.sv
+soc/rv32i_soc_top.sv
 
-# Testbench fil
+# Testbench fil ##############################Also uncomment for verification
 tb/tracer.sv
 tb/rv32i_soc_tb.sv
+
+
 
 
 # Optionally, include any other files you want for the simulation.

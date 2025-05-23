@@ -92,6 +92,7 @@ module control_unit (
     input logic stall_pipl
 );
 
+  logic r_type_id;
 
   decode_control dec_ctrl_inst (
       .opcode(opcode_id),

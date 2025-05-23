@@ -63,11 +63,11 @@ always_comb begin
                 3'b011: alu_ctrl = SLTU;
             endcase
         end
-        default: begin
-            m_type             = 1'b0;
-            divide_instruction = 1'b0;
-            alu_ctrl           = ADD;
-        end
+        // default: begin
+        //     m_type             = 1'b0;
+        //     divide_instruction = 1'b0;
+        //     alu_ctrl           = ADD;
+        // end
     endcase
 end
 

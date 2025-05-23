@@ -1,7 +1,4 @@
 
-import common_pkg::*;
-import debug_pkg::*;
-
 `ifndef PD_BUILD
 	`ifdef USE_SRAM
         `ifdef VCS_SIM
@@ -18,20 +15,23 @@ import debug_pkg::*;
         `include "soc/rom/tsmc_rom_1k_rtl.v"
 `endif
 
+import common_pkg::*;
+import debug_pkg::*;
+
 // Added a comment
 module rv32i_soc #(
     parameter DMEM_DEPTH = 128,
     parameter IMEM_DEPTH = 128,
-    parameter NO_OF_GPIO_PINS = 24,
-    parameter NO_OF_SHARED_PINS = 13
+    parameter NO_OF_GPIO_PINS = 32,
+    parameter NO_OF_SHARED_PINS = 15
 ) (
     input logic clk, 
     input logic reset_n,
 
     // gpio signals
-    input  logic [23:0] i_gpio, 
-    output logic [23:0] o_gpio,
-    output logic [23:0] en_gpio,
+    input  logic [31:0] i_gpio, 
+    output logic [31:0] o_gpio,
+    output logic [31:0] en_gpio,
     
     // uart signal
     output logic        o_uart1_tx,
@@ -86,51 +86,51 @@ module rv32i_soc #(
     logic [NO_OF_SHARED_PINS- 1:0] io_sel; 
     logic pwm_padoen_o;
 
-//    io_mux #(
-//        .NO_OF_SHARED_PINS  (NO_OF_SHARED_PINS),
-//        .NO_OF_GPIO_PINS    (NO_OF_GPIO_PINS)
-//    ) io_mux_instance (
-//        // Control
-//        .io_sel           (io_sel),
-//
-//        // SPI Flash
-//        .o_flash_sclk     (o_flash_sclk),
-//        .o_flash_cs_n     (o_flash_cs_n),
-//        .o_flash_mosi     (o_flash_mosi),
-//        .i_flash_miso     (i_flash_miso),
-//
-//        // SPI2
-//        .o_sclk           (o_sclk),
-//        .o_cs_n           (o_cs_n),
-//        .o_mosi           (o_mosi),
-//        .i_miso           (i_miso),
-//
-//        // I2C
-//        .i_scl            (i_scl),
-//        .o_scl            (o_scl),
-//        .o_scl_oen        (o_scl_oen),
-//        .i_sda            (i_sda),
-//        .o_sda            (o_sda),
-//        .o_sda_oen        (o_sda_oen),
-//
-//        // PTC
-//        .pwm_pad_o        (pwm_pad_o),
-//        .pwm_padoen_o     (pwm_padoen_o),
-//
-//        // UART 2
-//        .o_uart2_tx       (o_uart2_tx),
-//        .i_uart2_rx       (i_uart2_rx),
-//
-//        // GPIO core <-> pad mux
-//        .i_gpio_          (i_gpio_),
-//        .o_gpio_          (o_gpio_),
-//        .en_gpio_         (en_gpio_),
-//
-//        // GPIO <-> actual pads
-//        .i_gpio           (i_gpio),
-//        .o_gpio           (o_gpio),
-//        .en_gpio          (en_gpio)
-//    );
+   io_mux #(
+       .NO_OF_SHARED_PINS  (NO_OF_SHARED_PINS),
+       .NO_OF_GPIO_PINS    (NO_OF_GPIO_PINS)
+   ) io_mux_instance (
+       // Control
+       .io_sel           (io_sel),
+
+       // SPI Flash
+       .o_flash_sclk     (o_flash_sclk),
+       .o_flash_cs_n     (o_flash_cs_n),
+       .o_flash_mosi     (o_flash_mosi),
+       .i_flash_miso     (i_flash_miso),
+
+       // SPI2
+       .o_sclk           (o_sclk),
+       .o_cs_n           (o_cs_n),
+       .o_mosi           (o_mosi),
+       .i_miso           (i_miso),
+
+       // I2C
+       .i_scl            (i_scl),
+       .o_scl            (o_scl),
+       .o_scl_oen        (o_scl_oen),
+       .i_sda            (i_sda),
+       .o_sda            (o_sda),
+       .o_sda_oen        (o_sda_oen),
+
+       // PTC
+       .pwm_pad_o        (pwm_pad_o),
+       .pwm_padoen_o     (pwm_padoen_o),
+
+       // UART 2
+       .o_uart2_tx       (o_uart2_tx),
+       .i_uart2_rx       (i_uart2_rx),
+
+       // GPIO core <-> pad mux
+       .i_gpio_          (i_gpio_),
+       .o_gpio_          (o_gpio_),
+       .en_gpio_         (en_gpio_),
+
+       // GPIO <-> actual pads
+       .i_gpio           (i_gpio),
+       .o_gpio           (o_gpio),
+       .en_gpio          (en_gpio)
+   );
 
 
 
@@ -172,11 +172,12 @@ module rv32i_soc #(
     logic [31:0] current_pc, inst;
     logic sel_boot_rom, sel_boot_rom_ff;
 
-`ifndef PD_BUILD
-    `ifndef USE_SRAM
-        logic if_id_reg_en;
-    `endif
-`endif
+// `ifndef PD_BUILD
+//     `ifndef USE_SRAM
+//         logic if_id_reg_en;
+//     `endif
+// `endif
+    logic if_id_reg_en;
     logic timer_irq;
     logic ptc_irq;
     logic spi_flash_irq;

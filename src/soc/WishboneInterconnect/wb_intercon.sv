@@ -162,6 +162,7 @@ wb_mux
 	   	 .MATCH_ADDR ({32'h20000200, 32'h20000280,  32'h00000000, 32'h10000000, 32'h20000100, 32'h20000300, 32'h20000000, 32'h20000080, 32'h20000c00, 32'h20000400, 32'h21000000}),
 	   	 .MATCH_MASK ({32'hffffff80, 32'hffffff80,  32'hfffc0000, 32'hfffc0000, 32'hffffff00, 32'hffffff00, 32'hffffff80, 32'hffffff80, 32'hffffff00, 32'hffffff00, 32'hff000000}))
 	`endif
+	
  wb_mux_io
    (
     .wb_clk_i  (wb_clk_i),
@@ -185,7 +186,8 @@ wb_mux
     .wbs_dat_i ({wb_spi_flash_dat_i, wb_spi_dat_i, wb_dmem_dat_i, wb_imem_dat_i, wb_gpio_dat_i, wb_i2c_dat_i, wb_uart1_dat_i, wb_uart2_dat_i, wb_clint_dat_i, wb_ptc_dat_i, wb_plic_dat_i}),
     .wbs_ack_i ({wb_spi_flash_ack_i, wb_spi_ack_i, wb_dmem_ack_i, wb_imem_ack_i, wb_gpio_ack_i, wb_i2c_ack_i, wb_uart1_ack_i, wb_uart2_ack_i, wb_clint_ack_i, wb_ptc_ack_i, wb_plic_ack_i}),
     .wbs_err_i ({wb_spi_flash_err_i, wb_spi_err_i, wb_dmem_err_i, wb_imem_err_i, wb_gpio_err_i, wb_i2c_err_i, wb_uart1_err_i, wb_uart2_err_i, wb_clint_err_i, wb_ptc_err_i, wb_plic_err_i}),
-    .wbs_rty_i ({wb_spi_flash_rty_i, wb_spi_rty_i, wb_dmem_rty_i, wb_imem_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_uart1_rty_i, wb_uart2_rty_i, wb_clint_rty_i, wb_ptc_rty_i, wb_plic_rty_i})); 
+    .wbs_rty_i ({wb_spi_flash_rty_i, wb_spi_rty_i, wb_dmem_rty_i, wb_imem_rty_i, wb_gpio_rty_i, wb_i2c_rty_i, wb_uart1_rty_i, wb_uart2_rty_i, wb_clint_rty_i, wb_ptc_rty_i, wb_plic_rty_i})
+    ); 
     // x00000000 - 0x0FFFFFFF	  RAM (Data Memory - DMEM)
     // 0x10000000 - 0x1FFFFFFF	Instruction Memory (IMEM)
     // 0x20000000 - 0x20FFFFFF	Peripheral Memory (e.g., UART, GPIO, SPI)

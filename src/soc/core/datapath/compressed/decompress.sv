@@ -163,11 +163,11 @@ module decompress (
 
               //c.sub rd', rs2' => sub rd', rd', rs2'
               2'b11:   inst_32 = {5'b00000, 2'b00, rs2_d, rd_d[1], 3'b111, rd_d[1], R_TYPE};
-              default: inst_32 = 0;
+              // default: inst_32 = 0;
             endcase
           end
 
-          default: inst_32 = 0;
+          // default: inst_32 = 0;
         endcase
 
       end

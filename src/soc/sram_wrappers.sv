@@ -1,4 +1,4 @@
-module mem_8k_sram_wrap (
+module sram_8k_wrapper (
     // 32bit WISHBONE bus slave interface
     input  wire        clk_i,  // clock
     input  wire        rst_i,  // reset (synchronous active high)
@@ -90,7 +90,7 @@ module mem_8k_sram_wrap (
 endmodule
 
 
-module mem_32k_sram_wrap (
+module sram_32k_wrapper (
     // 32bit WISHBONE bus slave interface
     input  wire        clk_i,  // clock
     input  wire        rst_i,  // reset (synchronous active high)
