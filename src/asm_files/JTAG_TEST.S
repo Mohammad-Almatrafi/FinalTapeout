@@ -1,3 +1,4 @@
+.globl _start
 .section .text
 _start:
 li x31,0x20000C00  # mtimecmp address

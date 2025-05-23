@@ -13,10 +13,8 @@ module program_counter #(
         if(~reset_n)
 `ifdef tracer
             current_pc_if1 <= 32'h8000_0000; // base address IM
-`elsif JTAG
-            current_pc_if1 <= 32'h1000_0000; // base address IM
 `else
-            current_pc_if1 <= 32'hffff_ff00; // base address IM
+            current_pc_if1 <= 32'hffff_f000; // base address IM
 `endif
 
         else if (en)

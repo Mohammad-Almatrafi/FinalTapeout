@@ -70,7 +70,7 @@ module mem_8k_sram_wrap (
       .OE(1'b1),
       .ME(1'b1),
       .RM(4'b1101),
-      .Q(Q_dat),
+      .Q(Q_dat)
   );
 
   logic [31:0] data_o_reg;
@@ -161,7 +161,7 @@ module mem_32k_sram_wrap (
       .OE(1'b1),
       .ME(1'b1),
       .RM(4'b1011),
-      .Q(Q_dat),
+      .Q(Q_dat)
   );
 
   logic [31:0] data_o_reg;

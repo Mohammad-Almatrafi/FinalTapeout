@@ -8,7 +8,7 @@ tb/SimJTAG.sv
 +define+JTAG
 # +define+JTAG_verf
 +define+dump_wave
-#+define+dump_mem
++define+dump_mem
 
 # lib that many module accesses should be compiled first 
 soc/core/datapath/lib.sv

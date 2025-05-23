@@ -127,8 +127,8 @@ module rv32i_soc_fpag_top (
   ) soc_inst (
       .*,
       .reset_n  (CPU_RESETN),
-      .i_uart_rx(UART_TXD_IN),
-      .o_uart_tx(UART_RXD_OUT)
+      .i_uart1_rx(UART_TXD_IN),
+      .o_uart1_tx(UART_RXD_OUT)
       //      ,
       //      .io_data  ({32'h00000000})
   );

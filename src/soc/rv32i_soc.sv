@@ -526,7 +526,7 @@ module rv32i_soc #(
     .wb_ptc_dat_i       (wb_s2m_ptc_dat),
     .wb_ptc_ack_i       (wb_s2m_ptc_ack),
     .wb_ptc_err_i       (wb_s2m_ptc_err),
-    .wb_ptc_rty_i       (wb_s2m_ptc_rty)/*,
+    .wb_ptc_rty_i       (wb_s2m_ptc_rty),
 
 // PLIC
     .wb_plic_adr_o       (wb_m2s_plic_adr),
@@ -538,7 +538,8 @@ module rv32i_soc #(
     .wb_plic_dat_i       (wb_s2m_plic_dat),
     .wb_plic_ack_i       (wb_s2m_plic_ack),
     .wb_plic_err_i       (wb_s2m_plic_err),
-    .wb_plic_rty_i       (wb_s2m_plic_rty)*/);
+    .wb_plic_rty_i       (wb_s2m_plic_rty)
+);
 
 
     assign wb_s2m_imem_err  = 1'b0;
@@ -1038,6 +1039,24 @@ module rv32i_soc #(
 				.am_do_o	(dbg_am_do),
 				.am_done_i	(onebit_sig_e'(dbg_am_done))
 			);
+
+    plic_top #(
+        .NUM_SOURCES_P (7),
+        .NUM_CONTEXTS_P(1)
+    ) plic_inst (
+        .wb_clk_i    (clk             ),
+        .wb_rst_i    (wb_rst          ),
+        .wb_cyc_i    (wb_m2s_plic_cyc),
+        .wb_stb_i    (wb_m2s_plic_stb),
+        .wb_adr_i    (wb_m2s_plic_adr[23:0]),
+        .wb_we_i     (wb_m2s_plic_we ),
+        .wb_sel_i    (wb_m2s_plic_sel),
+        .wb_dat_i    (wb_m2s_plic_dat),
+        .wb_dat_o    (wb_s2m_plic_dat),
+        .wb_ack_o    (wb_s2m_plic_ack),
+        .int_sources({uart2_irq,uart1_irq, spi_flash_irq, spi2_irq, gpio_irq, i2c_irq, ptc_irq}), // lsb has the small id number so high priority incase of priority clash
+        .external_irq(external_irq)
+    );
 
 
 endmodule : rv32i_soc

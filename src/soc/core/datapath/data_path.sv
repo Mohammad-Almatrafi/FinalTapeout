@@ -545,7 +545,7 @@ module data_path #(
       .reset_n(reset_n),
       .clear(id_exe_reg_clr),
       .wen(id_exe_reg_en),
-      .data_i(inst_valid_id & ~(current_pc_id[1] & (&inst_id_pre[17:16]) )),
+      .data_i(inst_valid_id),
       .data_o(inst_valid_exe)
   );
 
