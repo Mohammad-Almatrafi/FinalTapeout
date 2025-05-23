@@ -80,7 +80,7 @@ assign clear = 1'b0;
 //end
     
     // Calculation state machine
-    enum [1:0] {IDLE, INIT, CALC, FINALIZE} state;
+    enum logic [1:0] {IDLE, INIT, CALC, FINALIZE} state;
     
     always_ff @(posedge clk) begin
         o_p_signal<=0;

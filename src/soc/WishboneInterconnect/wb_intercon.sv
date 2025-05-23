@@ -134,7 +134,7 @@ module wb_intercon
     input  [31:0] wb_ptc_dat_i,
     input         wb_ptc_ack_i,
     input         wb_ptc_err_i,
-    input         wb_ptc_rty_i
+    input         wb_ptc_rty_i,
 // PLIC
     output [31:0]   wb_plic_adr_o,
     output [31:0]   wb_plic_dat_o,

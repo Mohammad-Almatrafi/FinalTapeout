@@ -32,7 +32,7 @@
 
             parameter DMEM_DEPTH = 250;
             parameter IMEM_DEPTH = 1000;
-            parameter NO_OF_GPIO_PINS = 24;
+            parameter NO_OF_GPIO_PINS = 32;
             
             logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
             logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
@@ -186,11 +186,7 @@
 `else
     module rv32i_soc_tb;
           
-      // gpio signals
-      logic [23:0] i_gpio;
-      logic [23:0] o_gpio;
-      logic [23:0] en_gpio;
-
+      
       logic tck_i;
       logic tdi_i;
       logic tms_i;
@@ -203,10 +199,17 @@
       logic i_flash_miso;
       logic o_uart_tx;
       logic i_uart_rx;
+            
 
       localparam K = 2**10;
       parameter IMEM_DEPTH = 32 * K;
       parameter DMEM_DEPTH = 32 * K;
+      parameter NO_OF_GPIO_PINS = 32;
+    // GPIO - Leds and Switches
+    wire [NO_OF_GPIO_PINS - 1:0] en_gpio;
+    wire [NO_OF_GPIO_PINS - 1:0] i_gpio;
+    wire [NO_OF_GPIO_PINS - 1:0] o_gpio;
+
       wire [31:0] io_data;
     logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
     logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
@@ -241,8 +244,9 @@
 
       // Dut instantiation
       rv32i_soc #(
-        .IMEM_DEPTH(IMEM_DEPTH),
-        .DMEM_DEPTH(DMEM_DEPTH)
+                .IMEM_DEPTH(IMEM_DEPTH),
+                .DMEM_DEPTH(DMEM_DEPTH),
+                .NO_OF_GPIO_PINS(NO_OF_GPIO_PINS)
       )DUT (
           .*,
           .i_uart1_rx(o_uart1_tx)
@@ -272,10 +276,12 @@
 
       // initializing the instruction memory after every reset
       initial begin
+    `ifdef tracer
             initial_imem = '{default: 0};
             initial_dmem = '{default: 0};
-                $readmemh("/home/Hammad_AlReshoud/hammad/FinalTapeout/src/tb/inst_formatted.hex", initial_imem);
-                $readmemh("/home/Hammad_AlReshoud/hammad/FinalTapeout/src/tb/data_formatted.hex", initial_dmem);
+    `endif
+            $readmemh("inst_formatted.hex", initial_imem);
+            $readmemh("data_formatted.hex", initial_dmem);
             
             force DUT.inst_mem_inst.dmem = initial_imem;
             force DUT.data_mem_inst.dmem = initial_dmem;

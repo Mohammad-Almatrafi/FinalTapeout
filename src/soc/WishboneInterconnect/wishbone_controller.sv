@@ -136,8 +136,8 @@ module wishbone_controller (
 
     `else
         assign wb_adr_o = core_wb_adr_o; 
-        assign wb_dat_o = core_wb_dat_o; 
-        assign wb_sel_o = core_wb_sel_o; 
+        // assign wb_dat_o = core_wb_dat_o; 
+        // assign wb_sel_o = core_wb_sel_o; 
         assign wb_we_o  = core_wb_we_o ; 
         assign wb_cyc_o = core_wb_cyc_o; 
         assign wb_stb_o = core_wb_stb_o; 
