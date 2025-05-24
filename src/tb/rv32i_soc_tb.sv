@@ -32,7 +32,7 @@
 
             parameter DMEM_DEPTH = 250;
             parameter IMEM_DEPTH = 1000;
-            parameter NO_OF_GPIO_PINS = 24;
+            parameter NO_OF_GPIO_PINS = 32;
             
             logic [31:0] initial_imem [0:IMEM_DEPTH - 1];
             logic [31:0] initial_dmem [0:DMEM_DEPTH - 1];
@@ -187,9 +187,9 @@
     module rv32i_soc_tb;
           
       // gpio signals
-      logic [23:0] i_gpio;
-      logic [23:0] o_gpio;
-      logic [23:0] en_gpio;
+      logic [31:0] i_gpio;
+      logic [31:0] o_gpio;
+      logic [31:0] en_gpio;
 
       logic tck_i;
       logic tdi_i;
